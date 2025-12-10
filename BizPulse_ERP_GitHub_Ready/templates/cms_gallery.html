@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Manager - CMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .fixed-back-btn {
+            position: fixed; left: 2rem; top: 2rem; z-index: 1000;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white; border: none; padding: 16px 24px; border-radius: 16px;
+            cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 8px 24px rgba(115, 44, 63, 0.3); text-decoration: none;
+        }
+        .fixed-back-btn:hover { transform: translateY(-3px); }
+        .header {
+            background: white; padding: 2rem; border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            margin-bottom: 2rem; margin-left: 100px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { font-size: 2rem; font-weight: 800; color: var(--primary); }
+        .btn {
+            padding: 14px 28px; border: none; border-radius: 12px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(115, 44, 63, 0.3);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-left: 100px;
+        }
+        .gallery-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .gallery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(115, 44, 63, 0.12);
+        }
+        .gallery-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .gallery-info { padding: 1.25rem; }
+        .gallery-category {
+            display: inline-block;
+            padding: 0.35rem 0.85rem;
+            background: rgba(115, 44, 63, 0.1);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .gallery-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        .gallery-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .gallery-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(115, 44, 63, 0.1);
+        }
+        .image-preview {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        /* Image Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .fixed-back-btn { left: 1rem; top: 1rem; padding: 12px 16px; }
+            .fixed-back-btn span { display: none; }
+            .header, .gallery-grid { margin-left: 0; margin-top: 3rem; }
+            .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+            .gallery-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/cms" class="fixed-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>CMS Dashboard</span>
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="header-title"><i class="fas fa-images"></i> Gallery Manager</h1>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Add Image
+            </button>
+        </div>
+
+        <div class="gallery-grid" id="galleryGrid">
+            <p style="grid-column: 1/-1; text-align: center; color: var(--text-light);">Loading gallery...</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <h2 class="modal-header" id="modalTitle">Add Gallery Image</h2>
+            <form id="imageForm">
+                <input type="hidden" id="imageId">
+                
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="title" placeholder="Image title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" rows="3" placeholder="Image description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="category">
+                        <option value="General">General</option>
+                        <option value="Products">Products</option>
+                        <option value="Team">Team</option>
+                        <option value="Office">Office</option>
+                        <option value="Events">Events</option>
+                        <option value="Customers">Customers</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Image</label>
+                    <input type="file" id="imageFile" accept="image/*">
+                    <input type="hidden" id="imageUrl">
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label>Display Order</label>
+                    <input type="number" id="displayOrder" value="0" min="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Image</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="lightboxImage" class="lightbox-image">
+    </div>
+
+    <script>
+        let images = [];
+
+        // Load gallery images
+        async function loadGallery() {
+            try {
+                const response = await fetch('/api/cms/admin/gallery');
+                images = await response.json();
+                renderGallery();
+            } catch (error) {
+                console.error('Error loading gallery:', error);
+            }
+        }
+
+        // Render gallery
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            
+            if (images.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-light);">No images yet. Click "Add Image" to upload your first image!</p>';
+                return;
+            }
+
+            grid.innerHTML = images.map(img => `
+                <div class="gallery-card">
+                    <img src="${img.image_url}" class="gallery-image" alt="${img.title || 'Gallery image'}" onclick="openLightbox('${img.image_url}')">
+                    <div class="gallery-info">
+                        <div class="gallery-category">${img.category || 'General'}</div>
+                        <h3 class="gallery-title">${img.title || 'Untitled'}</h3>
+                        <p class="gallery-description">${img.description || 'No description'}</p>
+                        <div class="gallery-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editImage('${img.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteImage('${img.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open modal
+        function openModal(imageId = null) {
+            document.getElementById('imageModal').classList.add('active');
+            
+            if (imageId) {
+                const image = images.find(i => i.id === imageId);
+                document.getElementById('modalTitle').textContent = 'Edit Gallery Image';
+                document.getElementById('imageId').value = image.id;
+                document.getElementById('title').value = image.title || '';
+                document.getElementById('description').value = image.description || '';
+                document.getElementById('category').value = image.category || 'General';
+                document.getElementById('imageUrl').value = image.image_url || '';
+                document.getElementById('displayOrder').value = image.display_order || 0;
+                
+                if (image.image_url) {
+                    document.getElementById('imagePreview').src = image.image_url;
+                    document.getElementById('imagePreview').style.display = 'block';
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'Add Gallery Image';
+                document.getElementById('imageForm').reset();
+                document.getElementById('imageId').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Edit image
+        function editImage(id) {
+            openModal(id);
+        }
+
+        // Delete image
+        async function deleteImage(id) {
+            if (!confirm('Are you sure you want to delete this image?')) return;
+
+            try {
+                const response = await fetch(`/api/cms/admin/gallery/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadGallery();
+                } else {
+                    alert('Failed to delete image');
+                }
+            } catch (error) {
+                alert('Error deleting image');
+            }
+        }
+
+        // Upload image
+        document.getElementById('imageFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('/api/cms/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    document.getElementById('imageUrl').value = data.url;
+                    document.getElementById('imagePreview').src = data.url;
+                    document.getElementById('imagePreview').style.display = 'block';
+                } catch (error) {
+                    alert('Upload failed');
+                }
+            }
+        });
+
+        // Save image
+        document.getElementById('imageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const imageId = document.getElementById('imageId').value;
+            const imageData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                image_url: document.getElementById('imageUrl').value,
+                category: document.getElementById('category').value,
+                display_order: parseInt(document.getElementById('displayOrder').value),
+                is_active: 1
+            };
+
+            if (!imageData.image_url) {
+                alert('Please upload an image');
+                return;
+            }
+
+            try {
+                let response;
+                if (imageId) {
+                    // Update
+                    response = await fetch(`/api/cms/admin/gallery/${imageId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(imageData)
+                    });
+                } else {
+                    // Create
+                    response = await fetch('/api/cms/admin/gallery', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(imageData)
+                    });
+                }
+
+                if (response.ok) {
+                    closeModal();
+                    loadGallery();
+                } else {
+                    alert('Failed to save image');
+                }
+            } catch (error) {
+                alert('Error saving image');
+            }
+        });
+
+        // Lightbox functions
+        function openLightbox(imageUrl) {
+            document.getElementById('lightboxImage').src = imageUrl;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        // Load gallery on page load
+        loadGallery();
+    </script>
+</body>
+</html>

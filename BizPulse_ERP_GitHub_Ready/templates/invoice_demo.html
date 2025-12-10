@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Module Demo - BizPulse ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .demo-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .demo-header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .feature-desc {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .cta-section {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .cta-desc {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .screenshots {
+            margin-top: 3rem;
+        }
+
+        .screenshot-title {
+            text-align: center;
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .screenshot-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .screenshot-card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .demo-header h1 {
+                font-size: 2rem;
+            }
+            
+            .screenshot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>📄 Invoice Module</h1>
+            <p>Premium Invoice Management System for BizPulse ERP</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Stats Dashboard</h3>
+                <p class="feature-desc">Real-time invoice statistics at a glance</p>
+                <ul class="feature-list">
+                    <li>Total Invoices Count</li>
+                    <li>Total Revenue Amount</li>
+                    <li>Paid Invoices Tracking</li>
+                    <li>Pending Invoices Alert</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3 class="feature-title">Advanced Filters</h3>
+                <p class="feature-desc">Find invoices quickly with powerful filters</p>
+                <ul class="feature-list">
+                    <li>Status Filter (All/Paid/Pending)</li>
+                    <li>Date Range Selection</li>
+                    <li>Search by Bill Number</li>
+                    <li>Search by Customer Name</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3 class="feature-title">Invoice List</h3>
+                <p class="feature-desc">Comprehensive invoice table with all details</p>
+                <ul class="feature-list">
+                    <li>Sortable Columns</li>
+                    <li>Pagination (10 per page)</li>
+                    <li>Status Badges</li>
+                    <li>Quick Actions</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👁️</div>
+                <h3 class="feature-title">Invoice Details</h3>
+                <p class="feature-desc">Professional invoice view with complete information</p>
+                <ul class="feature-list">
+                    <li>Business & Customer Info</li>
+                    <li>Itemized Product List</li>
+                    <li>Tax & Discount Breakdown</li>
+                    <li>Payment Details</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🖨️</div>
+                <h3 class="feature-title">Print & Export</h3>
+                <p class="feature-desc">Multiple output options for invoices</p>
+                <ul class="feature-list">
+                    <li>Print-Ready Layout</li>
+                    <li>Download PDF (Coming Soon)</li>
+                    <li>Export to CSV</li>
+                    <li>Email Invoice (Coming Soon)</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Responsive Design</h3>
+                <p class="feature-desc">Works perfectly on all devices</p>
+                <ul class="feature-list">
+                    <li>Mobile Optimized</li>
+                    <li>Tablet Friendly</li>
+                    <li>Desktop Enhanced</li>
+                    <li>Touch Gestures</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 class="cta-title">Ready to Manage Your Invoices?</h2>
+            <p class="cta-desc">Access the complete invoice management system now</p>
+            <div class="btn-group">
+                <a href="/retail/invoices" class="btn btn-primary">
+                    <i class="fas fa-file-invoice"></i>
+                    Open Invoice Module
+                </a>
+                <a href="/retail/dashboard" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Back to Dashboard
+                </a>
+                <a href="/retail/billing" class="btn btn-secondary">
+                    <i class="fas fa-plus"></i>
+                    Create New Invoice
+                </a>
+            </div>
+        </div>
+
+        <div class="screenshots">
+            <h2 class="screenshot-title">What's Inside</h2>
+            <div class="screenshot-grid">
+                <div class="screenshot-card">
+                    <h3>📊 Invoice List Page</h3>
+                    <div class="screenshot-img">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <p style="margin-top: 1rem; color: #6b7280;">
+                        View all invoices with stats cards, filters, and a comprehensive table with pagination.
+                    </p>
+                </div>
+
+                <div class="screenshot-card">
+                    <h3>📄 Invoice Detail Page</h3>
+                    <div class="screenshot-img">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <p style="margin-top: 1rem; color: #6b7280;">
+                        Professional invoice layout with business details, items, totals, and print functionality.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .screenshot-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
