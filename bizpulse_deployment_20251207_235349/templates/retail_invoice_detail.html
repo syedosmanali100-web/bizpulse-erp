@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Details - BizPulse ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --accent: #E8B4BC;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(115, 44, 63, 0.3);
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(115, 44, 63, 0.4);
+        }
+
+        .back-button i {
+            font-size: 1.2rem;
+        }
+
+        .invoice-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .invoice-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .invoice-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .invoice-number {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .invoice-body {
+            padding: 2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h3 {
+            color: var(--primary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            margin-bottom: 0.75rem;
+        }
+
+        .info-label {
+            color: var(--text-light);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .items-section {
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        thead {
+            background: var(--secondary);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.875rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .totals-section {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            font-size: 0.95rem;
+        }
+
+        .total-row.grand-total {
+            border-top: 2px solid var(--primary);
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .back-button, .action-buttons {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .invoice-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            table {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/retail/invoices" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Invoices
+        </a>
+
+        <div id="loadingState" class="loading">
+            <div class="spinner"></div>
+            <p>Loading invoice...</p>
+        </div>
+
+        <div id="invoiceContent" style="display: none;">
+            <div class="invoice-card">
+                <div class="invoice-header">
+                    <div class="invoice-title">
+                        <h1>INVOICE</h1>
+                        <div class="invoice-number" id="billNumber"></div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-white" onclick="window.location.href='/retail/dashboard'">
+                            <i class="fas fa-home"></i> Dashboard
+                        </button>
+                        <button class="btn btn-white" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-white" onclick="downloadPDF()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+
+                <div class="invoice-body">
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <h3>Business Details</h3>
+                            <div class="info-item">
+                                <div class="info-label">Business Name</div>
+                                <div class="info-value">BizPulse ERP</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">bizpulse.erp@gmail.com</div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3>Customer Details</h3>
+                            <div class="info-item">
+                                <div class="info-label">Customer Name</div>
+                                <div class="info-value" id="customerName"></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value" id="customerPhone"></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Address</div>
+                                <div class="info-value" id="customerAddress"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <div class="info-item">
+                                <div class="info-label">Invoice Date</div>
+                                <div class="info-value" id="invoiceDate"></div>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div id="invoiceStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="items-section">
+                        <h2 class="section-title">Items</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">₹0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Tax (18%):</span>
+                            <span id="taxAmount">₹0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Discount:</span>
+                            <span id="discountAmount">₹0.00</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Grand Total:</span>
+                            <span id="grandTotal">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="items-section" id="paymentsSection" style="display: none;">
+                        <h2 class="section-title">Payment Details</h2>
+                        <div id="paymentDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const invoiceId = '{{ invoice_id }}';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInvoiceDetails();
+        });
+
+        async function loadInvoiceDetails() {
+            try {
+                const response = await fetch(`/api/invoices/${invoiceId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Invoice not found');
+                    window.location.href = '/retail/invoices';
+                    return;
+                }
+
+                displayInvoice(data);
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('invoiceContent').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading invoice:', error);
+                alert('Error loading invoice details');
+            }
+        }
+
+        function displayInvoice(data) {
+            const invoice = data.invoice;
+            const items = data.items;
+            const payments = data.payments;
+
+            // Invoice header
+            document.getElementById('billNumber').textContent = invoice.bill_number;
+
+            // Customer details
+            document.getElementById('customerName').textContent = invoice.customer_name || 'Walk-in Customer';
+            document.getElementById('customerPhone').textContent = invoice.customer_phone || 'N/A';
+            document.getElementById('customerAddress').textContent = invoice.customer_address || 'N/A';
+
+            // Invoice details
+            document.getElementById('invoiceDate').textContent = formatDate(invoice.created_at);
+            
+            const statusBadge = document.createElement('span');
+            statusBadge.className = `status-badge status-${invoice.status}`;
+            statusBadge.textContent = invoice.status.toUpperCase();
+            document.getElementById('invoiceStatus').appendChild(statusBadge);
+
+            // Items
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.product_name}</strong></td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.unit_price.toFixed(2)}</td>
+                    <td><strong>₹${item.total_price.toFixed(2)}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Totals
+            document.getElementById('subtotal').textContent = '₹' + invoice.subtotal.toFixed(2);
+            document.getElementById('taxAmount').textContent = '₹' + invoice.tax_amount.toFixed(2);
+            document.getElementById('discountAmount').textContent = '₹' + (invoice.discount_amount || 0).toFixed(2);
+            document.getElementById('grandTotal').textContent = '₹' + invoice.total_amount.toFixed(2);
+
+            // Payments
+            if (payments && payments.length > 0) {
+                document.getElementById('paymentsSection').style.display = 'block';
+                const paymentDetails = document.getElementById('paymentDetails');
+                paymentDetails.innerHTML = '';
+                
+                payments.forEach(payment => {
+                    const paymentDiv = document.createElement('div');
+                    paymentDiv.className = 'total-row';
+                    paymentDiv.innerHTML = `
+                        <span>${payment.method.toUpperCase()}</span>
+                        <span>₹${payment.amount.toFixed(2)}</span>
+                    `;
+                    paymentDetails.appendChild(paymentDiv);
+                });
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function downloadPDF() {
+            alert('PDF download feature coming soon!');
+            // In production, implement PDF generation
+        }
+    </script>
+</body>
+</html>

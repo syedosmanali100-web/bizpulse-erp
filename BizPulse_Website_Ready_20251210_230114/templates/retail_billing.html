@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - BizPulse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 4px 0 15px rgba(115, 44, 63, 0.3);
+        }
+        
+        .sidebar h2 {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            color: #732C3F;
+            margin-bottom: 30px;
+        }
+        
+        /* Billing Container */
+        .billing-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(115, 44, 63, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(115, 44, 63, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .card h3 {
+            color: #732C3F;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #8B4A5C;
+            padding-bottom: 10px;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #732C3F;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E8D5DA;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        /* Product Selection */
+        .product-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .add-btn:hover {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(115, 44, 63, 0.3);
+        }
+        
+        /* Bill Items Table */
+        .bill-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .bill-table th {
+            background: #732C3F;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .bill-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E8D5DA;
+        }
+        
+        .bill-table tr:hover {
+            background: #F7E8EC;
+        }
+        
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .remove-btn:hover {
+            background: #c82333;
+        }
+        
+        /* Bill Summary */
+        .bill-summary {
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid #732C3F;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #732C3F;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            flex: 1;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(115, 44, 63, 0.3);
+        }
+        
+        .btn-secondary {
+            flex: 1;
+            background: white;
+            color: #732C3F;
+            border: 2px solid #732C3F;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #732C3F;
+            color: white;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Invoice Theme Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-header h2 {
+            color: #732C3F;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .theme-card {
+            border: 3px solid #E8D5DA;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .theme-card:hover {
+            border-color: #732C3F;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(115, 44, 63, 0.2);
+        }
+        
+        .theme-card.selected {
+            border-color: #732C3F;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+        }
+        
+        .theme-preview {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 200px;
+        }
+        
+        .theme-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #732C3F;
+            margin-bottom: 5px;
+        }
+        
+        .theme-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+        }
+        
+        .modal-btn-secondary {
+            background: white;
+            color: #732C3F;
+            border: 2px solid #732C3F;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #732C3F;
+            color: white;
+        }
+        
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .invoice-print, .invoice-print * {
+                visibility: visible;
+            }
+            .invoice-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>🧾 Billing</h2>
+        <a href="/retail/dashboard" class="back-btn">← Back to Dashboard</a>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Create New Bill</h1>
+        
+        <div class="billing-container">
+            <!-- Left Side - Product Selection -->
+            <div class="card">
+                <h3>📦 Add Products</h3>
+                
+                <div class="form-group">
+                    <label>Customer</label>
+                    <select id="customerSelect">
+                        <option value="walk-in">Walk-in Customer</option>
+                        <option value="cust-1">Rajesh Kumar</option>
+                        <option value="cust-2">Priya Sharma</option>
+                        <option value="cust-3">Amit Singh</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="paymentMethod">
+                        <option value="cash">💵 Cash</option>
+                        <option value="card">💳 Card</option>
+                        <option value="upi">📱 UPI</option>
+                    </select>
+                </div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #E8D5DA;">
+                
+                <div class="product-row">
+                    <div class="form-group">
+                        <label>Select Product</label>
+                        <select id="productSelect" onchange="updatePrice()">
+                            <option value="">-- Select Product --</option>
+                            <option value="prod-1" data-price="80" data-name="Rice (1kg)" data-category="Flour & Grains">Rice (1kg) - ₹80</option>
+                            <option value="prod-2" data-price="45" data-name="Wheat Flour (1kg)" data-category="Flour & Grains">Wheat Flour (1kg) - ₹45</option>
+                            <option value="prod-3" data-price="55" data-name="Sugar (1kg)" data-category="Groceries">Sugar (1kg) - ₹55</option>
+                            <option value="prod-4" data-price="120" data-name="Tea Powder (250g)" data-category="Tea & Coffee">Tea Powder (250g) - ₹120</option>
+                            <option value="prod-5" data-price="150" data-name="Cooking Oil (1L)" data-category="Groceries">Cooking Oil (1L) - ₹150</option>
+                            <option value="prod-6" data-price="60" data-name="Milk (1L)" data-category="Dairy">Milk (1L) - ₹60</option>
+                            <option value="prod-7" data-price="25" data-name="Bread" data-category="Bakery">Bread - ₹25</option>
+                            <option value="prod-8" data-price="84" data-name="Eggs (12 pcs)" data-category="Dairy">Eggs (12 pcs) - ₹84</option>
+                            <option value="prod-9" data-price="35" data-name="Onions (1kg)" data-category="Vegetables">Onions (1kg) - ₹35</option>
+                            <option value="prod-10" data-price="25" data-name="Potatoes (1kg)" data-category="Vegetables">Potatoes (1kg) - ₹25</option>
+                            <option value="prod-11" data-price="30" data-name="Biscuits" data-category="Biscuits">Biscuits - ₹30</option>
+                            <option value="prod-12" data-price="40" data-name="Namkeen" data-category="Namkeen">Namkeen - ₹40</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="quantity" value="1" min="1" onchange="updatePrice()">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input type="text" id="price" readonly style="background: #f5f5f5; font-weight: 600; color: #732C3F;">
+                    </div>
+                </div>
+                
+                <button class="add-btn" onclick="addToBill()">➕ Add to Bill</button>
+            </div>
+            
+            <!-- Right Side - Bill Summary -->
+            <div class="card">
+                <h3>🧾 Bill Items</h3>
+                
+                <div id="billItemsContainer">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛒</div>
+                        <p>No items added yet</p>
+                        <p style="font-size: 0.9rem; color: #999;">Select products to add to bill</p>
+                    </div>
+                </div>
+                
+                <table class="bill-table" id="billTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billTableBody">
+                    </tbody>
+                </table>
+                
+                <div class="bill-summary" id="billSummary" style="display: none;">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₹0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax Total:</span>
+                        <span id="tax">₹0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span style="font-size: 0.85rem; color: #666;">
+                            <label>
+                                <input type="checkbox" id="autoGST" checked onchange="toggleAutoGST()"> 
+                                Auto GST by Category
+                            </label>
+                        </span>
+                        <span></span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Amount:</span>
+                        <span id="total">₹0.00</span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons" id="actionButtons" style="display: none;">
+                    <button class="btn-secondary" onclick="clearBill()">🗑️ Clear</button>
+                    <button class="btn-primary" onclick="generateBill()">✅ Generate Bill</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Theme Selection Modal -->
+    <div class="modal" id="themeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎨 Choose Invoice Theme</h2>
+                <p>Select your preferred invoice design</p>
+            </div>
+            
+            <div class="themes-grid">
+                <!-- Theme 1: Classic GST -->
+                <div class="theme-card" onclick="selectTheme(1)">
+                    <div class="theme-preview" style="border-left: 4px solid #2196F3;">
+                        <div style="text-align: center; padding: 10px; background: #2196F3; color: white; margin: -15px -15px 10px -15px; border-radius: 10px 10px 0 0;">
+                            <strong>TAX INVOICE</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #333;">
+                            <strong>Your Business Name</strong><br>
+                            GST: 27XXXXX1234X1Z5<br>
+                            <hr style="margin: 8px 0;">
+                            Bill No: BILL-001<br>
+                            Date: 06/12/2025
+                        </div>
+                    </div>
+                    <div class="theme-name">🏛️ Classic GST Invoice</div>
+                    <div class="theme-desc">Professional blue theme with GST details</div>
+                </div>
+                
+                <!-- Theme 2: Modern Minimal -->
+                <div class="theme-card" onclick="selectTheme(2)">
+                    <div class="theme-preview" style="border-left: 4px solid #4CAF50;">
+                        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; margin: -15px -15px 10px -15px; border-radius: 10px 10px 0 0;">
+                            <strong>INVOICE</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #333;">
+                            <strong style="font-size: 1.1rem;">Your Store</strong><br>
+                            <span style="color: #666;">Modern & Clean Design</span>
+                            <hr style="margin: 8px 0;">
+                            Invoice #001 | 06/12/2025
+                        </div>
+                    </div>
+                    <div class="theme-name">✨ Modern Minimal</div>
+                    <div class="theme-desc">Clean green design, perfect for retail</div>
+                </div>
+                
+                <!-- Theme 3: Traditional Indian -->
+                <div class="theme-card" onclick="selectTheme(3)">
+                    <div class="theme-preview" style="border: 2px solid #FF9800; background: linear-gradient(to bottom, #FFF3E0, white);">
+                        <div style="text-align: center; padding: 10px; border-bottom: 2px solid #FF9800; margin: -15px -15px 10px -15px;">
+                            <strong style="color: #FF6F00; font-size: 1.1rem;">TAX INVOICE</strong><br>
+                            <span style="color: #666; font-size: 0.9rem;">GST Compliant</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #333; text-align: center;">
+                            <strong>Your Business Name</strong><br>
+                            GST No: 27XXXXX1234X1Z5
+                        </div>
+                    </div>
+                    <div class="theme-name">🧡 Traditional Orange</div>
+                    <div class="theme-desc">Warm orange theme for Indian businesses</div>
+                </div>
+                
+                <!-- Theme 4: Elegant Purple -->
+                <div class="theme-card" onclick="selectTheme(4)">
+                    <div class="theme-preview" style="border-left: 4px solid #9C27B0;">
+                        <div style="text-align: center; padding: 10px; background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; margin: -15px -15px 10px -15px; border-radius: 10px 10px 0 0;">
+                            <strong>RETAIL INVOICE</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #333;">
+                            <strong style="color: #9C27B0;">Premium Store</strong><br>
+                            Elegant & Professional<br>
+                            <hr style="margin: 8px 0; border-color: #9C27B0;">
+                            Bill: #001 | Date: 06/12/2025
+                        </div>
+                    </div>
+                    <div class="theme-name">👑 Elegant Purple</div>
+                    <div class="theme-desc">Premium purple design for upscale stores</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeThemeModal()">Cancel</button>
+                <button class="modal-btn modal-btn-primary" onclick="generateInvoice()">Generate Invoice</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Print Container -->
+    <div id="invoicePrintContainer"></div>
+    
+    <script>
+        let billItems = [];
+        let billCounter = 1;
+        let selectedTheme = 1;
+        
+        // Category-wise GST mapping (as per Indian GST rates)
+        const categoryGSTMapping = {
+            'Groceries': 0,
+            'Fresh Vegetables': 0,
+            'Fresh Fruits': 0,
+            'Milk & Dairy': 5,
+            'Tea & Coffee': 5,
+            'Spices': 5,
+            'Edible Oil': 5,
+            'Sugar': 5,
+            'Flour & Grains': 5,
+            'Dry Fruits': 5,
+            'Butter & Ghee': 12,
+            'Processed Food': 12,
+            'Fruit Juices': 12,
+            'Namkeen': 12,
+            'Biscuits': 18,
+            'Chocolates': 18,
+            'Ice Cream': 18,
+            'Soaps & Shampoo': 18,
+            'Toothpaste': 18,
+            'Detergents': 18,
+            'Electronics': 18,
+            'Clothing': 12,
+            'Footwear': 18,
+            'Medicines': 12,
+            'Stationery': 12,
+            'Toys': 12,
+            'Cosmetics': 18,
+            'Perfumes': 28,
+            'Luxury Items': 28,
+            'Other': 18
+        };
+        
+        // Update price when product or quantity changes
+        function updatePrice() {
+            const productSelect = document.getElementById('productSelect');
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const priceInput = document.getElementById('price');
+            
+            if (productSelect.value) {
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const unitPrice = parseFloat(selectedOption.getAttribute('data-price'));
+                const total = unitPrice * quantity;
+                priceInput.value = `₹${total.toFixed(2)}`;
+            } else {
+                priceInput.value = '';
+            }
+        }
+        
+        // Toggle Auto GST
+        function toggleAutoGST() {
+            const autoGST = document.getElementById('autoGST').checked;
+            if (autoGST) {
+                // Reapply category-based GST to all items
+                billItems.forEach(item => {
+                    if (item.category && categoryGSTMapping[item.category] !== undefined) {
+                        item.gstRate = categoryGSTMapping[item.category];
+                        const baseAmount = item.price * item.quantity;
+                        item.gstAmount = (baseAmount * item.gstRate) / 100;
+                        item.total = baseAmount + item.gstAmount;
+                    }
+                });
+                updateBillDisplay();
+            }
+        }
+        
+        // Update item GST when user changes it
+        function updateItemGST(index, newGSTRate) {
+            const item = billItems[index];
+            item.gstRate = parseFloat(newGSTRate);
+            
+            // Recalculate GST and total
+            const baseAmount = item.price * item.quantity;
+            item.gstAmount = (baseAmount * item.gstRate) / 100;
+            item.total = baseAmount + item.gstAmount;
+            
+            // Disable auto GST when manually edited
+            document.getElementById('autoGST').checked = false;
+            
+            updateBillDisplay();
+        }
+        
+        // Add product to bill
+        function addToBill() {
+            const productSelect = document.getElementById('productSelect');
+            const quantity = parseInt(document.getElementById('quantity').value);
+            
+            if (!productSelect.value) {
+                alert('Please select a product!');
+                return;
+            }
+            
+            if (quantity <= 0) {
+                alert('Please enter valid quantity!');
+                return;
+            }
+            
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const productId = productSelect.value;
+            const productName = selectedOption.getAttribute('data-name');
+            const category = selectedOption.getAttribute('data-category') || '';
+            const unitPrice = parseFloat(selectedOption.getAttribute('data-price'));
+            
+            // Debug logging
+            console.log('Product:', productName, 'Category:', category);
+            
+            // Get GST rate from category mapping (default 0)
+            let gstRate = 0;
+            if (category && categoryGSTMapping[category] !== undefined) {
+                gstRate = categoryGSTMapping[category];
+            }
+            
+            console.log('GST Rate:', gstRate + '%');
+            
+            // Calculate amounts
+            const baseAmount = unitPrice * quantity;
+            const gstAmount = (baseAmount * gstRate) / 100;
+            const total = baseAmount + gstAmount;
+            
+            console.log('Base:', baseAmount, 'GST Amount:', gstAmount, 'Total:', total);
+            
+            // Check if product already exists
+            const existingIndex = billItems.findIndex(item => item.id === productId);
+            
+            if (existingIndex !== -1) {
+                // Update quantity
+                billItems[existingIndex].quantity += quantity;
+                const newBaseAmount = billItems[existingIndex].price * billItems[existingIndex].quantity;
+                billItems[existingIndex].gstAmount = (newBaseAmount * (billItems[existingIndex].gstRate || 0)) / 100;
+                billItems[existingIndex].total = newBaseAmount + billItems[existingIndex].gstAmount;
+            } else {
+                // Add new item with GST
+                billItems.push({
+                    id: productId,
+                    name: productName,
+                    category: category,
+                    quantity: quantity,
+                    price: unitPrice,
+                    gstRate: gstRate,
+                    gstAmount: gstAmount,
+                    total: total
+                });
+            }
+            
+            updateBillDisplay();
+            
+            // Reset form
+            productSelect.selectedIndex = 0;
+            document.getElementById('quantity').value = 1;
+            document.getElementById('price').value = '';
+        }
+        
+        // Update bill display
+        function updateBillDisplay() {
+            const emptyState = document.querySelector('.empty-state');
+            const billTable = document.getElementById('billTable');
+            const billSummary = document.getElementById('billSummary');
+            const actionButtons = document.getElementById('actionButtons');
+            const tbody = document.getElementById('billTableBody');
+            
+            if (billItems.length === 0) {
+                emptyState.style.display = 'block';
+                billTable.style.display = 'none';
+                billSummary.style.display = 'none';
+                actionButtons.style.display = 'none';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            billTable.style.display = 'table';
+            billSummary.style.display = 'block';
+            actionButtons.style.display = 'flex';
+            
+            // Update table
+            tbody.innerHTML = '';
+            let subtotal = 0;
+            let totalGST = 0;
+            
+            billItems.forEach((item, index) => {
+                // Backward compatibility - add missing properties
+                if (!item.hasOwnProperty('gstRate')) {
+                    item.gstRate = 0;
+                    item.gstAmount = 0;
+                    item.category = 'Other';
+                }
+                
+                const baseAmount = item.price * item.quantity;
+                subtotal += baseAmount;
+                totalGST += (item.gstAmount || 0);
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${item.name}${item.category ? '<br><small style="color: #666;">' + item.category + '</small>' : ''}</td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" value="${item.gstRate || 0}" min="0" max="28" step="0.25" 
+                               style="width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 4px;"
+                               onchange="updateItemGST(${index}, this.value)">%
+                    </td>
+                    <td>₹${(item.gstAmount || 0).toFixed(2)}</td>
+                    <td>₹${item.total.toFixed(2)}</td>
+                    <td><button class="remove-btn" onclick="removeItem(${index})">Remove</button></td>
+                `;
+            });
+            
+            // Update summary
+            const tax = totalGST;
+            const total = subtotal + tax;
+            
+            document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `₹${total.toFixed(2)}`;
+        }
+        
+        // Remove item from bill
+        function removeItem(index) {
+            billItems.splice(index, 1);
+            updateBillDisplay();
+        }
+        
+        // Clear entire bill
+        function clearBill() {
+            if (confirm('Are you sure you want to clear the bill?')) {
+                billItems = [];
+                updateBillDisplay();
+            }
+        }
+        
+        // Generate bill - Show theme selection modal
+        function generateBill() {
+            if (billItems.length === 0) {
+                alert('Please add items to the bill!');
+                return;
+            }
+            
+            // Show theme selection modal
+            document.getElementById('themeModal').classList.add('show');
+        }
+        
+        // Select theme
+        function selectTheme(themeNumber) {
+            selectedTheme = themeNumber;
+            
+            // Remove selected class from all cards
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            event.currentTarget.classList.add('selected');
+        }
+        
+        // Close theme modal
+        function closeThemeModal() {
+            document.getElementById('themeModal').classList.remove('show');
+        }
+        
+        // Generate invoice with selected theme
+        function generateInvoice() {
+            const customerSelect = document.getElementById('customerSelect');
+            const paymentMethod = document.getElementById('paymentMethod');
+            const customerName = customerSelect.options[customerSelect.selectedIndex].text;
+            const payment = paymentMethod.options[paymentMethod.selectedIndex].text;
+            
+            const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
+            const tax = subtotal * 0.18;
+            const total = subtotal + tax;
+            
+            const billNumber = `BILL-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(billCounter).padStart(3, '0')}`;
+            const date = new Date().toLocaleDateString('en-IN');
+            const time = new Date().toLocaleTimeString('en-IN');
+            
+            let invoiceHTML = '';
+            
+            // Theme 1: Classic GST
+            if (selectedTheme === 1) {
+                invoiceHTML = `
+                    <div style="max-width: 800px; margin: 0 auto; padding: 40px; font-family: Arial, sans-serif; background: white;">
+                        <div style="text-align: center; background: linear-gradient(135deg, #2196F3, #1976D2); color: white; padding: 20px; margin: -40px -40px 30px -40px;">
+                            <h1 style="margin: 0; font-size: 2rem;">TAX INVOICE</h1>
+                            <p style="margin: 5px 0 0 0;">GST Compliant Invoice</p>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                            <div>
+                                <h2 style="color: #2196F3; margin-bottom: 10px;">Your Business Name</h2>
+                                <p style="margin: 5px 0; color: #666;">123 Business Street, City - 400001</p>
+                                <p style="margin: 5px 0; color: #666;">Phone: +91 98765 43210</p>
+                                <p style="margin: 5px 0; color: #666;"><strong>GST No:</strong> 27XXXXX1234X1Z5</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="margin: 5px 0;"><strong>Invoice No:</strong> ${billNumber}</p>
+                                <p style="margin: 5px 0;"><strong>Date:</strong> ${date}</p>
+                                <p style="margin: 5px 0;"><strong>Time:</strong> ${time}</p>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h3 style="margin: 0 0 10px 0; color: #2196F3;">Bill To:</h3>
+                            <p style="margin: 5px 0;"><strong>${customerName}</strong></p>
+                            <p style="margin: 5px 0;">Payment Method: ${payment}</p>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead>
+                                <tr style="background: #2196F3; color: white;">
+                                    <th style="padding: 12px; text-align: left;">Item</th>
+                                    <th style="padding: 12px; text-align: center;">Qty</th>
+                                    <th style="padding: 12px; text-align: right;">Rate</th>
+                                    <th style="padding: 12px; text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${billItems.map(item => `
+                                    <tr style="border-bottom: 1px solid #ddd;">
+                                        <td style="padding: 12px;">${item.name}</td>
+                                        <td style="padding: 12px; text-align: center;">${item.quantity}</td>
+                                        <td style="padding: 12px; text-align: right;">₹${item.price.toFixed(2)}</td>
+                                        <td style="padding: 12px; text-align: right;">₹${item.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div style="text-align: right; margin-bottom: 30px;">
+                            <p style="margin: 8px 0; font-size: 1.1rem;"><strong>Subtotal:</strong> ₹${subtotal.toFixed(2)}</p>
+                            <p style="margin: 8px 0; font-size: 1.1rem;"><strong>GST (18%):</strong> ₹${tax.toFixed(2)}</p>
+                            <p style="margin: 15px 0 0 0; font-size: 1.5rem; color: #2196F3;"><strong>Total: ₹${total.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        <div style="border-top: 2px solid #2196F3; padding-top: 20px; text-align: center; color: #666;">
+                            <p style="margin: 5px 0;">Thank you for your business!</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem;">This is a computer generated invoice</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Theme 2: Modern Minimal
+            else if (selectedTheme === 2) {
+                invoiceHTML = `
+                    <div style="max-width: 800px; margin: 0 auto; padding: 40px; font-family: 'Segoe UI', Arial, sans-serif; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #4CAF50;">
+                            <div>
+                                <h1 style="margin: 0; color: #4CAF50; font-size: 2.5rem;">INVOICE</h1>
+                                <p style="margin: 5px 0; color: #666;">Your Store Name</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="margin: 5px 0; font-size: 1.2rem;"><strong>${billNumber}</strong></p>
+                                <p style="margin: 5px 0; color: #666;">${date}</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                            <div style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9); padding: 20px; border-radius: 10px;">
+                                <h3 style="margin: 0 0 15px 0; color: #4CAF50;">From:</h3>
+                                <p style="margin: 5px 0;"><strong>Your Business</strong></p>
+                                <p style="margin: 5px 0; color: #666;">123 Store Street</p>
+                                <p style="margin: 5px 0; color: #666;">City - 400001</p>
+                                <p style="margin: 5px 0; color: #666;">GST: 27XXXXX1234X1Z5</p>
+                            </div>
+                            <div style="background: #f5f5f5; padding: 20px; border-radius: 10px;">
+                                <h3 style="margin: 0 0 15px 0; color: #4CAF50;">To:</h3>
+                                <p style="margin: 5px 0;"><strong>${customerName}</strong></p>
+                                <p style="margin: 5px 0; color: #666;">Payment: ${payment}</p>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white;">
+                                    <th style="padding: 15px; text-align: left; border-radius: 8px 0 0 0;">Product</th>
+                                    <th style="padding: 15px; text-align: center;">Quantity</th>
+                                    <th style="padding: 15px; text-align: right;">Price</th>
+                                    <th style="padding: 15px; text-align: right; border-radius: 0 8px 0 0;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${billItems.map((item, index) => `
+                                    <tr style="background: ${index % 2 === 0 ? '#f9f9f9' : 'white'};">
+                                        <td style="padding: 15px;">${item.name}</td>
+                                        <td style="padding: 15px; text-align: center;">${item.quantity}</td>
+                                        <td style="padding: 15px; text-align: right;">₹${item.price.toFixed(2)}</td>
+                                        <td style="padding: 15px; text-align: right;">₹${item.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9); padding: 20px; border-radius: 10px; text-align: right;">
+                            <p style="margin: 10px 0; font-size: 1.1rem;">Subtotal: <strong>₹${subtotal.toFixed(2)}</strong></p>
+                            <p style="margin: 10px 0; font-size: 1.1rem;">Tax (18%): <strong>₹${tax.toFixed(2)}</strong></p>
+                            <p style="margin: 15px 0 0 0; font-size: 1.8rem; color: #4CAF50;"><strong>₹${total.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        <div style="margin-top: 40px; text-align: center; color: #666;">
+                            <p style="margin: 5px 0;">Thank you for shopping with us!</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Theme 3: Traditional Orange
+            else if (selectedTheme === 3) {
+                invoiceHTML = `
+                    <div style="max-width: 800px; margin: 0 auto; padding: 40px; font-family: Arial, sans-serif; background: linear-gradient(to bottom, #FFF3E0, white); border: 3px solid #FF9800;">
+                        <div style="text-align: center; border-bottom: 3px double #FF9800; padding-bottom: 20px; margin-bottom: 30px;">
+                            <h1 style="margin: 0; color: #FF6F00; font-size: 2.5rem;">TAX INVOICE</h1>
+                            <p style="margin: 10px 0; color: #666; font-size: 1.1rem;">GST Compliant Bill</p>
+                        </div>
+                        
+                        <div style="background: white; padding: 20px; border: 2px solid #FFE0B2; border-radius: 10px; margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <h3 style="color: #FF6F00; margin-bottom: 10px;">🏪 Your Business Name</h3>
+                                    <p style="margin: 5px 0; color: #666;">123 Market Road, City</p>
+                                    <p style="margin: 5px 0; color: #666;">Phone: +91 98765 43210</p>
+                                    <p style="margin: 5px 0; color: #666;"><strong>GST:</strong> 27XXXXX1234X1Z5</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <p style="margin: 5px 0;"><strong>Bill No:</strong> ${billNumber}</p>
+                                    <p style="margin: 5px 0;"><strong>Date:</strong> ${date}</p>
+                                    <p style="margin: 5px 0;"><strong>Time:</strong> ${time}</p>
+                                    <p style="margin: 5px 0;"><strong>Customer:</strong> ${customerName}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #FFE0B2;">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #FF9800, #F57C00); color: white;">
+                                    <th style="padding: 12px; text-align: left; border: 1px solid #FFE0B2;">Sr. No.</th>
+                                    <th style="padding: 12px; text-align: left; border: 1px solid #FFE0B2;">Item Description</th>
+                                    <th style="padding: 12px; text-align: center; border: 1px solid #FFE0B2;">Quantity</th>
+                                    <th style="padding: 12px; text-align: right; border: 1px solid #FFE0B2;">Rate</th>
+                                    <th style="padding: 12px; text-align: right; border: 1px solid #FFE0B2;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${billItems.map((item, index) => `
+                                    <tr style="background: ${index % 2 === 0 ? '#FFF8E1' : 'white'};">
+                                        <td style="padding: 12px; border: 1px solid #FFE0B2;">${index + 1}</td>
+                                        <td style="padding: 12px; border: 1px solid #FFE0B2;">${item.name}</td>
+                                        <td style="padding: 12px; text-align: center; border: 1px solid #FFE0B2;">${item.quantity}</td>
+                                        <td style="padding: 12px; text-align: right; border: 1px solid #FFE0B2;">₹${item.price.toFixed(2)}</td>
+                                        <td style="padding: 12px; text-align: right; border: 1px solid #FFE0B2;">₹${item.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div style="background: #FFF8E1; padding: 20px; border: 2px solid #FFE0B2; border-radius: 10px; text-align: right;">
+                            <p style="margin: 8px 0; font-size: 1.1rem;">Subtotal: <strong>₹${subtotal.toFixed(2)}</strong></p>
+                            <p style="margin: 8px 0; font-size: 1.1rem;">GST (18%): <strong>₹${tax.toFixed(2)}</strong></p>
+                            <p style="margin: 15px 0 0 0; font-size: 1.6rem; color: #FF6F00;"><strong>Total Amount: ₹${total.toFixed(2)}</strong></p>
+                        </div>
+                        
+                        <div style="margin-top: 30px; text-align: center; border-top: 2px solid #FF9800; padding-top: 20px;">
+                            <p style="margin: 5px 0; color: #FF6F00; font-weight: bold; font-size: 1.2rem;">Thank You for Your Business!</p>
+                            <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">Payment Method: ${payment}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Theme 4: Elegant Purple
+            else if (selectedTheme === 4) {
+                invoiceHTML = `
+                    <div style="max-width: 800px; margin: 0 auto; padding: 40px; font-family: 'Georgia', serif; background: white; border: 1px solid #E1BEE7;">
+                        <div style="background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; padding: 30px; margin: -40px -40px 30px -40px; text-align: center;">
+                            <h1 style="margin: 0; font-size: 2.5rem; letter-spacing: 2px;">INVOICE</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 1.1rem; opacity: 0.9;">Premium Retail Store</p>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px;">
+                            <div>
+                                <h3 style="color: #9C27B0; margin-bottom: 15px; border-bottom: 2px solid #9C27B0; padding-bottom: 5px;">Business Details</h3>
+                                <p style="margin: 8px 0;"><strong>Your Premium Store</strong></p>
+                                <p style="margin: 5px 0; color: #666;">123 Elite Plaza, City - 400001</p>
+                                <p style="margin: 5px 0; color: #666;">📞 +91 98765 43210</p>
+                                <p style="margin: 5px 0; color: #666;">📧 info@yourstore.com</p>
+                                <p style="margin: 5px 0; color: #666;"><strong>GST:</strong> 27XXXXX1234X1Z5</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <h3 style="color: #9C27B0; margin-bottom: 15px; border-bottom: 2px solid #9C27B0; padding-bottom: 5px;">Invoice Details</h3>
+                                <p style="margin: 8px 0;"><strong>Invoice #:</strong> ${billNumber}</p>
+                                <p style="margin: 5px 0; color: #666;"><strong>Date:</strong> ${date}</p>
+                                <p style="margin: 5px 0; color: #666;"><strong>Time:</strong> ${time}</p>
+                                <p style="margin: 10px 0 0 0;"><strong>Customer:</strong> ${customerName}</p>
+                                <p style="margin: 5px 0; color: #666;"><strong>Payment:</strong> ${payment}</p>
+                            </div>
+                        </div>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(156, 39, 176, 0.1);">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white;">
+                                    <th style="padding: 15px; text-align: left;">Description</th>
+                                    <th style="padding: 15px; text-align: center;">Quantity</th>
+                                    <th style="padding: 15px; text-align: right;">Unit Price</th>
+                                    <th style="padding: 15px; text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${billItems.map((item, index) => `
+                                    <tr style="border-bottom: 1px solid #E1BEE7; background: ${index % 2 === 0 ? '#F3E5F5' : 'white'};">
+                                        <td style="padding: 15px;">${item.name}</td>
+                                        <td style="padding: 15px; text-align: center;">${item.quantity}</td>
+                                        <td style="padding: 15px; text-align: right;">₹${item.price.toFixed(2)}</td>
+                                        <td style="padding: 15px; text-align: right; font-weight: bold;">₹${item.total.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7); padding: 25px; border-radius: 10px; border: 2px solid #9C27B0;">
+                            <div style="text-align: right;">
+                                <p style="margin: 10px 0; font-size: 1.2rem;">Subtotal: <strong>₹${subtotal.toFixed(2)}</strong></p>
+                                <p style="margin: 10px 0; font-size: 1.2rem;">GST (18%): <strong>₹${tax.toFixed(2)}</strong></p>
+                                <div style="border-top: 2px solid #9C27B0; margin: 15px 0; padding-top: 15px;">
+                                    <p style="margin: 0; font-size: 2rem; color: #9C27B0;"><strong>₹${total.toFixed(2)}</strong></p>
+                                    <p style="margin: 5px 0; font-size: 0.9rem; color: #666;">Total Amount</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 40px; text-align: center; border-top: 2px solid #9C27B0; padding-top: 20px;">
+                            <p style="margin: 5px 0; color: #9C27B0; font-size: 1.1rem; font-weight: bold;">Thank You for Your Business!</p>
+                            <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">We appreciate your patronage</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Save bill items before clearing
+            const itemsToSave = [...billItems];
+            
+            // Save bill to database
+            saveBillToDatabase(billNumber, customerName, payment, subtotal, tax, total, itemsToSave);
+            
+            // Show invoice in new window
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Invoice - ${billNumber}</title>
+                        <style>
+                            body { margin: 0; padding: 20px; }
+                            @media print {
+                                body { padding: 0; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${invoiceHTML}
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button onclick="window.print()" style="background: #732C3F; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-right: 10px;">🖨️ Print Invoice</button>
+                            <button onclick="window.close()" style="background: #666; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer;">Close</button>
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            
+            // Close modal and clear bill
+            closeThemeModal();
+            billCounter++;
+            billItems = [];
+            updateBillDisplay();
+        }
+        
+        // Save bill to database
+        async function saveBillToDatabase(billNumber, customerName, payment, subtotal, tax, total, items) {
+            try {
+                const billData = {
+                    customer_id: document.getElementById('customerSelect').value === 'walk-in' ? null : document.getElementById('customerSelect').value,
+                    business_type: 'retail',
+                    payment_method: payment.toLowerCase().replace('💵 ', '').replace('💳 ', '').replace('📱 ', ''),
+                    items: items.map(item => ({
+                        product_id: item.id,
+                        product_name: item.name,
+                        quantity: item.quantity,
+                        unit_price: item.price,
+                        total_price: item.total
+                    })),
+                    subtotal: subtotal,
+                    tax_amount: tax,
+                    total_amount: total
+                };
+                
+                console.log('💾 Saving bill to database:', billData);
+                console.log('📦 Items to save:', items);
+                
+                // Get auth token
+                const authToken = localStorage.getItem('authToken');
+                
+                const response = await fetch('/api/bills', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(billData)
+                });
+                
+                console.log('📡 Response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Bill saved successfully:', result);
+                    console.log('📊 Bill Number:', result.bill_number);
+                    console.log('💰 Total Amount:', total);
+                    
+                    // Show success notification
+                    showNotification('✅ Bill saved! Sales updated & stock reduced.', 'success');
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ Failed to save bill. Status:', response.status);
+                    console.error('❌ Error response:', errorText);
+                    
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        console.error('❌ Error details:', errorJson);
+                    } catch (e) {
+                        console.error('❌ Raw error:', errorText);
+                    }
+                    
+                    showNotification('⚠️ Invoice generated but not saved to database', 'warning');
+                }
+            } catch (error) {
+                console.error('❌ Exception while saving bill:', error);
+                console.error('❌ Error stack:', error.stack);
+                showNotification('⚠️ Invoice generated but not saved to database', 'warning');
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4CAF50' : type === 'warning' ? '#FF9800' : '#2196F3'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-size: 1rem;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+        
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+    </script>
+</body>
+</html>

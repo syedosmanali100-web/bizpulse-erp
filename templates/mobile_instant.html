@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizPulse Mobile ERP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 50%, #A66B7A 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #732C3F;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #732C3F;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #E8D5DA;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .console-log {
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+        }
+
+        .log-info { color: #0c5460; }
+        .log-success { color: #155724; }
+        .log-error { color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <h1>BizPulse</h1>
+            <p class="subtitle">Complete ERP Solution</p>
+        </div>
+
+        <div class="form-group">
+            <label>📧 Email</label>
+            <input type="email" id="email" value="bizpulse.erp@gmail.com" placeholder="Enter your email">
+        </div>
+
+        <div class="form-group">
+            <label>🔑 Password</label>
+            <input type="password" id="password" placeholder="Enter your password">
+        </div>
+        
+        <script>
+            // Set password after page load (some browsers block pre-filled passwords)
+            document.getElementById('password').value = 'demo123';
+        </script>
+
+        <button class="btn" id="loginBtn" onclick="login()">
+            Login to BizPulse
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="console-log" id="consoleLog">
+            <strong>📋 Console Logs:</strong>
+            <div id="logEntries"></div>
+        </div>
+    </div>
+
+    <script>
+        const SERVER_URL = window.location.origin;
+        
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const entry = `[${time}] ${message}`;
+            
+            const logDiv = document.createElement('div');
+            logDiv.className = `log-entry log-${type}`;
+            logDiv.textContent = entry;
+            
+            document.getElementById('logEntries').appendChild(logDiv);
+            document.getElementById('consoleLog').scrollTop = document.getElementById('consoleLog').scrollHeight;
+            
+            console.log(message);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status status-${type} show`;
+        }
+
+        async function login() {
+            log('🔐 Login button clicked', 'info');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            
+            log(`📧 Email: ${email}`, 'info');
+            log(`🔑 Password: ${'*'.repeat(password.length)}`, 'info');
+            
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = 'Logging in...';
+            
+            showStatus('🔄 Connecting to server...', 'info');
+            
+            try {
+                const url = `${SERVER_URL}/api/auth/login`;
+                log(`🌐 API URL: ${url}`, 'info');
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                log(`📥 Response: ${response.status} ${response.statusText}`, 'info');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                log(`✅ Response data: ${JSON.stringify(result)}`, 'success');
+                
+                if (result.token || result.message === 'Login successful') {
+                    log('✅ Login successful!', 'success');
+                    showStatus('✅ Login successful! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        log('🚀 Redirecting to dashboard...', 'success');
+                        window.location.href = '/retail/dashboard';
+                    }, 1500);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+                
+            } catch (error) {
+                log(`❌ API Error: ${error.message}`, 'error');
+                
+                // Try fallback demo login
+                log('🔄 Trying fallback demo login...', 'info');
+                
+                if (email === 'bizpulse.erp@gmail.com' && password === 'demo123') {
+                    log('✅ Demo login successful (offline mode)', 'success');
+                    showStatus('✅ Demo login successful! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        log('🚀 Redirecting to dashboard...', 'success');
+                        window.location.href = '/retail/dashboard';
+                    }, 1500);
+                } else {
+                    log('❌ Wrong email or password', 'error');
+                    showStatus('❌ Wrong email or password!', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Login to BizPulse';
+                }
+            }
+        }
+
+        // Initialize
+        log('✅ Page loaded successfully', 'success');
+        log(`🌐 Server: ${SERVER_URL}`, 'info');
+        log('📱 Ready to login!', 'info');
+
+        // Allow Enter key to submit
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

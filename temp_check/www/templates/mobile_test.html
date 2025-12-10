@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Mobile Test - BizPulse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            color: #732C3F;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .test-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .test-card {
+            width: 100%;
+            max-width: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(115, 44, 63, 0.1);
+        }
+        
+        .test-card h2 {
+            font-size: 1.4rem;
+            color: #732C3F;
+            margin-bottom: 10px;
+        }
+        
+        .test-card p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .test-btn {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .test-btn:hover {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #732C3F;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .device-info {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        /* Force mobile layout */
+        @media screen and (max-width: 900px) {
+            body {
+                padding: 10px !important;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem !important;
+            }
+            
+            .test-card {
+                max-width: 280px !important;
+                padding: 15px !important;
+            }
+            
+            .test-card h2 {
+                font-size: 1.2rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Mobile Test Page</h1>
+            <p>Testing mobile responsiveness</p>
+        </div>
+        
+        <div class="test-cards">
+            <div class="test-card">
+                <h2>🛒 Retail Management</h2>
+                <p>Complete retail store management solution</p>
+                <button class="test-btn" onclick="window.location.href='/retail/dashboard'">
+                    Go to Dashboard
+                </button>
+            </div>
+            
+            <div class="test-card">
+                <h2>🏨 Hotel Management</h2>
+                <p>Hospitality management system</p>
+                <button class="test-btn" onclick="window.location.href='/hotel/dashboard'">
+                    Go to Hotel
+                </button>
+            </div>
+            
+            <div class="test-card">
+                <h2>📞 Contact Us</h2>
+                <p>Get in touch with our team</p>
+                <button class="test-btn" onclick="window.location.href='/contact'">
+                    Contact Page
+                </button>
+            </div>
+        </div>
+        
+        <div class="device-info">
+            <strong>Device Info:</strong><br>
+            Screen Width: <span id="screenWidth"></span>px<br>
+            User Agent: <span id="userAgent"></span><br>
+            Mobile Detected: <span id="mobileDetected"></span>
+        </div>
+        
+        <a href="/" class="back-link">← Back to Homepage</a>
+    </div>
+    
+    <script>
+        // Display device information
+        document.getElementById('screenWidth').textContent = window.innerWidth;
+        document.getElementById('userAgent').textContent = navigator.userAgent.substring(0, 50) + '...';
+        
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        }
+        
+        document.getElementById('mobileDetected').textContent = isMobile() ? 'Yes' : 'No';
+        
+        // Update screen width on resize
+        window.addEventListener('resize', function() {
+            document.getElementById('screenWidth').textContent = window.innerWidth;
+            document.getElementById('mobileDetected').textContent = isMobile() ? 'Yes' : 'No';
+        });
+    </script>
+</body>
+</html>

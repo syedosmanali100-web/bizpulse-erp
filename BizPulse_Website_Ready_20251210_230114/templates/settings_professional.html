@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Settings - BizPulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --wine: #722F37;
+            --wine-dark: #5a2329;
+            --wine-light: #8B3A47;
+            --bg: #F7E8EC;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--wine) 0%, var(--wine-light) 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(114, 47, 55, 0.15);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+        }
+
+        /* Sidebar Navigation */
+        .settings-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 8px 32px rgba(114, 47, 55, 0.1);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .nav-item {
+            padding: 0.875rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .nav-item:hover {
+            background: rgba(114, 47, 55, 0.05);
+        }
+
+        .nav-item.active {
+            background: var(--wine);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Settings Content */
+        .settings-content {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(114, 47, 55, 0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--wine);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-description {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        /* Form Groups */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--wine);
+            box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .toggle-title {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .toggle-desc {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--wine);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--wine);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--wine-dark);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Info Card */
+        .info-card {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card.warning {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .info-card.success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            font-weight: 600;
+            display: none;
+        }
+
+        .notification.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+                <div class="header-left">
+                <a href="/retail/dashboard" class="back-btn">
+                    ← {{ t('dashboard') }}
+                </a>
+                <h1 class="page-title">⚙️ {{ t('settings') }}</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="settings-grid">
+            <!-- Sidebar Navigation -->
+            <div class="settings-nav">
+                <div class="nav-item active" onclick="showSection('business')">
+                    <span class="nav-icon">🏢</span>
+                    <span>{{ t('business_info') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('gst')">
+                    <span class="nav-icon">📋</span>
+                    <span>{{ t('gst_settings') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('invoice')">
+                    <span class="nav-icon">🧾</span>
+                    <span>{{ t('invoice_settings') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('payment')">
+                    <span class="nav-icon">💳</span>
+                    <span>{{ t('payment_methods') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('notifications')">
+                    <span class="nav-icon">🔔</span>
+                    <span>{{ t('notifications') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('backup')">
+                    <span class="nav-icon">💾</span>
+                    <span>{{ t('backup_restore') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('security')">
+                    <span class="nav-icon">🔒</span>
+                    <span>{{ t('security') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('advanced')">
+                    <span class="nav-icon">⚡</span>
+                    <span>{{ t('advanced') }}</span>
+                </div>
+                <div class="nav-item" onclick="showSection('language')">
+                    <span class="nav-icon">🌐</span>
+                    <span>Language</span>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="settings-content">
+                <!-- Business Info Section -->
+                <div class="section active" id="business">
+                    <h2 class="section-title">{{ t('business_info') }}</h2>
+                    <p class="section-description">Manage your business details and contact information</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Business Name *</label>
+                            <input type="text" class="form-input" id="businessName" placeholder="Enter business name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Business Type</label>
+                            <select class="form-select" id="businessType">
+                                <option>Retail</option>
+                                <option>Wholesale</option>
+                                <option>Manufacturing</option>
+                                <option>Service</option>
+                                <option>Restaurant</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="businessEmail" placeholder="business@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-input" id="businessPhone" placeholder="+91 7093635305">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Website</label>
+                            <input type="url" class="form-input" id="businessWebsite" placeholder="https://example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" id="currency">
+                                <option>INR (₹)</option>
+                                <option>USD ($)</option>
+                                <option>EUR (€)</option>
+                                <option>GBP (£)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Business Address</label>
+                        <textarea class="form-textarea" id="businessAddress" placeholder="Enter complete business address"></textarea>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('business')">💾 Save Changes</button>
+                        <button class="btn btn-secondary" onclick="resetForm('business')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- GST Settings Section -->
+                <div class="section" id="gst">
+                    <h2 class="section-title">{{ t('gst_settings') }}</h2>
+                    <p class="section-description">Configure GST/Tax settings for your business</p>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Enable GST</div>
+                            <div class="toggle-desc">Turn on GST calculations for invoices</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableGST" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">GSTIN Number</label>
+                            <input type="text" class="form-input" id="gstinNumber" placeholder="22AAAAA0000A1Z5" maxlength="15">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">GST Registration Date</label>
+                            <input type="date" class="form-input" id="gstRegDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PAN Number</label>
+                            <input type="text" class="form-input" id="panNumber" placeholder="AAAAA0000A" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">State Code</label>
+                            <select class="form-select" id="stateCode">
+                                <option value="">Select State</option>
+                                <option value="01">01 - Jammu & Kashmir</option>
+                                <option value="02">02 - Himachal Pradesh</option>
+                                <option value="03">03 - Punjab</option>
+                                <option value="04">04 - Chandigarh</option>
+                                <option value="05">05 - Uttarakhand</option>
+                                <option value="06">06 - Haryana</option>
+                                <option value="07">07 - Delhi</option>
+                                <option value="08">08 - Rajasthan</option>
+                                <option value="09">09 - Uttar Pradesh</option>
+                                <option value="10">10 - Bihar</option>
+                                <option value="11">11 - Sikkim</option>
+                                <option value="12">12 - Arunachal Pradesh</option>
+                                <option value="13">13 - Nagaland</option>
+                                <option value="14">14 - Manipur</option>
+                                <option value="15">15 - Mizoram</option>
+                                <option value="16">16 - Tripura</option>
+                                <option value="17">17 - Meghalaya</option>
+                                <option value="18">18 - Assam</option>
+                                <option value="19">19 - West Bengal</option>
+                                <option value="20">20 - Jharkhand</option>
+                                <option value="21">21 - Odisha</option>
+                                <option value="22">22 - Chhattisgarh</option>
+                                <option value="23">23 - Madhya Pradesh</option>
+                                <option value="24">24 - Gujarat</option>
+                                <option value="25">25 - Daman & Diu</option>
+                                <option value="26">26 - Dadra & Nagar Haveli</option>
+                                <option value="27">27 - Maharashtra</option>
+                                <option value="28">28 - Andhra Pradesh (Old)</option>
+                                <option value="29">29 - Karnataka</option>
+                                <option value="30">30 - Goa</option>
+                                <option value="31">31 - Lakshadweep</option>
+                                <option value="32">32 - Kerala</option>
+                                <option value="33">33 - Tamil Nadu</option>
+                                <option value="34">34 - Puducherry</option>
+                                <option value="35">35 - Andaman & Nicobar</option>
+                                <option value="36">36 - Telangana</option>
+                                <option value="37">37 - Andhra Pradesh</option>
+                                <option value="38">38 - Ladakh</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">GST Type *</label>
+                            <select class="form-select" id="gstType" onchange="updateGSTRates()">
+                                <option value="">Select GST Type</option>
+                                <option value="cgst_sgst">CGST + SGST (Intra-State) - 0%, 2.5%, 6%, 9%, 14%</option>
+                                <option value="igst">IGST (Inter-State) - 0%, 5%, 12%, 18%, 28%</option>
+                                <option value="utgst">UTGST (Union Territory) - 0%, 2.5%, 6%, 9%, 14%</option>
+                                <option value="composite">Composite GST - 1%, 2%, 5%, 6%</option>
+                                <option value="reverse_charge">Reverse Charge GST - 5%, 12%, 18%, 28%</option>
+                                <option value="ecommerce">E-Commerce GST - 1% TCS</option>
+                                <option value="tds">TDS under GST - 2%</option>
+                                <option value="tcs">TCS under GST - 0.1%, 1%</option>
+                                <option value="nil_rated">Nil Rated GST - 0%</option>
+                                <option value="exempted">Exempted GST - 0%</option>
+                                <option value="zero_rated">Zero Rated GST - 0% (Exports)</option>
+                                <option value="cess">GST with Cess - 28% + Cess</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Applicable GST Rate (%)</label>
+                            <select class="form-select" id="defaultGSTRate">
+                                <option value="">Select GST Type first</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-card" id="gstInfo" style="display: none;">
+                        <strong>ℹ️ GST Information:</strong>
+                        <p id="gstDescription"></p>
+                    </div>
+
+                    <div class="info-card warning">
+                        <strong>⚠️ Important:</strong> Ensure your GSTIN is valid and matches your business registration.
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('gst')">💾 Save GST Settings</button>
+                        <button class="btn btn-secondary" onclick="resetForm('gst')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Invoice Settings Section -->
+                <div class="section" id="invoice">
+                    <h2 class="section-title">{{ t('invoice_settings') }}</h2>
+                    <p class="section-description">Customize invoice format and numbering</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Invoice Prefix</label>
+                            <input type="text" class="form-input" id="invoicePrefix" placeholder="INV-" value="INV-">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Starting Number</label>
+                            <input type="number" class="form-input" id="invoiceStartNumber" value="1001">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invoice Footer Text</label>
+                            <input type="text" class="form-input" id="invoiceFooter" placeholder="Thank you for your business!">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Terms & Conditions</label>
+                            <input type="text" class="form-input" id="invoiceTerms" placeholder="Payment due within 30 days">
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Show Company Logo</div>
+                            <div class="toggle-desc">Display logo on invoices</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showLogo" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Auto-Generate Invoice Number</div>
+                            <div class="toggle-desc">Automatically increment invoice numbers</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoInvoiceNumber" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('invoice')">💾 Save Invoice Settings</button>
+                        <button class="btn btn-secondary" onclick="resetForm('invoice')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Section -->
+                <div class="section" id="payment">
+                    <h2 class="section-title">{{ t('payment_methods') }}</h2>
+                    <p class="section-description">Configure accepted payment methods</p>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Cash</div>
+                            <div class="toggle-desc">Accept cash payments</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="paymentCash" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">UPI</div>
+                            <div class="toggle-desc">Accept UPI payments (PhonePe, GPay, etc.)</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="paymentUPI" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">UPI ID</label>
+                        <input type="text" class="form-input" id="upiId" placeholder="yourname@paytm">
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Card Payment</div>
+                            <div class="toggle-desc">Accept credit/debit card payments</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="paymentCard" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Net Banking</div>
+                            <div class="toggle-desc">Accept net banking transfers</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="paymentNetBanking">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('payment')">💾 Save Payment Settings</button>
+                        <button class="btn btn-secondary" onclick="resetForm('payment')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="section" id="notifications">
+                    <h2 class="section-title">{{ t('notifications') }}</h2>
+                    <p class="section-description">Manage alerts and notifications</p>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Low Stock Alerts</div>
+                            <div class="toggle-desc">Get notified when products are low in stock</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notifyLowStock" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Low Stock Threshold</label>
+                        <input type="number" class="form-input" id="lowStockThreshold" value="10" placeholder="10">
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Daily Sales Report</div>
+                            <div class="toggle-desc">Receive daily sales summary via email</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notifyDailySales">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Payment Reminders</div>
+                            <div class="toggle-desc">Send payment reminders to customers</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="notifyPaymentReminders">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('notifications')">💾 Save Notification Settings</button>
+                        <button class="btn btn-secondary" onclick="resetForm('notifications')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Backup & Restore Section -->
+                <div class="section" id="backup">
+                    <h2 class="section-title">{{ t('backup_restore') }}</h2>
+                    <p class="section-description">Manage your data backups</p>
+
+                    <div class="info-card success">
+                        <strong>✓ Last Backup:</strong> Never backed up
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Auto Backup</div>
+                            <div class="toggle-desc">Automatically backup data daily</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoBackup">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Backup Frequency</label>
+                        <select class="form-select" id="backupFrequency">
+                            <option>Daily</option>
+                            <option>Weekly</option>
+                            <option>Monthly</option>
+                        </select>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="createBackup()">💾 Create Backup Now</button>
+                        <button class="btn btn-secondary" onclick="restoreBackup()">↺ Restore from Backup</button>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                <div class="section" id="security">
+                    <h2 class="section-title">{{ t('security') }}</h2>
+                    <p class="section-description">Manage security and access control</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-input" id="newPassword" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-input" id="confirmPassword" placeholder="Confirm new password">
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Two-Factor Authentication</div>
+                            <div class="toggle-desc">Add extra security layer to your account</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enable2FA">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Session Timeout</div>
+                            <div class="toggle-desc">Auto logout after inactivity</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sessionTimeout" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('security')">💾 Update Security</button>
+                        <button class="btn btn-secondary" onclick="resetForm('security')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Language Section -->
+                <div class="section" id="language">
+                    <h2 class="section-title">Language</h2>
+                    <p class="section-description">Select application language for the frontend (stored locally).</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Choose Language</label>
+                            <select class="form-select" id="languageSelect">
+                                <option value="en">English</option>
+                                <option value="hi">Hindi</option>
+                                <option value="es">Spanish</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('language')">💾 Save Language</button>
+                        <button class="btn btn-secondary" onclick="resetForm('language')">↺ Reset</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Section -->
+                <div class="section" id="advanced">
+                    <h2 class="section-title">{{ t('advanced') }}</h2>
+                    <p class="section-description">Advanced configuration options</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Date Format</label>
+                            <select class="form-select" id="dateFormat">
+                                <option>DD/MM/YYYY</option>
+                                <option>MM/DD/YYYY</option>
+                                <option>YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time Format</label>
+                            <select class="form-select" id="timeFormat">
+                                <option>12 Hour</option>
+                                <option>24 Hour</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Decimal Places</label>
+                            <select class="form-select" id="decimalPlaces">
+                                <option>0</option>
+                                <option selected>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" id="language">
+                                <option>English</option>
+                                <option>Hindi</option>
+                                <option>Spanish</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group">
+                        <div class="toggle-label">
+                            <div class="toggle-title">Debug Mode</div>
+                            <div class="toggle-desc">Enable detailed error logging</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="debugMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="info-card warning">
+                        <strong>⚠️ Warning:</strong> Changing advanced settings may affect system performance.
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="saveSettings('advanced')">💾 Save Advanced Settings</button>
+                        <button class="btn btn-secondary" onclick="resetForm('advanced')">↺ Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // GST Rate mapping based on type
+        const gstRateMapping = {
+            'cgst_sgst': {
+                rates: [
+                    { value: '0', label: '0% (CGST: 0% + SGST: 0%) - Nil Rated' },
+                    { value: '5', label: '5% (CGST: 2.5% + SGST: 2.5%) - Essential Items' },
+                    { value: '12', label: '12% (CGST: 6% + SGST: 6%) - Standard Items' },
+                    { value: '18', label: '18% (CGST: 9% + SGST: 9%) - Most Goods & Services' },
+                    { value: '28', label: '28% (CGST: 14% + SGST: 14%) - Luxury Items' }
+                ],
+                description: 'CGST + SGST applies to intra-state transactions (within same state). Total GST is split equally between Central and State Government.'
+            },
+            'igst': {
+                rates: [
+                    { value: '0', label: '0% - Nil Rated' },
+                    { value: '5', label: '5% - Essential Items (Food grains, Tea, Coffee)' },
+                    { value: '12', label: '12% - Standard Items (Computers, Processed Food)' },
+                    { value: '18', label: '18% - Most Goods & Services (Electronics, Services)' },
+                    { value: '28', label: '28% - Luxury Items (Cars, AC, Refrigerators)' }
+                ],
+                description: 'IGST applies to inter-state transactions (between different states). Entire tax goes to Central Government and is later distributed.'
+            },
+            'utgst': {
+                rates: [
+                    { value: '0', label: '0% (CGST: 0% + UTGST: 0%) - Nil Rated' },
+                    { value: '5', label: '5% (CGST: 2.5% + UTGST: 2.5%) - Essential Items' },
+                    { value: '12', label: '12% (CGST: 6% + UTGST: 6%) - Standard Items' },
+                    { value: '18', label: '18% (CGST: 9% + UTGST: 9%) - Most Goods & Services' },
+                    { value: '28', label: '28% (CGST: 14% + UTGST: 14%) - Luxury Items' }
+                ],
+                description: 'UTGST applies to Union Territories without legislature (like Andaman, Lakshadweep). Similar to CGST+SGST but UTGST replaces SGST.'
+            },
+            'composite': {
+                rates: [
+                    { value: '1', label: '1% - Manufacturers & Traders (Turnover up to ₹1.5 Cr)' },
+                    { value: '2', label: '2% - Manufacturers (Turnover ₹1.5-5 Cr)' },
+                    { value: '5', label: '5% - Restaurants (Non-AC)' },
+                    { value: '6', label: '6% - Other Service Providers' }
+                ],
+                description: 'Composite Scheme for small businesses with turnover up to ₹1.5 Crore. Simplified tax with no input tax credit.'
+            },
+            'reverse_charge': {
+                rates: [
+                    { value: '5', label: '5% - Services from unregistered dealers' },
+                    { value: '12', label: '12% - Goods from unregistered dealers' },
+                    { value: '18', label: '18% - Professional services, Legal services' },
+                    { value: '28', label: '28% - Luxury goods from unregistered dealers' }
+                ],
+                description: 'Reverse Charge Mechanism: Recipient pays GST instead of supplier. Applies when buying from unregistered dealers or specific services.'
+            },
+            'ecommerce': {
+                rates: [
+                    { value: '1', label: '1% TCS - E-commerce operators collect tax' }
+                ],
+                description: 'E-commerce operators must collect 1% TCS (Tax Collected at Source) on net value of taxable supplies.'
+            },
+            'tds': {
+                rates: [
+                    { value: '2', label: '2% TDS - Deducted by government entities' }
+                ],
+                description: 'TDS under GST: 2% tax deducted at source by government departments, PSUs when making payments to suppliers.'
+            },
+            'tcs': {
+                rates: [
+                    { value: '0.1', label: '0.1% TCS - E-commerce operators' },
+                    { value: '1', label: '1% TCS - Specified goods (Scrap, Minerals)' }
+                ],
+                description: 'TCS (Tax Collected at Source): Collected by e-commerce operators or dealers in specified goods like scrap, minerals.'
+            },
+            'nil_rated': {
+                rates: [
+                    { value: '0', label: '0% - Nil Rated (Fresh vegetables, Milk, Bread, etc.)' }
+                ],
+                description: 'Nil Rated: GST rate is 0%. Input tax credit is available. Applies to essential items like fresh vegetables, milk, bread, newspapers.'
+            },
+            'exempted': {
+                rates: [
+                    { value: '0', label: '0% - Exempted (Education, Healthcare, etc.)' }
+                ],
+                description: 'Exempted: No GST charged. Input tax credit NOT available. Applies to education, healthcare, agricultural produce.'
+            },
+            'zero_rated': {
+                rates: [
+                    { value: '0', label: '0% - Zero Rated (Exports, SEZ supplies)' }
+                ],
+                description: 'Zero Rated: GST rate is 0% but input tax credit is available. Applies to exports and supplies to SEZ.'
+            },
+            'cess': {
+                rates: [
+                    { value: '28', label: '28% + 1% Cess - Pan Masala' },
+                    { value: '28', label: '28% + 12% Cess - Aerated Drinks' },
+                    { value: '28', label: '28% + 15% Cess - Luxury Cars' },
+                    { value: '28', label: '28% + 22% Cess - Tobacco Products' }
+                ],
+                description: 'GST with Cess: Additional cess over 28% GST on luxury and sin goods like tobacco, aerated drinks, luxury cars.'
+            }
+        };
+
+        // Update GST rates based on selected type
+        function updateGSTRates() {
+            const gstType = document.getElementById('gstType').value;
+            const rateSelect = document.getElementById('defaultGSTRate');
+            const infoCard = document.getElementById('gstInfo');
+            const description = document.getElementById('gstDescription');
+            
+            // Clear existing options
+            rateSelect.innerHTML = '';
+            
+            if (!gstType) {
+                rateSelect.innerHTML = '<option value="">Select GST Type first</option>';
+                infoCard.style.display = 'none';
+                return;
+            }
+            
+            const mapping = gstRateMapping[gstType];
+            if (mapping) {
+                // Add rate options
+                mapping.rates.forEach(rate => {
+                    const option = document.createElement('option');
+                    option.value = rate.value;
+                    option.textContent = rate.label;
+                    rateSelect.appendChild(option);
+                });
+                
+                // Show description
+                description.textContent = mapping.description;
+                infoCard.style.display = 'block';
+            }
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active to clicked nav item
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // Save settings
+        async function saveSettings(section) {
+            const settings = {};
+
+            // Collect form data based on section
+            if (section === 'business') {
+                settings.businessName = document.getElementById('businessName').value;
+                settings.businessType = document.getElementById('businessType').value;
+                settings.businessEmail = document.getElementById('businessEmail').value;
+                settings.businessPhone = document.getElementById('businessPhone').value;
+                settings.businessWebsite = document.getElementById('businessWebsite').value;
+                settings.currency = document.getElementById('currency').value;
+                settings.businessAddress = document.getElementById('businessAddress').value;
+            } else if (section === 'gst') {
+                settings.enableGST = document.getElementById('enableGST').checked;
+                settings.gstinNumber = document.getElementById('gstinNumber').value;
+                settings.gstRegDate = document.getElementById('gstRegDate').value;
+                settings.defaultGSTRate = document.getElementById('defaultGSTRate').value;
+                settings.gstType = document.getElementById('gstType').value;
+            } else if (section === 'language') {
+                const langEl = document.getElementById('languageSelect') || document.getElementById('language');
+                const langVal = langEl ? langEl.value : 'en';
+                settings.language = langVal;
+                // Also set a shared key for the mobile app and other pages
+                try { localStorage.setItem('appLanguage', langVal); } catch(e) { /* ignore */ }
+                // Notify backend to set cookie so server-side templates can pick language
+                try {
+                    fetch('/api/set_language', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lang: langVal })
+                    }).then(r => r.json().catch(()=>{})).catch(()=>{});
+                } catch(e) {}
+            }
+
+            try {
+                // Save to localStorage for now
+                localStorage.setItem(`settings_${section}`, JSON.stringify(settings));
+                showNotification("{{ t('settings_saved') }}", 'success');
+            } catch (error) {
+                showNotification("{{ t('settings_failed') }}", 'error');
+            }
+        }
+
+        // Reset form
+        function resetForm(section) {
+            if (confirm('Are you sure you want to reset this section?')) {
+                localStorage.removeItem(`settings_${section}`);
+                location.reload();
+            }
+        }
+
+        // Create backup
+        function createBackup() {
+            showNotification('Creating backup...', 'info');
+            setTimeout(() => {
+                showNotification('Backup created successfully!', 'success');
+            }, 2000);
+        }
+
+        // Restore backup
+        function restoreBackup() {
+            if (confirm('Are you sure you want to restore from backup? This will overwrite current data.')) {
+                showNotification('Restoring backup...', 'info');
+                setTimeout(() => {
+                    showNotification('Backup restored successfully!', 'success');
+                }, 2000);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Load saved settings on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load business settings
+            const businessSettings = JSON.parse(localStorage.getItem('settings_business') || '{}');
+            if (businessSettings.businessName) {
+                document.getElementById('businessName').value = businessSettings.businessName;
+                document.getElementById('businessType').value = businessSettings.businessType || 'Retail';
+                document.getElementById('businessEmail').value = businessSettings.businessEmail || '';
+                document.getElementById('businessPhone').value = businessSettings.businessPhone || '+91 7093635305';
+                document.getElementById('businessWebsite').value = businessSettings.businessWebsite || '';
+                document.getElementById('currency').value = businessSettings.currency || 'INR (₹)';
+                document.getElementById('businessAddress').value = businessSettings.businessAddress || '';
+            }
+
+            // Load GST settings
+            const gstSettings = JSON.parse(localStorage.getItem('settings_gst') || '{}');
+            if (gstSettings.gstinNumber) {
+                document.getElementById('enableGST').checked = gstSettings.enableGST !== false;
+                document.getElementById('gstinNumber').value = gstSettings.gstinNumber || '';
+                document.getElementById('gstRegDate').value = gstSettings.gstRegDate || '';
+                document.getElementById('defaultGSTRate').value = gstSettings.defaultGSTRate || '18%';
+                document.getElementById('gstType').value = gstSettings.gstType || 'CGST + SGST';
+            }
+
+            // Load language settings (from dedicated language section or shared appLanguage)
+            const savedLang = (JSON.parse(localStorage.getItem('settings_language') || '{}').language) || localStorage.getItem('appLanguage') || null;
+            if (savedLang) {
+                const langSelect = document.getElementById('languageSelect');
+                const advLang = document.getElementById('language');
+                if (langSelect) langSelect.value = savedLang;
+                if (advLang) advLang.value = savedLang === 'en' ? 'English' : (savedLang === 'hi' ? 'Hindi' : (savedLang === 'es' ? 'Spanish' : savedLang));
+                try { document.body.dataset.lang = savedLang; } catch(e) {}
+            }
+        });
+    </script>
+</body>
+</html>

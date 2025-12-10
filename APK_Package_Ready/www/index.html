@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>BizPulse ERP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+        .loading { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            flex-direction: column;
+        }
+        .spinner { 
+            border: 4px solid #f3f3f3; 
+            border-top: 4px solid #3498db; 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #app { display: none; width: 100%; height: 100vh; border: none; }
+        .error { color: red; text-align: center; padding: 20px; }
+        .retry-btn { 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Connecting to BizPulse Server...</p>
+        <p id="status">Finding server...</p>
+    </div>
+    
+    <div class="error" id="error" style="display: none;">
+        <h3>Connection Failed</h3>
+        <p id="errorMsg">Unable to connect to server</p>
+        <button class="retry-btn" onclick="connectToServer()">Retry</button>
+    </div>
+    
+    <iframe id="app" src=""></iframe>
+
+    <script>
+        // Your server URLs - UPDATE THESE WITH YOUR IP
+        const SERVER_URLS = [
+            'http://192.168.31.75:5000',  // Your current IP
+            'http://192.168.1.100:5000',  // Common router IP
+            'http://localhost:5000',       // Local
+            'http://127.0.0.1:5000'       // Loopback
+        ];
+        
+        let currentServer = null;
+        
+        function updateStatus(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+        
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMsg').textContent = msg;
+        }
+        
+        function showApp(serverUrl) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('app').src = serverUrl;
+        }
+        
+        async function testServer(url) {
+            try {
+                updateStatus(`Testing ${url}...`);
+                const response = await fetch(url + '/api/products', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        async function connectToServer() {
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('error').style.display = 'none';
+            
+            for (const url of SERVER_URLS) {
+                const isWorking = await testServer(url);
+                if (isWorking) {
+                    currentServer = url;
+                    updateStatus('Connected! Loading app...');
+                    setTimeout(() => showApp(url), 1000);
+                    return;
+                }
+            }
+            
+            showError('No server found. Make sure your server is running.');
+        }
+        
+        // Auto-refresh every 30 seconds to check for updates
+        setInterval(() => {
+            if (currentServer) {
+                document.getElementById('app').src = currentServer + '?t=' + Date.now();
+            }
+        }, 30000);
+        
+        // Start connection when page loads
+        document.addEventListener('DOMContentLoaded', connectToServer);
+        
+        // Handle network changes
+        window.addEventListener('online', connectToServer);
+    </script>
+</body>
+</html>

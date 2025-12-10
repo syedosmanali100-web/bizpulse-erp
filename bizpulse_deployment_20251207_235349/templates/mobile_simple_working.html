@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizPulse Mobile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+            min-height: 100vh;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+        
+        .menu-btn {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+            background: #732C3F;
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .title { color: #732C3F; font-weight: bold; }
+        
+        /* Side Menu */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: #732C3F;
+            transition: left 0.3s;
+            z-index: 200;
+            overflow-y: auto;
+            color: white;
+        }
+        
+        .side-menu.open { left: 0; }
+        
+        .menu-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .menu-item:hover { background: rgba(255,255,255,0.1); }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 150;
+        }
+        
+        .overlay.show { display: block; }
+        
+        /* Content */
+        .content {
+            padding: 70px 15px 15px 15px;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .card h2 { 
+            color: #732C3F; 
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            padding: 25px 20px;
+        }
+        
+        .welcome-card h2 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .welcome-card p {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 0;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 18px 15px;
+            border-radius: 12px;
+            border-left: 4px solid #732C3F;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+        }
+        
+        .stat-box:active {
+            transform: scale(0.98);
+        }
+        
+        .stat-box.sales { border-left-color: #4CAF50; }
+        .stat-box.products { border-left-color: #2196F3; }
+        .stat-box.customers { border-left-color: #FF9800; }
+        .stat-box.bills { border-left-color: #9C27B0; }
+        
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #732C3F;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .stat-change {
+            font-size: 11px;
+            color: #4CAF50;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .stat-change.down {
+            color: #f44336;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 0;
+        }
+        
+        .module-box {
+            background: white;
+            padding: 18px 12px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            transition: all 0.2s;
+        }
+        
+        .module-box:active { 
+            transform: scale(0.95);
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+        
+        .module-icon { 
+            font-size: 36px; 
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .module-name { 
+            color: #732C3F; 
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .recent-activity {
+            margin-top: 0;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #F7E8EC;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .activity-details {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #732C3F;
+            margin-bottom: 2px;
+        }
+        
+        .activity-time {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .list-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8D5DA;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #732C3F;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #732C3F;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E8D5DA;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E8D5DA;
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        /* Barcode Scanner Styles */
+        .barcode-section {
+            margin-bottom: 20px;
+        }
+        
+        .btn-barcode {
+            width: 100%;
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .btn-barcode:active {
+            transform: scale(0.98);
+        }
+        
+        .divider-text {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .divider-text::before,
+        .divider-text::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #E8D5DA;
+        }
+        
+        .divider-text::before { left: 0; }
+        .divider-text::after { right: 0; }
+        
+        .camera-container {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .camera-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn-camera {
+            flex: 1;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-camera.secondary {
+            background: #f44336;
+        }
+        
+        .btn-upload {
+            display: inline-block;
+            background: #FF9800;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Products Module Styles */
+        .product-card {
+            background: #F7E8EC;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .product-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .product-info {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #732C3F;
+            margin-bottom: 4px;
+        }
+        
+        .product-details {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        
+        .product-stock {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .stock-good {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .stock-low {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .stock-out {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .product-price {
+            text-align: right;
+        }
+        
+        .price-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #732C3F;
+            margin-bottom: 4px;
+        }
+        
+        .product-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .action-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        
+        .filter-tab {
+            padding: 8px 16px;
+            border: 2px solid #E8D5DA;
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .filter-tab.active {
+            background: #732C3F;
+            color: white;
+            border-color: #732C3F;
+        }
+        
+        /* Loading Screen with Rainbow Gradient */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, 
+                #667eea 0%, 
+                #764ba2 10%, 
+                #f093fb 20%, 
+                #4facfe 30%, 
+                #00f2fe 40%, 
+                #43e97b 50%, 
+                #fa709a 60%, 
+                #fee140 70%,
+                #667eea 80%,
+                #764ba2 90%,
+                #f093fb 100%
+            );
+            background-size: 400% 400%;
+            animation: rainbowShift 8s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 0.5s;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes rainbowShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Heartbeat Pulse Line Loader */
+        .pulse-loader {
+            width: 250px;
+            height: 100px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .heartbeat-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .heartbeat-path {
+            stroke: white;
+            stroke-width: 3;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+            animation: drawHeartbeat 3s ease-in-out infinite;
+        }
+        
+        @keyframes drawHeartbeat {
+            0% {
+                stroke-dasharray: 0 1000;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 1000 0;
+                stroke-dashoffset: 0;
+            }
+            100% {
+                stroke-dasharray: 1000 0;
+                stroke-dashoffset: -1000;
+            }
+        }
+        
+        .loading-brand {
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .login-screen.show { display: flex; }
+        .login-screen.hidden { display: none; }
+        
+        .login-card {
+            background: white;
+            padding: 30px 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .login-logo h1 {
+            color: #732C3F;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .login-logo p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #732C3F;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E8D5DA;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .logout-item {
+            background: rgba(255,255,255,0.1);
+            margin: 10px 15px;
+            border-radius: 8px;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:active {
+            transform: scale(0.95);
+            background: #F7E8EC;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            color: #732C3F;
+            font-weight: 500;
+        }
+        
+        /* Add padding to content for bottom nav */
+        .content {
+            padding: 70px 15px 80px 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-brand">BizPulse</div>
+        <div class="pulse-loader">
+            <svg class="heartbeat-svg" viewBox="0 0 250 100" xmlns="http://www.w3.org/2000/svg">
+                <path class="heartbeat-path" d="M 0,50 L 40,50 L 50,20 L 60,80 L 70,50 L 90,50 L 100,30 L 110,70 L 120,50 L 140,50 L 150,10 L 160,90 L 170,50 L 190,50 L 200,40 L 210,60 L 220,50 L 250,50"/>
+            </svg>
+        </div>
+        <div class="loading-text">Loading...</div>
+    </div>
+    
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <h1>🏢 BizPulse</h1>
+                <p>Mobile ERP System</p>
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" value="bizpulse.erp@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" value="demo123" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Top Bar -->
+    <div class="top-bar" id="topBar" style="display: none;">
+        <div class="menu-btn" onclick="toggleMenu()">☰</div>
+        <div class="title">BizPulse</div>
+        <div>👤</div>
+    </div>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+    
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h2>BizPulse ERP</h2>
+            <p id="userEmail">admin@demo.com</p>
+        </div>
+        <div id="menuItems">Loading...</div>
+        <div style="border-top: 1px solid rgba(255,255,255,0.2); margin-top: 10px;"></div>
+        <div class="menu-item logout-item" onclick="handleLogout()">
+            <span>🚪 Logout</span>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav" id="bottomNav" style="display: none;">
+        <div class="nav-item" onclick="scrollToTop()">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Home</div>
+        </div>
+        <div class="nav-item" onclick="showModule('products')">
+            <div class="nav-icon">📦</div>
+            <div class="nav-label">Products</div>
+        </div>
+        <div class="nav-item" onclick="showModule('customers')">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">Customers</div>
+        </div>
+        <div class="nav-item" onclick="showModule('sales')">
+            <div class="nav-icon">💰</div>
+            <div class="nav-label">Sales</div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content" id="mainContent" style="display: none;">
+        <div class="card welcome-card">
+            <h2>👋 Welcome Back!</h2>
+            <p>Here's what's happening with your business today</p>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Overview</h2>
+            <div class="stats" id="stats">
+                <div class="stat-box sales">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value" id="totalSales">₹0</div>
+                    <div class="stat-label">Today's Sales</div>
+                    <div class="stat-change">↑ 12%</div>
+                </div>
+                <div class="stat-box products">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Products</div>
+                    <div class="stat-change">↑ 5%</div>
+                </div>
+                <div class="stat-box customers">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="totalCustomers">0</div>
+                    <div class="stat-label">Customers</div>
+                    <div class="stat-change">↑ 8%</div>
+                </div>
+                <div class="stat-box bills">
+                    <div class="stat-icon">🧾</div>
+                    <div class="stat-value" id="totalBills">0</div>
+                    <div class="stat-label">Bills Today</div>
+                    <div class="stat-change">↑ 15%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚡ Quick Actions</h2>
+            <div class="module-grid">
+                <div class="module-box" onclick="showModule('billing')">
+                    <div class="module-icon">🧾</div>
+                    <div class="module-name">New Bill</div>
+                </div>
+                <div class="module-box" onclick="showModule('products')">
+                    <div class="module-icon">📦</div>
+                    <div class="module-name">Products</div>
+                </div>
+                <div class="module-box" onclick="showModule('customers')">
+                    <div class="module-icon">👥</div>
+                    <div class="module-name">Customers</div>
+                </div>
+                <div class="module-box" onclick="showModule('sales')">
+                    <div class="module-icon">💰</div>
+                    <div class="module-name">Sales</div>
+                </div>
+                <div class="module-box" onclick="showModule('inventory')">
+                    <div class="module-icon">📊</div>
+                    <div class="module-name">Inventory</div>
+                </div>
+                <div class="module-box" onclick="showModule('reports')">
+                    <div class="module-icon">📈</div>
+                    <div class="module-name">Reports</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🕐 Recent Activity</h2>
+            <div class="recent-activity">
+                <div class="activity-item">
+                    <div class="activity-icon">💰</div>
+                    <div class="activity-details">
+                        <div class="activity-title">New Sale</div>
+                        <div class="activity-time">2 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">👥</div>
+                    <div class="activity-details">
+                        <div class="activity-title">Customer Added</div>
+                        <div class="activity-time">15 minutes ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon">📦</div>
+                    <div class="activity-details">
+                        <div class="activity-title">Stock Updated</div>
+                        <div class="activity-time">1 hour ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card" id="dataDisplay" style="display: none;">
+            <h2 id="dataTitle">Select a module</h2>
+            <div id="dataContent">Click on any module above to view data</div>
+        </div>
+        
+        <!-- Products Module -->
+        <div class="card" id="productsModule" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">📦 Products</h2>
+                <button onclick="showAddProductForm()" style="background: #732C3F; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px;">+ Add</button>
+            </div>
+            
+            <!-- Search Bar -->
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="productSearch" placeholder="🔍 Search products..." style="width: 100%; padding: 12px; border: 2px solid #E8D5DA; border-radius: 10px; font-size: 14px;" onkeyup="filterProducts()">
+            </div>
+            
+            <!-- Filter Tabs -->
+            <div style="display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto;">
+                <button class="filter-tab active" onclick="filterByCategory('all')">All</button>
+                <button class="filter-tab" onclick="filterByCategory('Groceries')">Groceries</button>
+                <button class="filter-tab" onclick="filterByCategory('Beverages')">Beverages</button>
+                <button class="filter-tab" onclick="filterByCategory('Dairy')">Dairy</button>
+                <button class="filter-tab" onclick="filterByCategory('Vegetables')">Vegetables</button>
+            </div>
+            
+            <!-- Products List -->
+            <div id="productsList"></div>
+        </div>
+    </div>
+    
+    <!-- Add Product Modal -->
+    <div class="modal" id="addProductModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">➕ Add New Product</div>
+                <button class="modal-close" onclick="closeAddProductModal()">×</button>
+            </div>
+            
+            <!-- Barcode Scanner Section -->
+            <div class="barcode-section">
+                <button type="button" class="btn-barcode" onclick="openBarcodeScanner()">
+                    📷 Scan with Barcode
+                </button>
+                <div class="divider-text">OR</div>
+            </div>
+            
+            <!-- Camera/Upload Section (Hidden initially) -->
+            <div id="barcodeUploadSection" style="display: none;">
+                <div class="camera-container">
+                    <video id="barcodeVideo" autoplay playsinline style="width: 100%; border-radius: 10px; display: none;"></video>
+                    <canvas id="barcodeCanvas" style="display: none;"></canvas>
+                    
+                    <div id="barcodePreview" style="display: none;">
+                        <img id="barcodeImage" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">✓ Barcode Captured</span>
+                        </div>
+                    </div>
+                    
+                    <div class="camera-buttons" id="cameraButtons" style="display: none;">
+                        <button type="button" class="btn-camera" onclick="captureBarcode()">📸 Capture</button>
+                        <button type="button" class="btn-camera secondary" onclick="closeBarcodeScanner()">✕ Cancel</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 10px;">
+                        <label for="barcodeFileInput" class="btn-upload">
+                            📁 Upload Barcode Image
+                        </label>
+                        <input type="file" id="barcodeFileInput" accept="image/*" style="display: none;" onchange="handleBarcodeUpload(event)">
+                    </div>
+                </div>
+                
+                <div class="divider-text">Product Details</div>
+            </div>
+            
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <div class="form-group">
+                    <label class="form-label">Product Code *</label>
+                    <input type="text" id="productCode" class="form-input" placeholder="e.g., P001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Product Name *</label>
+                    <input type="text" id="productName" class="form-input" placeholder="e.g., Rice (1kg)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select id="productCategory" class="form-select" required>
+                        <option value="">Select Category</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Dairy">Dairy</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Selling Price (₹) *</label>
+                    <input type="number" id="productPrice" class="form-input" placeholder="e.g., 80" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Cost Price (₹) *</label>
+                    <input type="number" id="productCost" class="form-input" placeholder="e.g., 70" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Current Stock *</label>
+                    <input type="number" id="productStock" class="form-input" placeholder="e.g., 100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Minimum Stock *</label>
+                    <input type="number" id="productMinStock" class="form-input" placeholder="e.g., 10" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Unit *</label>
+                    <select id="productUnit" class="form-select" required>
+                        <option value="">Select Unit</option>
+                        <option value="piece">Piece</option>
+                        <option value="kg">Kilogram (kg)</option>
+                        <option value="gram">Gram (g)</option>
+                        <option value="liter">Liter (L)</option>
+                        <option value="ml">Milliliter (ml)</option>
+                        <option value="packet">Packet</option>
+                        <option value="box">Box</option>
+                        <option value="dozen">Dozen</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-primary">💾 Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        console.log('🚀 Simple Mobile App Started');
+        
+        // Show loading screen, then login
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Hide loading screen
+                document.getElementById('loadingScreen').classList.add('hidden');
+                
+                // Show login screen after loading
+                setTimeout(function() {
+                    document.getElementById('loginScreen').classList.add('show');
+                }, 500);
+            }, 2000); // Show loading for 2 seconds
+        });
+        
+        // Login Handler
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Simple validation
+            if (email === 'bizpulse.erp@gmail.com' && password === 'demo123') {
+                console.log('✅ Login successful');
+                
+                // Hide login screen
+                document.getElementById('loginScreen').classList.add('hidden');
+                
+                // Show main app
+                document.getElementById('topBar').style.display = 'flex';
+                document.getElementById('bottomNav').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                // Update user email in menu
+                document.getElementById('userEmail').textContent = email;
+                
+                // Load dashboard data
+                loadDashboard();
+            } else {
+                alert('❌ Invalid credentials!\n\nUse:\nEmail: bizpulse.erp@gmail.com\nPassword: demo123');
+            }
+        }
+        
+        // Logout Handler
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                console.log('👋 Logging out...');
+                
+                // Hide main app
+                document.getElementById('topBar').style.display = 'none';
+                document.getElementById('bottomNav').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'none';
+                
+                // Close menu
+                closeMenu();
+                
+                // Show login screen
+                document.getElementById('loginScreen').classList.remove('hidden');
+                
+                // Reset form
+                document.getElementById('loginPassword').value = 'demo123';
+            }
+        }
+        
+        // Toggle Menu
+        function toggleMenu() {
+            console.log('Menu toggle clicked');
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('overlay');
+            
+            if (menu.classList.contains('open')) {
+                closeMenu();
+            } else {
+                menu.classList.add('open');
+                overlay.classList.add('show');
+                loadMenuItems();
+            }
+        }
+        
+        function closeMenu() {
+            document.getElementById('sideMenu').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+        
+        // Load Menu Items
+        async function loadMenuItems() {
+            console.log('Loading menu items...');
+            const container = document.getElementById('menuItems');
+            
+            try {
+                const response = await fetch('/api/modules');
+                const data = await response.json();
+                
+                let html = '';
+                
+                // Core modules
+                if (data.core_modules) {
+                    html += '<div style="padding: 10px 20px; font-size: 12px; opacity: 0.7;">CORE</div>';
+                    data.core_modules.forEach(m => {
+                        html += `<div class="menu-item" onclick="showModule('${m.route}')">${m.icon} ${m.name}</div>`;
+                    });
+                }
+                
+                // Inventory
+                if (data.inventory_modules) {
+                    html += '<div style="padding: 10px 20px; font-size: 12px; opacity: 0.7;">INVENTORY</div>';
+                    data.inventory_modules.forEach(m => {
+                        html += `<div class="menu-item" onclick="showModule('${m.route}')">${m.icon} ${m.name}</div>`;
+                    });
+                }
+                
+                // Customer
+                if (data.customer_modules) {
+                    html += '<div style="padding: 10px 20px; font-size: 12px; opacity: 0.7;">CUSTOMER</div>';
+                    data.customer_modules.forEach(m => {
+                        html += `<div class="menu-item" onclick="showModule('${m.route}')">${m.icon} ${m.name}</div>`;
+                    });
+                }
+                
+                container.innerHTML = html;
+                console.log('✅ Menu loaded');
+            } catch (error) {
+                console.error('Menu load error:', error);
+                container.innerHTML = '<div style="padding: 20px;">Error loading menu</div>';
+            }
+        }
+        
+        // Load Dashboard Data
+        async function loadDashboard() {
+            console.log('Loading dashboard...');
+            
+            try {
+                // Products
+                const products = await fetch('/api/products').then(r => r.json());
+                document.getElementById('totalProducts').textContent = products.length;
+                
+                // Customers
+                const customers = await fetch('/api/customers').then(r => r.json());
+                document.getElementById('totalCustomers').textContent = customers.length;
+                
+                // Sales
+                const sales = await fetch('/api/sales/summary').then(r => r.json());
+                document.getElementById('totalSales').textContent = '₹' + (sales.today?.total || 0).toFixed(0);
+                document.getElementById('totalBills').textContent = sales.today?.count || 0;
+                
+                console.log('✅ Dashboard loaded');
+            } catch (error) {
+                console.error('Dashboard error:', error);
+            }
+        }
+        
+        let allProducts = [];
+        let currentCategory = 'all';
+        
+        // Show Module Data
+        async function showModule(module) {
+            console.log('Loading module:', module);
+            closeMenu();
+            
+            // Hide all modules
+            document.getElementById('dataDisplay').style.display = 'none';
+            document.getElementById('productsModule').style.display = 'none';
+            
+            // Hide dashboard cards
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.id || card.id === 'dataDisplay' || card.id === 'productsModule') {
+                    card.style.display = 'none';
+                }
+            });
+            
+            if (module === 'products') {
+                document.getElementById('productsModule').style.display = 'block';
+                await loadProducts();
+                return;
+            }
+            
+            // For other modules, use old display
+            document.getElementById('dataDisplay').style.display = 'block';
+            
+            const title = document.getElementById('dataTitle');
+            const content = document.getElementById('dataContent');
+            
+            title.textContent = module.charAt(0).toUpperCase() + module.slice(1);
+            content.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                let data;
+                let html = '';
+                
+                if (module === 'customers') {
+                    data = await fetch('/api/customers').then(r => r.json());
+                    html = '<div>';
+                    data.forEach(c => {
+                        html += `<div class="list-item">
+                            <div><strong>${c.name}</strong><br><small>${c.phone}</small></div>
+                            <div><small>${c.email || 'No email'}</small></div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                } else if (module === 'sales') {
+                    data = await fetch('/api/sales/summary').then(r => r.json());
+                    html = `<div>
+                        <div class="stat-box" style="margin: 10px 0;">
+                            <div class="stat-value">₹${(data.today?.total || 0).toFixed(2)}</div>
+                            <div class="stat-label">Today's Sales</div>
+                        </div>
+                        <div class="stat-box" style="margin: 10px 0;">
+                            <div class="stat-value">₹${(data.week?.total || 0).toFixed(2)}</div>
+                            <div class="stat-label">This Week</div>
+                        </div>
+                        <div class="stat-box" style="margin: 10px 0;">
+                            <div class="stat-value">₹${(data.month?.total || 0).toFixed(2)}</div>
+                            <div class="stat-label">This Month</div>
+                        </div>
+                    </div>`;
+                } else {
+                    html = '<p>Module coming soon...</p>';
+                }
+                
+                content.innerHTML = html;
+                console.log('✅ Module loaded:', module);
+            } catch (error) {
+                console.error('Module error:', error);
+                content.innerHTML = '<p style="color: red;">Error loading data</p>';
+            }
+        }
+        
+        // Load Products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                allProducts = await response.json();
+                displayProducts(allProducts);
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('productsList').innerHTML = '<p style="text-align: center; color: #666;">Error loading products</p>';
+            }
+        }
+        
+        // Display Products
+        function displayProducts(products) {
+            const container = document.getElementById('productsList');
+            
+            if (products.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No products found</p>';
+                return;
+            }
+            
+            let html = '';
+            products.forEach(product => {
+                const stockStatus = product.stock === 0 ? 'out' : (product.stock <= product.min_stock ? 'low' : 'good');
+                const stockClass = `stock-${stockStatus}`;
+                const stockText = product.stock === 0 ? 'Out of Stock' : (product.stock <= product.min_stock ? `Low: ${product.stock}` : `Stock: ${product.stock}`);
+                
+                html += `
+                    <div class="product-card">
+                        <div class="product-icon">📦</div>
+                        <div class="product-info">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-details">${product.category} • ${product.unit}</div>
+                            <span class="product-stock ${stockClass}">${stockText}</span>
+                        </div>
+                        <div class="product-price">
+                            <div class="price-value">₹${product.price}</div>
+                            <div class="product-actions">
+                                <button class="action-btn btn-edit" onclick="editProduct('${product.id}')">Edit</button>
+                                <button class="action-btn btn-delete" onclick="deleteProduct('${product.id}')">Del</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Filter Products by Search
+        function filterProducts() {
+            const searchTerm = document.getElementById('productSearch').value.toLowerCase();
+            let filtered = allProducts;
+            
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+            
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) || 
+                    p.category.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            displayProducts(filtered);
+        }
+        
+        // Filter by Category
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterProducts();
+        }
+        
+        let barcodeStream = null;
+        let barcodeImageData = null;
+        
+        // Add Product Form
+        function showAddProductForm() {
+            document.getElementById('addProductModal').classList.add('show');
+            document.getElementById('productForm').reset();
+            document.getElementById('barcodeUploadSection').style.display = 'none';
+            document.getElementById('barcodePreview').style.display = 'none';
+            barcodeImageData = null;
+        }
+        
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.remove('show');
+            closeBarcodeScanner();
+        }
+        
+        // Open Barcode Scanner
+        async function openBarcodeScanner() {
+            const section = document.getElementById('barcodeUploadSection');
+            section.style.display = 'block';
+            
+            // Check if camera is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showUploadOnlyOption(section);
+                return;
+            }
+            
+            // Check if we're on HTTPS or localhost (required for camera)
+            const isSecure = window.location.protocol === 'https:' || 
+                           window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+            
+            if (!isSecure) {
+                alert('⚠️ Camera requires HTTPS!\n\n' +
+                      '📱 Your browser blocks camera on HTTP for security.\n\n' +
+                      '✅ Solution: Use "Upload Barcode Image" option below\n\n' +
+                      '(Camera works on HTTPS or localhost only)');
+                showUploadOnlyOption(section);
+                return;
+            }
+            
+            // Show loading message - permission popup will appear automatically
+            section.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white; margin-bottom: 15px;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📷</div>
+                    <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Requesting Camera Access...</p>
+                    <p style="font-size: 13px; opacity: 0.9;">Browser will ask for permission</p>
+                    <p style="font-size: 12px; opacity: 0.8; margin-top: 10px;">👆 Click "Allow" when popup appears</p>
+                </div>
+            `;
+            
+            try {
+                // Request camera permission - Browser automatically shows permission popup
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment', // Use back camera on mobile
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                
+                // Success! Show camera preview
+                section.innerHTML = `
+                    <div class="camera-container">
+                        <video id="barcodeVideo" autoplay playsinline style="width: 100%; border-radius: 10px; background: #000;"></video>
+                        <canvas id="barcodeCanvas" style="display: none;"></canvas>
+                        
+                        <div id="barcodePreview" style="display: none;">
+                            <img id="barcodeImage" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
+                            <div style="text-align: center; margin-bottom: 15px;">
+                                <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">✓ Barcode Captured</span>
+                            </div>
+                        </div>
+                        
+                        <div class="camera-buttons" id="cameraButtons" style="display: flex;">
+                            <button type="button" class="btn-camera" onclick="captureBarcode()">📸 Capture</button>
+                            <button type="button" class="btn-camera secondary" onclick="closeBarcodeScanner()">✕ Cancel</button>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 10px;">
+                            <label for="barcodeFileInput" class="btn-upload">
+                                📁 Or Upload Image
+                            </label>
+                            <input type="file" id="barcodeFileInput" accept="image/*" style="display: none;" onchange="handleBarcodeUpload(event)">
+                        </div>
+                    </div>
+                    
+                    <div class="divider-text">Product Details</div>
+                `;
+                
+                const video = document.getElementById('barcodeVideo');
+                barcodeStream = stream;
+                video.srcObject = stream;
+                
+                console.log('✅ Camera access granted - live preview active');
+            } catch (error) {
+                console.error('Camera error:', error);
+                handleCameraError(error, section);
+            }
+        }
+        
+        // Show upload-only option
+        function showUploadOnlyOption(section) {
+            section.innerHTML = `
+                <div class="camera-container">
+                    <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">📁</div>
+                        <p style="color: #856404; margin-bottom: 5px; font-weight: 600;">Camera Not Available</p>
+                        <p style="font-size: 12px; color: #856404;">Use upload option below</p>
+                    </div>
+                    
+                    <div id="barcodePreview" style="display: none;">
+                        <img id="barcodeImage" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">✓ Barcode Uploaded</span>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <label for="barcodeFileInput" class="btn-upload" style="display: inline-block; padding: 14px 24px; font-size: 16px;">
+                            📁 Upload Barcode Image
+                        </label>
+                        <input type="file" id="barcodeFileInput" accept="image/*" style="display: none;" onchange="handleBarcodeUpload(event)">
+                    </div>
+                </div>
+                
+                <div class="divider-text">Product Details</div>
+            `;
+        }
+        
+        // Handle camera errors
+        function handleCameraError(error, section) {
+            let title = '❌ Camera Access Failed';
+            let message = '';
+            let instructions = '';
+            
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                title = '🔒 Permission Denied';
+                message = 'You blocked camera access';
+                instructions = `
+                    <div style="text-align: left; font-size: 12px; color: #666; margin-top: 10px; padding: 10px; background: white; border-radius: 8px;">
+                        <strong>To enable camera:</strong><br>
+                        1. Tap address bar (🔒 icon)<br>
+                        2. Find "Camera" permission<br>
+                        3. Change to "Allow"<br>
+                        4. Refresh page & try again
+                    </div>
+                `;
+            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                title = '📷 No Camera Found';
+                message = 'No camera detected on device';
+            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                title = '⚠️ Camera In Use';
+                message = 'Camera is being used by another app';
+                instructions = '<div style="font-size: 12px; color: #666; margin-top: 8px;">Close other apps using camera</div>';
+            } else {
+                message = error.message || 'Unknown error occurred';
+            }
+            
+            // Show error with upload option
+            section.innerHTML = `
+                <div class="camera-container">
+                    <div style="text-align: center; padding: 20px; background: #ffebee; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">📷</div>
+                        <p style="color: #c62828; margin-bottom: 5px; font-weight: 600;">${title}</p>
+                        <p style="font-size: 13px; color: #c62828;">${message}</p>
+                        ${instructions}
+                    </div>
+                    
+                    <div id="barcodePreview" style="display: none;">
+                        <img id="barcodeImage" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <span style="background: #4CAF50; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">✓ Barcode Uploaded</span>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <label for="barcodeFileInput" class="btn-upload" style="display: inline-block; padding: 14px 24px; font-size: 16px;">
+                            📁 Upload Barcode Image Instead
+                        </label>
+                        <input type="file" id="barcodeFileInput" accept="image/*" style="display: none;" onchange="handleBarcodeUpload(event)">
+                    </div>
+                </div>
+                
+                <div class="divider-text">Product Details</div>
+            `;
+        }
+        
+        // Capture Barcode
+        function captureBarcode() {
+            const video = document.getElementById('barcodeVideo');
+            const canvas = document.getElementById('barcodeCanvas');
+            const preview = document.getElementById('barcodePreview');
+            const image = document.getElementById('barcodeImage');
+            const buttons = document.getElementById('cameraButtons');
+            
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            // Get image data
+            barcodeImageData = canvas.toDataURL('image/jpeg');
+            
+            // Show preview
+            image.src = barcodeImageData;
+            preview.style.display = 'block';
+            video.style.display = 'none';
+            buttons.style.display = 'none';
+            
+            // Stop camera
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
+            
+            console.log('✅ Barcode captured');
+        }
+        
+        // Handle Barcode Upload
+        function handleBarcodeUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('❌ Please select an image file');
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ Image too large!\n\nPlease select an image under 5MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                barcodeImageData = e.target.result;
+                
+                const preview = document.getElementById('barcodePreview');
+                const image = document.getElementById('barcodeImage');
+                const section = document.getElementById('barcodeUploadSection');
+                
+                if (image && preview) {
+                    image.src = barcodeImageData;
+                    preview.style.display = 'block';
+                    section.style.display = 'block';
+                    
+                    // Hide camera if it was showing
+                    const video = document.getElementById('barcodeVideo');
+                    const buttons = document.getElementById('cameraButtons');
+                    if (video) video.style.display = 'none';
+                    if (buttons) buttons.style.display = 'none';
+                    
+                    // Stop camera stream if active
+                    if (barcodeStream) {
+                        barcodeStream.getTracks().forEach(track => track.stop());
+                        barcodeStream = null;
+                    }
+                    
+                    console.log('✅ Barcode image uploaded successfully');
+                } else {
+                    console.error('Preview elements not found');
+                    alert('❌ Error displaying image. Please try again.');
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('❌ Error reading file. Please try again.');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // Close Barcode Scanner
+        function closeBarcodeScanner() {
+            const video = document.getElementById('barcodeVideo');
+            const section = document.getElementById('barcodeUploadSection');
+            const buttons = document.getElementById('cameraButtons');
+            
+            if (barcodeStream) {
+                barcodeStream.getTracks().forEach(track => track.stop());
+                barcodeStream = null;
+            }
+            
+            video.style.display = 'none';
+            buttons.style.display = 'none';
+            section.style.display = 'none';
+        }
+        
+        // Save Product
+        async function saveProduct(event) {
+            event.preventDefault();
+            
+            const formData = {
+                code: document.getElementById('productCode').value,
+                name: document.getElementById('productName').value,
+                category: document.getElementById('productCategory').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                cost: parseFloat(document.getElementById('productCost').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                min_stock: parseInt(document.getElementById('productMinStock').value),
+                unit: document.getElementById('productUnit').value,
+                business_type: 'both',
+                barcode_image: barcodeImageData // Include barcode image if captured
+            };
+            
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Product added successfully!');
+                    closeAddProductModal();
+                    await loadProducts(); // Reload products list
+                } else {
+                    alert('❌ Error: ' + (result.message || 'Failed to add product'));
+                }
+            } catch (error) {
+                console.error('Error saving product:', error);
+                alert('❌ Error saving product. Please try again.');
+            }
+        }
+        
+        // Edit Product
+        function editProduct(id) {
+            alert('Edit product: ' + id);
+        }
+        
+        // Delete Product
+        function deleteProduct(id) {
+            if (confirm('Delete this product?')) {
+                alert('Delete product: ' + id);
+            }
+        }
+        
+        // Scroll to top
+        function scrollToTop() {
+            // Show dashboard
+            document.getElementById('productsModule').style.display = 'none';
+            document.getElementById('dataDisplay').style.display = 'none';
+            
+            // Show dashboard cards
+            document.querySelectorAll('.card').forEach(card => {
+                if (!card.id || (card.id !== 'dataDisplay' && card.id !== 'productsModule')) {
+                    card.style.display = 'block';
+                }
+            });
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

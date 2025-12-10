@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Store - User Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .abstract-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50% 30% 70% 40%;
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 255, 255, 0.2) 30%,
+                rgba(255, 255, 255, 0.1) 60%,
+                rgba(255, 255, 255, 0.05) 100%);
+            animation: ribbon-flow 25s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 600px;
+            height: 300px;
+            top: 10%;
+            left: 5%;
+            border-radius: 200px 50px 150px 80px;
+            transform: rotate(-15deg);
+        }
+
+        .shape:nth-child(2) {
+            width: 400px;
+            height: 200px;
+            top: 60%;
+            right: 10%;
+            border-radius: 100px 200px 80px 150px;
+            transform: rotate(25deg);
+            animation-delay: 10s;
+        }
+
+        .shape:nth-child(3) {
+            width: 300px;
+            height: 250px;
+            bottom: 20%;
+            left: 30%;
+            border-radius: 150px 80px 200px 60px;
+            transform: rotate(10deg);
+            animation-delay: 20s;
+        }
+
+        @keyframes ribbon-flow {
+            0%, 100% { transform: rotate(-15deg) translateY(0px); }
+            33% { transform: rotate(-10deg) translateY(-20px); }
+            66% { transform: rotate(-20deg) translateY(10px); }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0.2) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 255, 255, 0.3) 100%);
+            transform: translateY(-2px);
+        }
+
+        .profile-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .profile-section {
+            background: linear-gradient(145deg, 
+                rgba(255, 255, 255, 0.35) 0%,
+                rgba(197, 124, 138, 0.25) 30%,
+                rgba(115, 44, 63, 0.2) 70%,
+                rgba(255, 255, 255, 0.15) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(197, 124, 138, 0.4);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 
+                0 25px 50px rgba(115, 44, 63, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 25px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(197, 124, 138, 0.6);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 20px rgba(197, 124, 138, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, 
+                rgba(115, 44, 63, 0.4) 0%,
+                rgba(139, 74, 92, 0.3) 100%);
+            color: white;
+            border: 1px solid rgba(197, 124, 138, 0.5);
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            display: block;
+            margin: 30px auto 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(115, 44, 63, 0.6) 0%,
+                rgba(139, 74, 92, 0.5) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(197, 124, 138, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .back-btn {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="abstract-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <a href="/" class="back-btn">← Back to Dashboard</a>
+
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Retail Store Profile</h1>
+            <p>Complete your store and personal information</p>
+        </div>
+
+        <form id="retailProfileForm">
+            <div class="profile-container">
+                <!-- User Details Section -->
+                <div class="profile-section">
+                    <h2 class="section-title">👤 Personal Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" placeholder="First name">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" placeholder="Last name">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="your.email@example.com">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+91 70936 35305">
+                        </div>
+                        <div class="form-group">
+                            <label for="whatsapp">WhatsApp Number</label>
+                            <input type="tel" id="whatsapp" name="whatsapp" placeholder="+91 70936 35305">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dateOfBirth">Date of Birth</label>
+                        <input type="date" id="dateOfBirth" name="dateOfBirth">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="language">Preferred Language</label>
+                            <select id="language" name="language">
+                                <option value="">Select Language</option>
+                                <option value="english">English</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="bengali">Bengali</option>
+                                <option value="tamil">Tamil</option>
+                                <option value="telugu">Telugu</option>
+                                <option value="marathi">Marathi</option>
+                                <option value="gujarati">Gujarati</option>
+                                <option value="kannada">Kannada</option>
+                                <option value="malayalam">Malayalam</option>
+                                <option value="punjabi">Punjabi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Personal Address</label>
+                        <textarea id="address" name="address" rows="3" placeholder="Enter your complete address"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" name="city" placeholder="City">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" name="state" placeholder="State">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pincode">PIN Code</label>
+                            <input type="text" id="pincode" name="pincode" placeholder="123456">
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" name="country" placeholder="India" value="India">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company/Store Details Section -->
+                <div class="profile-section">
+                    <h2 class="section-title">🏪 Store Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="storeName">Store Name</label>
+                        <input type="text" id="storeName" name="storeName" placeholder="Enter your store name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storeType">Store Type</label>
+                        <select id="storeType" name="storeType">
+                            <option value="">Select Store Type</option>
+                            <option value="general-store">General Store</option>
+                            <option value="grocery">Grocery Store</option>
+                            <option value="medical">Medical Store</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothing">Clothing</option>
+                            <option value="hardware">Hardware Store</option>
+                            <option value="stationery">Stationery</option>
+                            <option value="cosmetics">Cosmetics</option>
+                            <option value="mobile-accessories">Mobile Accessories</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storeAddress">Store Address</label>
+                        <textarea id="storeAddress" name="storeAddress" rows="3" placeholder="Enter your store address"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="storeCity">Store City</label>
+                            <input type="text" id="storeCity" name="storeCity" placeholder="City">
+                        </div>
+                        <div class="form-group">
+                            <label for="storeState">Store State</label>
+                            <input type="text" id="storeState" name="storeState" placeholder="State">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="storePincode">Store PIN Code</label>
+                            <input type="text" id="storePincode" name="storePincode" placeholder="123456">
+                        </div>
+                        <div class="form-group">
+                            <label for="storePhone">Store Phone</label>
+                            <input type="tel" id="storePhone" name="storePhone" placeholder="+91 70936 35305">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gstNumber">GST Number (Optional)</label>
+                        <input type="text" id="gstNumber" name="gstNumber" placeholder="22AAAAA0000A1Z5">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="panNumber">PAN Number (Optional)</label>
+                            <input type="text" id="panNumber" name="panNumber" placeholder="ABCDE1234F">
+                        </div>
+                        <div class="form-group">
+                            <label for="aadharNumber">Aadhar Number (Optional)</label>
+                            <input type="text" id="aadharNumber" name="aadharNumber" placeholder="1234 5678 9012">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bankAccount">Bank Account Number (Optional)</label>
+                        <input type="text" id="bankAccount" name="bankAccount" placeholder="Account Number">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bankName">Bank Name</label>
+                            <input type="text" id="bankName" name="bankName" placeholder="Bank Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="ifscCode">IFSC Code</label>
+                            <input type="text" id="ifscCode" name="ifscCode" placeholder="SBIN0001234">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storeDescription">Store Description</label>
+                        <textarea id="storeDescription" name="storeDescription" rows="3" placeholder="Brief description of your store and products"></textarea>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="homeDelivery" name="homeDelivery">
+                        <label for="homeDelivery">Offer Home Delivery</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="onlinePayments" name="onlinePayments">
+                        <label for="onlinePayments">Accept Online Payments</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="creditSales" name="creditSales">
+                        <label for="creditSales">Allow Credit Sales</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="save-btn">💾 Save Profile Information</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('retailProfileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const profileData = {};
+            
+            for (let [key, value] of formData.entries()) {
+                profileData[key] = value;
+            }
+            
+            // Add checkbox values
+            profileData.homeDelivery = document.getElementById('homeDelivery').checked;
+            profileData.onlinePayments = document.getElementById('onlinePayments').checked;
+            profileData.creditSales = document.getElementById('creditSales').checked;
+            
+            console.log('Retail Profile Data:', profileData);
+            
+            // Here you would typically send the data to your backend
+            alert('Profile information saved successfully!');
+        });
+
+        // Auto-fill store address from personal address
+        document.getElementById('address').addEventListener('blur', function() {
+            const storeAddress = document.getElementById('storeAddress');
+            if (!storeAddress.value && this.value) {
+                if (confirm('Use personal address for store address?')) {
+                    storeAddress.value = this.value;
+                    document.getElementById('storeCity').value = document.getElementById('city').value;
+                    document.getElementById('storeState').value = document.getElementById('state').value;
+                    document.getElementById('storePincode').value = document.getElementById('pincode').value;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

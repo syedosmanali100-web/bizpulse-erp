@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Yesterday Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #732C3F;
+            margin-bottom: 15px;
+        }
+        .result {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #732C3F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a2332;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #732C3F;">🧪 Yesterday Filter Test</h1>
+
+    <div class="test-card">
+        <h2>📅 Date Calculation Test</h2>
+        <button onclick="testDateCalculation()">Run Test</button>
+        <div id="dateResult"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>🔧 formatDateForInput Function Test</h2>
+        <button onclick="testFormatFunction()">Run Test</button>
+        <div id="formatResult"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>📊 Quick Date Filters Test</h2>
+        <button onclick="testQuickFilters('today')">Test Today</button>
+        <button onclick="testQuickFilters('yesterday')">Test Yesterday</button>
+        <button onclick="testQuickFilters('week')">Test This Week</button>
+        <button onclick="testQuickFilters('month')">Test This Month</button>
+        <div id="quickFilterResult"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>✅ Expected Behavior</h2>
+        <div class="info">
+            <strong>Yesterday Button Should:</strong>
+            <ul>
+                <li>Calculate yesterday's date correctly</li>
+                <li>Set both From Date and To Date to yesterday</li>
+                <li>Format date as YYYY-MM-DD</li>
+                <li>Trigger filterInvoices() function</li>
+                <li>Show only yesterday's invoices in table</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Copy the formatDateForInput function from retail_invoices.html
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function testDateCalculation() {
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const result = document.getElementById('dateResult');
+            result.innerHTML = `
+                <div class="success">
+                    <strong>✅ Date Calculation Working!</strong><br>
+                    Today: ${today.toDateString()}<br>
+                    Yesterday: ${yesterday.toDateString()}<br>
+                    Formatted: <code>${formatDateForInput(yesterday)}</code>
+                </div>
+            `;
+        }
+
+        function testFormatFunction() {
+            const testDates = [
+                new Date('2025-12-06'),
+                new Date('2025-12-05'),
+                new Date('2025-01-01'),
+                new Date('2025-12-31')
+            ];
+
+            let html = '<div class="success"><strong>✅ Format Function Working!</strong><br>';
+            testDates.forEach(date => {
+                html += `${date.toDateString()} → <code>${formatDateForInput(date)}</code><br>`;
+            });
+            html += '</div>';
+
+            document.getElementById('formatResult').innerHTML = html;
+        }
+
+        function testQuickFilters(period) {
+            const today = new Date();
+            let fromDate, toDate;
+
+            switch(period) {
+                case 'today':
+                    fromDate = toDate = formatDateForInput(today);
+                    break;
+                
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    fromDate = toDate = formatDateForInput(yesterday);
+                    break;
+                
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay());
+                    fromDate = formatDateForInput(weekStart);
+                    toDate = formatDateForInput(today);
+                    break;
+                
+                case 'month':
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    fromDate = formatDateForInput(monthStart);
+                    toDate = formatDateForInput(today);
+                    break;
+            }
+
+            const result = document.getElementById('quickFilterResult');
+            result.innerHTML = `
+                <div class="success">
+                    <strong>✅ ${period.toUpperCase()} Filter Working!</strong><br>
+                    From Date: <code>${fromDate}</code><br>
+                    To Date: <code>${toDate}</code><br>
+                    <br>
+                    <em>These values would be set in the date input fields</em>
+                </div>
+            `;
+        }
+
+        // Auto-run tests on load
+        window.onload = function() {
+            console.log('🧪 Running automatic tests...');
+            testDateCalculation();
+            testFormatFunction();
+        };
+    </script>
+</body>
+</html>

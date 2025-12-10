@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#732C3F">
+    <link rel="manifest" href="/manifest.json">
+    <title>BizPulse Mobile - Retail Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding-top: 30px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            font-size: 2.2rem;
+            color: #732C3F;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .logo p {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .install-banner {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .install-banner.show {
+            display: block;
+        }
+        .install-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(115, 44, 63, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        .card h2 {
+            color: #732C3F;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .card p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover, .btn:active {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+            transform: translateY(-1px);
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-small {
+            padding: 12px 8px;
+            font-size: 0.9rem;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .feature {
+            background: rgba(115, 44, 63, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #732C3F;
+        }
+        @media (max-width: 360px) {
+            .container { padding: 15px; }
+            .logo h1 { font-size: 2rem; }
+            .card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🛒 BizPulse</h1>
+            <p>Mobile Retail Management</p>
+        </div>
+
+        <div class="install-banner" id="installBanner">
+            <div>📱 Install BizPulse App</div>
+            <p style="font-size: 0.85rem; margin: 5px 0;">Get the full mobile experience!</p>
+            <button class="install-btn" id="installBtn">Install Now</button>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Quick Access</h2>
+            <p>Jump straight into your business management tools</p>
+            <button class="btn" onclick="openDashboard()">
+                📊 Dashboard
+            </button>
+            <div class="btn-grid">
+                <button class="btn btn-small" onclick="openBilling()">
+                    💰 Billing
+                </button>
+                <button class="btn btn-small" onclick="openProducts()">
+                    📦 Products
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✨ Mobile Features</h2>
+            <div class="features">
+                <div class="feature">📱 Offline Ready</div>
+                <div class="feature">⚡ Fast & Smooth</div>
+                <div class="feature">🔔 Notifications</div>
+                <div class="feature">📸 Camera Support</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">
+            📶 Ready to use • Tap install for best experience
+        </div>
+    </div>
+
+    <script>
+        // PWA Installation
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.add('show');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBanner.style.display = 'none';
+                    document.getElementById('status').textContent = '🎉 App installed successfully!';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Navigation functions
+        function openDashboard() {
+            window.location.href = '/retail/dashboard';
+        }
+        
+        function openBilling() {
+            window.location.href = '/retail/billing';
+        }
+        
+        function openProducts() {
+            window.location.href = '/retail/products';
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registered:', registration);
+                    document.getElementById('status').textContent = '📱 Mobile app ready • Works offline';
+                })
+                .catch(error => {
+                    console.log('❌ Service Worker registration failed:', error);
+                });
+        }
+
+        // App initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if running as PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.getElementById('status').textContent = '🚀 Running as native app';
+                installBanner.style.display = 'none';
+            }
+            
+            // Add touch feedback
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+                btn.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

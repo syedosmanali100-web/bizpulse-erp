@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BizPulse</string>
+    <string name="title_activity_main">BizPulse</string>
+    <string name="package_name">com.bizpulse.retail</string>
+    <string name="custom_url_scheme">com.bizpulse.retail</string>
+</resources>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Dashboard - BizPulse ERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --accent: #E8B4BC;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Fixed Back Button */
+        .fixed-back-btn {
+            position: fixed;
+            left: 2rem;
+            top: 2rem;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(115, 44, 63, 0.3);
+            text-decoration: none;
+        }
+
+        .fixed-back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(115, 44, 63, 0.4);
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            margin-bottom: 2rem;
+            margin-left: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .header-subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        /* CMS Modules Grid */
+        .cms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-left: 100px;
+        }
+
+        .cms-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .cms-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, #A66B7A 100%);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .cms-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(115, 44, 63, 0.15);
+        }
+
+        .cms-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .cms-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: linear-gradient(135deg, rgba(115, 44, 63, 0.1) 0%, rgba(166, 107, 122, 0.1) 100%);
+            border-radius: 16px;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .cms-card:hover .cms-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: linear-gradient(135deg, rgba(115, 44, 63, 0.15) 0%, rgba(166, 107, 122, 0.15) 100%);
+        }
+
+        .cms-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .cms-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .fixed-back-btn {
+                left: 1rem;
+                top: 1rem;
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+
+            .fixed-back-btn span {
+                display: none;
+            }
+
+            .header {
+                margin-left: 0;
+                padding: 1.5rem;
+                margin-top: 3rem;
+            }
+
+            .header-title {
+                font-size: 1.75rem;
+            }
+
+            .cms-grid {
+                margin-left: 0;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Back Button -->
+    <a href="/retail/dashboard" class="fixed-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 class="header-title"><i class="fas fa-cog"></i> Content Management System</h1>
+                <p class="header-subtitle">Manage your website content without touching code</p>
+            </div>
+            <a href="/website-builder" style="padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 1.1rem; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                <i class="fas fa-paint-brush"></i>
+                <span>🚀 Edit Website (Advanced Builder)</span>
+            </a>
+        </div>
+
+        <!-- CMS Modules Grid -->
+        <div class="cms-grid">
+            <!-- Site Settings -->
+            <a href="/cms/settings" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h3 class="cms-title">Site Settings</h3>
+                <p class="cms-description">Configure site name, logo, colors, and contact information</p>
+            </a>
+
+            <!-- Hero Section -->
+            <a href="/cms/hero" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-image"></i>
+                </div>
+                <h3 class="cms-title">Hero Section</h3>
+                <p class="cms-description">Edit homepage hero banner, title, subtitle, and call-to-action</p>
+            </a>
+
+            <!-- Features -->
+            <a href="/cms/features" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="cms-title">Features</h3>
+                <p class="cms-description">Manage product features and service highlights</p>
+            </a>
+
+            <!-- Pricing Plans -->
+            <a href="/cms/pricing" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h3 class="cms-title">Pricing Plans</h3>
+                <p class="cms-description">Create and manage subscription plans and pricing</p>
+            </a>
+
+            <!-- Testimonials -->
+            <a href="/cms/testimonials" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-quote-right"></i>
+                </div>
+                <h3 class="cms-title">Testimonials</h3>
+                <p class="cms-description">Add customer reviews and success stories</p>
+            </a>
+
+            <!-- FAQs -->
+            <a href="/cms/faqs" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <h3 class="cms-title">FAQs</h3>
+                <p class="cms-description">Manage frequently asked questions and answers</p>
+            </a>
+
+            <!-- Gallery -->
+            <a href="/cms/gallery" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <h3 class="cms-title">Gallery</h3>
+                <p class="cms-description">Upload and organize images for your website gallery</p>
+            </a>
+
+            <!-- Profile & Security -->
+            <a href="/cms/profile" class="cms-card">
+                <div class="cms-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h3 class="cms-title">Profile & Security</h3>
+                <p class="cms-description">Change password and manage your account settings</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.bizpulse.erp" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>BizPulse ERP</name>
+    <description>Dynamic ERP System</description>
+    <author email="support@bizpulse.com" href="https://bizpulse.com">BizPulse Team</author>
+    
+    <content src="index.html" />
+    
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="android-minSdkVersion" value="21" />
+    <preference name="android-targetSdkVersion" value="33" />
+    
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <preference name="Fullscreen" value="false" />
+        <preference name="Orientation" value="portrait" />
+    </platform>
+    
+    <access origin="*" />
+    <allow-navigation href="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+</widget>

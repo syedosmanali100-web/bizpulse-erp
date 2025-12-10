@@ -1,0 +1,33 @@
+# Project Structure Guide
+
+BizPulse_Android_Full/
+├── README.txt                          # This file
+├── mobile_web_app.html                 # 🎯 MAIN MOBILE APP
+├── android/
+│   ├── MainActivity.java               # Fixed WebView activity
+│   └── AndroidManifest.xml            # Updated manifest
+├── assets/
+│   ├── index.html                      # Web app for APK
+│   ├── manifest.json                   # PWA manifest
+│   ├── icon-192.png                    # App icon
+│   ├── icon-512.png                    # App icon
+│   └── sw.js                          # Service worker
+├── server/
+│   └── app.py                         # Flask backend
+├── config/
+│   └── mobile_config.js               # Configuration helper
+├── scripts/
+│   ├── build_apk.py                   # APK builder
+│   └── fix_apk_path.py                # Path fix utility
+├── docs/
+│   ├── BUILD_APK_INSTRUCTIONS.md      # Complete APK guide
+│   ├── MOBILE_PWA_GUIDE.md            # Web app guide
+│   └── QUICK_START_GUIDE.md           # Quick start
+└── alternatives/
+    ├── mobile_app_fixed.html          # Alternative version
+    └── frontend.html                  # Desktop version
+
+## 🎯 Start Here:
+1. For web app: mobile_web_app.html
+2. For APK: docs/BUILD_APK_INSTRUCTIONS.md
+3. For quick setup: docs/QUICK_START_GUIDE.md

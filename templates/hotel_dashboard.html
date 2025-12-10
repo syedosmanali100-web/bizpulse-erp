@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar - Hotel Theme (Red) */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-200px);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+            padding-bottom: 100px; /* Extra space for logout button */
+            height: calc(100vh - 80px); /* Full height minus header */
+            overflow-y: auto; /* Enable scrolling */
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #f44336;
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+        }
+        
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-right: 15px;
+            width: 20px;
+        }
+        
+        .nav-text {
+            font-weight: 500;
+        }
+        
+        /* Logout Separator and Button */
+        .logout-separator {
+            margin: 20px 20px 10px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px;
+            margin: 0 20px 20px 20px;
+            border-left: 3px solid transparent !important;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border-left-color: #ff4444 !important;
+        }
+        
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 260px;
+            right: 0;
+            height: 70px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 999;
+            transition: left 0.3s ease;
+        }
+        
+        .sidebar.collapsed + .main-content .top-header {
+            left: 60px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            width: 300px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #d32f2f;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #666;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .notification-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .profile-menu {
+            position: relative;
+        }
+        
+        .profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 25px;
+            transition: background 0.3s ease;
+        }
+        
+        .profile-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .profile-avatar {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #d32f2f, #f44336);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .profile-info {
+            text-align: left;
+        }
+        
+        .profile-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .profile-role {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding-top: 70px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .sidebar.collapsed + .main-content {
+            margin-left: 60px;
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-title {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .stat-icon.revenue {
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            color: white;
+        }
+        
+        .stat-icon.occupancy {
+            background: linear-gradient(135d, #2196f3, #42a5f5);
+            color: white;
+        }
+        
+        .stat-icon.rooms {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+        }
+        
+        .stat-icon.guests {
+            background: linear-gradient(135deg, #9c27b0, #ba68c8);
+            color: white;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .stat-change {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-change.positive {
+            color: #4caf50;
+        }
+        
+        .stat-change.negative {
+            color: #f44336;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #d32f2f, #f44336);
+            color: white;
+        }
+        
+        .action-icon {
+            font-size: 1.5rem;
+        }
+        
+        .action-text {
+            font-weight: 500;
+        }
+        
+        /* Room Status Grid */
+        .room-status {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .room-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .room-card.occupied {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+        
+        .room-card.available {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+        }
+        
+        .room-card.maintenance {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+        }
+        
+        .room-number {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .room-type {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .room-status-text {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        /* Recent Activity */
+        .recent-activity {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+        
+        .activity-icon.checkin {
+            background: #4caf50;
+        }
+        
+        .activity-icon.checkout {
+            background: #2196f3;
+        }
+        
+        .activity-icon.booking {
+            background: #ff9800;
+        }
+        
+        .activity-icon.service {
+            background: #9c27b0;
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-title {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .activity-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .activity-amount {
+            font-weight: 600;
+            color: #4caf50;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .top-header {
+                left: 0;
+            }
+            
+            .search-box input {
+                width: 200px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .rooms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">🏨</div>
+            <div class="sidebar-title">Hotel Manager</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="showModule('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="showModule('reservations')">
+                <span class="nav-icon">📅</span>
+                <span class="nav-text">Reservations</span>
+            </div>
+            <div class="nav-item" onclick="showModule('checkin')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Check-in/out</span>
+            </div>
+            <div class="nav-item" onclick="showModule('rooms')">
+                <span class="nav-icon">🛏️</span>
+                <span class="nav-text">Room Management</span>
+            </div>
+            <div class="nav-item" onclick="showModule('guests')">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">Guest Management</span>
+            </div>
+            <div class="nav-item" onclick="showModule('billing')">
+                <span class="nav-icon">🧾</span>
+                <span class="nav-text">Billing</span>
+            </div>
+            <div class="nav-item" onclick="showModule('services')">
+                <span class="nav-icon">🛎️</span>
+                <span class="nav-text">Services</span>
+            </div>
+            <div class="nav-item" onclick="showModule('housekeeping')">
+                <span class="nav-icon">🧹</span>
+                <span class="nav-text">Housekeeping</span>
+            </div>
+            <div class="nav-item" onclick="showModule('reports')">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Reports</span>
+            </div>
+            <div class="nav-item" onclick="showModule('settings')">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </div>
+            
+            <!-- Logout Button inside nav-menu for scrolling -->
+            <div class="logout-separator"></div>
+            <div class="nav-item logout-btn" onclick="logout()">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Logout</span>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <h1 class="page-title" id="pageTitle">Hotel Dashboard</h1>
+            </div>
+            
+            <div class="header-right">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search guests, rooms...">
+                </div>
+                
+                <button class="notification-btn">
+                    🔔
+                    <span class="notification-badge">5</span>
+                </button>
+                
+                <div class="profile-menu">
+                    <button class="profile-btn" onclick="toggleProfileMenu()">
+                        <div class="profile-avatar" id="profileAvatar">DU</div>
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">Demo User</div>
+                            <div class="profile-role">Hotel Manager</div>
+                        </div>
+                        <span>▼</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Content Area -->
+        <div class="content-area" id="contentArea">
+            <!-- Dashboard Content -->
+            <div id="dashboard-content">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Today's Revenue</div>
+                            <div class="stat-icon revenue">💰</div>
+                        </div>
+                        <div class="stat-value">₹45,250</div>
+                        <div class="stat-change positive">
+                            ↗️ +18.5% from yesterday
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Occupancy Rate</div>
+                            <div class="stat-icon occupancy">🏠</div>
+                        </div>
+                        <div class="stat-value">78%</div>
+                        <div class="stat-change positive">
+                            ↗️ +5.2% from yesterday
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Available Rooms</div>
+                            <div class="stat-icon rooms">🛏️</div>
+                        </div>
+                        <div class="stat-value">22/100</div>
+                        <div class="stat-change negative">
+                            ↘️ 3 rooms in maintenance
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Current Guests</div>
+                            <div class="stat-icon guests">👥</div>
+                        </div>
+                        <div class="stat-value">156</div>
+                        <div class="stat-change positive">
+                            ↗️ 8 check-ins today
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="showModule('checkin')">
+                            <span class="action-icon">🏠</span>
+                            <span class="action-text">Check-in Guest</span>
+                        </button>
+                        <button class="action-btn" onclick="showModule('reservations')">
+                            <span class="action-icon">📅</span>
+                            <span class="action-text">New Reservation</span>
+                        </button>
+                        <button class="action-btn" onclick="showModule('billing')">
+                            <span class="action-icon">🧾</span>
+                            <span class="action-text">Generate Bill</span>
+                        </button>
+                        <button class="action-btn" onclick="showModule('rooms')">
+                            <span class="action-icon">🛏️</span>
+                            <span class="action-text">Room Status</span>
+                        </button>
+                        <button class="action-btn" onclick="showModule('services')">
+                            <span class="action-icon">🛎️</span>
+                            <span class="action-text">Add Service</span>
+                        </button>
+                        <button class="action-btn" onclick="showModule('reports')">
+                            <span class="action-icon">📊</span>
+                            <span class="action-text">View Reports</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Room Status Overview -->
+                <div class="room-status">
+                    <h2 class="section-title">Room Status Overview</h2>
+                    <div class="rooms-grid">
+                        <div class="room-card occupied">
+                            <div class="room-number">101</div>
+                            <div class="room-type">Deluxe</div>
+                            <div class="room-status-text">Occupied</div>
+                        </div>
+                        <div class="room-card available">
+                            <div class="room-number">102</div>
+                            <div class="room-type">Standard</div>
+                            <div class="room-status-text">Available</div>
+                        </div>
+                        <div class="room-card occupied">
+                            <div class="room-number">103</div>
+                            <div class="room-type">Suite</div>
+                            <div class="room-status-text">Occupied</div>
+                        </div>
+                        <div class="room-card maintenance">
+                            <div class="room-number">104</div>
+                            <div class="room-type">Standard</div>
+                            <div class="room-status-text">Maintenance</div>
+                        </div>
+                        <div class="room-card available">
+                            <div class="room-number">105</div>
+                            <div class="room-type">Deluxe</div>
+                            <div class="room-status-text">Available</div>
+                        </div>
+                        <div class="room-card occupied">
+                            <div class="room-number">201</div>
+                            <div class="room-type">Executive</div>
+                            <div class="room-status-text">Occupied</div>
+                        </div>
+                        <div class="room-card available">
+                            <div class="room-number">202</div>
+                            <div class="room-type">Standard</div>
+                            <div class="room-status-text">Available</div>
+                        </div>
+                        <div class="room-card occupied">
+                            <div class="room-number">203</div>
+                            <div class="room-type">Deluxe</div>
+                            <div class="room-status-text">Occupied</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <h2 class="section-title">Recent Activity</h2>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon checkin">🏠</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Guest checked in - Room 205</div>
+                            <div class="activity-time">5 minutes ago</div>
+                        </div>
+                        <div class="activity-amount">₹3,500</div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon service">🛎️</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Room service ordered - Room 101</div>
+                            <div class="activity-time">12 minutes ago</div>
+                        </div>
+                        <div class="activity-amount">₹850</div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon checkout">🚪</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Guest checked out - Room 302</div>
+                            <div class="activity-time">25 minutes ago</div>
+                        </div>
+                        <div class="activity-amount">₹8,500</div>
+                    </div>
+                    
+                    <div class="activity-item">
+                        <div class="activity-icon booking">📅</div>
+                        <div class="activity-content">
+                            <div class="activity-title">New reservation made</div>
+                            <div class="activity-time">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize user info
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        if (userInfo.name) {
+            document.getElementById('profileName').textContent = userInfo.name;
+            const initials = userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            document.getElementById('profileAvatar').textContent = initials;
+        }
+        
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+        
+        // Profile menu toggle
+        function toggleProfileMenu() {
+            const options = [
+                'Profile Settings',
+                'Hotel Settings', 
+                'Help & Support',
+                'Logout'
+            ];
+            
+            const action = prompt('Select option:\n' + options.map((opt, i) => `${i+1}. ${opt}`).join('\n'));
+            
+            if (action === '1') {
+                window.location.href = '/hotel/profile';
+            } else if (action === '4') {
+                logout();
+            }
+        }
+        
+        // Module navigation
+        function showModule(module) {
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Hotel Dashboard',
+                'reservations': 'Reservations',
+                'checkin': 'Check-in/Check-out',
+                'rooms': 'Room Management',
+                'guests': 'Guest Management',
+                'billing': 'Billing & Invoices',
+                'services': 'Hotel Services',
+                'housekeeping': 'Housekeeping',
+                'reports': 'Reports & Analytics',
+                'settings': 'Settings'
+            };
+            
+            document.getElementById('pageTitle').textContent = titles[module] || 'Hotel Dashboard';
+            
+            // Load module content
+            loadModuleContent(module);
+        }
+        
+        // Load module content
+        function loadModuleContent(module) {
+            const contentArea = document.getElementById('contentArea');
+            
+            if (module === 'dashboard') {
+                // Dashboard content is already loaded
+                return;
+            }
+            
+            // Placeholder content for other modules
+            contentArea.innerHTML = `
+                <div style="text-align: center; padding: 50px;">
+                    <h2>🚧 ${module.charAt(0).toUpperCase() + module.slice(1)} Module</h2>
+                    <p>This module is under development.</p>
+                    <p>Coming soon with full hotel management functionality!</p>
+                    <button onclick="showModule('dashboard')" style="
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background: #d32f2f;
+                        color: white;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                    ">Back to Dashboard</button>
+                </div>
+            `;
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/login';
+        }
+        
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login?service=hotel';
+            }
+        }
+        
+        // Initialize
+        checkAuth();
+        
+        // Mobile responsive
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/';
+        }
+        
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = '/login?service=hotel';
+            }
+        }
+        
+        // Initialize
+        checkAuth();
+        
+        // Mobile responsive
+        if (window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+        
+        // Load real dashboard data
+        async function loadDashboardData() {
+            try {
+                const token = localStorage.getItem('authToken');
+                
+                // Fetch dashboard stats
+                const statsResponse = await fetch('/api/dashboard/stats?type=hotel', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    updateStatsCards(stats);
+                }
+                
+                // Fetch recent activity
+                const activityResponse = await fetch('/api/dashboard/activity?type=hotel', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (activityResponse.ok) {
+                    const activities = await activityResponse.json();
+                    updateRecentActivity(activities);
+                }
+                
+                // Fetch room status
+                const roomsResponse = await fetch('/api/hotel/rooms/status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (roomsResponse.ok) {
+                    const roomData = await roomsResponse.json();
+                    updateRoomStatus(roomData);
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+        
+        // Update stats cards with real data
+        function updateStatsCards(stats) {
+            // Update revenue card
+            document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = `₹${stats.today_revenue.toLocaleString()}`;
+            document.querySelector('.stat-card:nth-child(1) .stat-change').innerHTML = `↗️ +${stats.revenue_change}% from yesterday`;
+            
+            // Update occupancy card
+            document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = `${stats.occupancy_rate}%`;
+            document.querySelector('.stat-card:nth-child(2) .stat-change').innerHTML = `↗️ +${stats.occupancy_change}% from yesterday`;
+            
+            // Update rooms card
+            document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = `${stats.available_rooms}/${stats.total_rooms}`;
+            
+            // Update guests card
+            document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = stats.current_guests;
+            document.querySelector('.stat-card:nth-child(4) .stat-change').innerHTML = `↗️ ${stats.checkins_today} check-ins today`;
+        }
+        
+        // Update recent activity with real data
+        function updateRecentActivity(activities) {
+            const activityContainer = document.querySelector('.recent-activity');
+            const activityItems = activities.slice(0, 4).map(activity => {
+                const timeAgo = getTimeAgo(new Date(activity.timestamp));
+                const iconClass = activity.type === 'checkin' ? 'checkin' : 
+                                 activity.type === 'checkout' ? 'checkout' : 'booking';
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon ${iconClass}">
+                            ${activity.type === 'checkin' ? '🏠' : 
+                              activity.type === 'checkout' ? '🚪' : '📅'}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${activity.title}</div>
+                            <div class="activity-time">${timeAgo}</div>
+                        </div>
+                        ${activity.amount ? `<div class="activity-amount">₹${activity.amount}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            activityContainer.innerHTML = `
+                <h2 class="section-title">Recent Activity</h2>
+                ${activityItems}
+            `;
+        }
+        
+        // Update room status grid
+        function updateRoomStatus(roomData) {
+            const roomsGrid = document.querySelector('.rooms-grid');
+            const roomCards = roomData.rooms.slice(0, 8).map(room => `
+                <div class="room-card ${room.status}">
+                    <div class="room-number">${room.room_number}</div>
+                    <div class="room-type">${room.room_type}</div>
+                    <div class="room-status-text">${room.status}</div>
+                </div>
+            `).join('');
+            
+            roomsGrid.innerHTML = roomCards;
+        }
+        
+        // Helper function to calculate time ago
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            if (diffInMinutes < 1) return 'Just now';
+            if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+            
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return `${diffInHours} hours ago`;
+            
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays} days ago`;
+        }
+        
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('/api/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const notifications = await response.json();
+                    updateNotificationBadge(notifications.length);
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+        
+        // Update notification badge
+        function updateNotificationBadge(count) {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
+        }
+        
+        // Initialize dashboard
+        loadDashboardData();
+        loadNotifications();
+        
+        // Auto-refresh stats every 30 seconds
+        setInterval(() => {
+            loadDashboardData();
+            loadNotifications();
+        }, 30000);
+    </script>
+</body>
+</html>

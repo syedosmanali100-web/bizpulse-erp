@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features Manager - CMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .fixed-back-btn {
+            position: fixed;
+            left: 2rem;
+            top: 2rem;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(115, 44, 63, 0.3);
+            text-decoration: none;
+        }
+
+        .fixed-back-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            margin-bottom: 2rem;
+            margin-left: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(115, 44, 63, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-left: 100px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(115, 44, 63, 0.12);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(115, 44, 63, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .fixed-back-btn {
+                left: 1rem;
+                top: 1rem;
+                padding: 12px 16px;
+            }
+
+            .fixed-back-btn span {
+                display: none;
+            }
+
+            .header, .features-grid {
+                margin-left: 0;
+                margin-top: 3rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/cms" class="fixed-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>CMS Dashboard</span>
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="header-title"><i class="fas fa-star"></i> Features Manager</h1>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Add Feature
+            </button>
+        </div>
+
+        <div class="features-grid" id="featuresGrid">
+            <!-- Features will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="featureModal">
+        <div class="modal-content">
+            <h2 class="modal-header" id="modalTitle">Add Feature</h2>
+            <form id="featureForm">
+                <input type="hidden" id="featureId">
+                
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Icon Image</label>
+                    <input type="file" id="iconFile" accept="image/*">
+                    <input type="hidden" id="iconUrl">
+                    <img id="iconPreview" style="width: 60px; height: 60px; margin-top: 10px; border-radius: 8px; display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label>Display Order</label>
+                    <input type="number" id="displayOrder" value="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let features = [];
+
+        // Load features
+        async function loadFeatures() {
+            try {
+                const response = await fetch('/api/cms/admin/features');
+                features = await response.json();
+                renderFeatures();
+            } catch (error) {
+                console.error('Error loading features:', error);
+            }
+        }
+
+        // Render features
+        function renderFeatures() {
+            const grid = document.getElementById('featuresGrid');
+            
+            if (features.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-light);">No features yet. Click "Add Feature" to create one.</p>';
+                return;
+            }
+
+            grid.innerHTML = features.map(feature => `
+                <div class="feature-card">
+                    ${feature.icon_image_url ? `<img src="${feature.icon_image_url}" class="feature-icon">` : ''}
+                    <h3 class="feature-title">${feature.title}</h3>
+                    <p class="feature-description">${feature.description}</p>
+                    <div class="feature-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editFeature('${feature.id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteFeature('${feature.id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open modal
+        function openModal(featureId = null) {
+            document.getElementById('featureModal').classList.add('active');
+            
+            if (featureId) {
+                const feature = features.find(f => f.id === featureId);
+                document.getElementById('modalTitle').textContent = 'Edit Feature';
+                document.getElementById('featureId').value = feature.id;
+                document.getElementById('title').value = feature.title;
+                document.getElementById('description').value = feature.description;
+                document.getElementById('iconUrl').value = feature.icon_image_url || '';
+                document.getElementById('displayOrder').value = feature.display_order;
+                
+                if (feature.icon_image_url) {
+                    document.getElementById('iconPreview').src = feature.icon_image_url;
+                    document.getElementById('iconPreview').style.display = 'block';
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'Add Feature';
+                document.getElementById('featureForm').reset();
+                document.getElementById('featureId').value = '';
+                document.getElementById('iconPreview').style.display = 'none';
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('featureModal').classList.remove('active');
+        }
+
+        // Edit feature
+        function editFeature(id) {
+            openModal(id);
+        }
+
+        // Delete feature
+        async function deleteFeature(id) {
+            if (!confirm('Are you sure you want to delete this feature?')) return;
+
+            try {
+                const response = await fetch(`/api/cms/admin/features/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadFeatures();
+                } else {
+                    alert('Failed to delete feature');
+                }
+            } catch (error) {
+                alert('Error deleting feature');
+            }
+        }
+
+        // Upload icon
+        document.getElementById('iconFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('/api/cms/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    document.getElementById('iconUrl').value = data.url;
+                    document.getElementById('iconPreview').src = data.url;
+                    document.getElementById('iconPreview').style.display = 'block';
+                } catch (error) {
+                    alert('Upload failed');
+                }
+            }
+        });
+
+        // Save feature
+        document.getElementById('featureForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const featureId = document.getElementById('featureId').value;
+            const feature = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                icon_image_url: document.getElementById('iconUrl').value,
+                display_order: parseInt(document.getElementById('displayOrder').value),
+                is_active: 1
+            };
+
+            try {
+                let response;
+                if (featureId) {
+                    // Update
+                    response = await fetch(`/api/cms/admin/features/${featureId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(feature)
+                    });
+                } else {
+                    // Create
+                    response = await fetch('/api/cms/admin/features', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(feature)
+                    });
+                }
+
+                if (response.ok) {
+                    closeModal();
+                    loadFeatures();
+                } else {
+                    alert('Failed to save feature');
+                }
+            } catch (error) {
+                alert('Error saving feature');
+            }
+        });
+
+        // Load features on page load
+        loadFeatures();
+    </script>
+</body>
+</html>

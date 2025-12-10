@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#732C3F">
+    <title>BizPulse Mobile ERP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F7E8EC;
+            overflow-x: hidden;
+        }
+
+        /* Loader */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient 8s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .loader-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .loader-logo {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            margin: 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Screen Base */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            overflow-y: auto;
+            padding: 80px 20px 80px 20px;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+        }
+        
+        .screen.active {
+            display: block;
+        }
+
+        /* Login Screen */
+        #loginScreen {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 50%, #A66B7A 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo h1 {
+            color: #732C3F;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .logo p {
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #732C3F;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #E8D5DA;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .top-bar.show {
+            display: flex;
+        }
+        
+        .hamburger {
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .hamburger div {
+            width: 20px;
+            height: 2px;
+            background: #732C3F;
+            margin: 4px 0;
+            border-radius: 2px;
+        }
+        
+        .app-title {
+            color: #732C3F;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Bottom Navigation */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            display: none;
+            justify-content: space-around;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(115, 44, 63, 0.1);
+            z-index: 1000;
+        }
+        
+        .nav-bar.show {
+            display: flex;
+        }
+        
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            flex: 1;
+            max-width: 80px;
+        }
+        
+        .nav-item.active {
+            background: rgba(115, 44, 63, 0.1);
+        }
+        
+        .nav-item .icon {
+            font-size: 1.3rem;
+            color: #732C3F;
+            margin-bottom: 3px;
+        }
+        
+        .nav-item p {
+            color: #732C3F;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Dashboard */
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            color: #732C3F;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            color: #732C3F;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .module-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .module-card:active {
+            transform: scale(0.95);
+        }
+        
+        .module-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .module-card h4 {
+            color: #732C3F;
+            margin-bottom: 5px;
+        }
+        
+        .module-card p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Side Menu */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+            display: none;
+        }
+        
+        .menu-overlay.show {
+            display: block;
+        }
+        
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            z-index: 2000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .side-menu.open {
+            left: 0;
+        }
+        
+        .menu-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .menu-header h3 {
+            margin: 10px 0 5px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .menu-item .icon {
+            font-size: 1.3rem;
+            margin-right: 15px;
+            width: 25px;
+        }
+        
+        .section-title {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 15px 25px 5px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">BizPulse</div>
+            <div>Complete ERP Solution</div>
+            <div class="loader-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="screen active" id="loginScreen">
+        <div class="login-card">
+            <div class="logo">
+                <h1>BizPulse</h1>
+                <p>Complete ERP Solution</p>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" value="bizpulse.erp@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" value="demo123">
+            </div>
+            <button class="btn" onclick="login()">Login to BizPulse</button>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar" id="topBar">
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="app-title">BizPulse</div>
+        <div class="profile-btn">👤</div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div class="screen" id="dashboardScreen">
+        <div class="header">
+            <h2>Welcome to BizPulse</h2>
+            <p>Your Business Management System</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>₹0</h3>
+                <p>Today's Sales</p>
+            </div>
+            <div class="stat-card">
+                <h3>0</h3>
+                <p>Products</p>
+            </div>
+            <div class="stat-card">
+                <h3>0</h3>
+                <p>Customers</p>
+            </div>
+            <div class="stat-card">
+                <h3>0</h3>
+                <p>Bills</p>
+            </div>
+        </div>
+        
+        <div class="modules-grid">
+            <div class="module-card" onclick="showScreen('billing')">
+                <div class="icon">💰</div>
+                <h4>Billing</h4>
+                <p>Create bills</p>
+            </div>
+            <div class="module-card" onclick="showScreen('products')">
+                <div class="icon">📦</div>
+                <h4>Products</h4>
+                <p>Manage inventory</p>
+            </div>
+            <div class="module-card" onclick="showScreen('customers')">
+                <div class="icon">👥</div>
+                <h4>Customers</h4>
+                <p>Customer list</p>
+            </div>
+            <div class="module-card" onclick="showScreen('reports')">
+                <div class="icon">📊</div>
+                <h4>Reports</h4>
+                <p>Sales reports</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Screen -->
+    <div class="screen" id="productsScreen">
+        <div class="header">
+            <h2>📦 Products</h2>
+            <p>Manage your inventory</p>
+        </div>
+        <div style="text-align:center; padding:40px; color:#666;">
+            <p>Products module coming soon...</p>
+        </div>
+    </div>
+
+    <!-- Customers Screen -->
+    <div class="screen" id="customersScreen">
+        <div class="header">
+            <h2>👥 Customers</h2>
+            <p>Manage your customers</p>
+        </div>
+        <div style="text-align:center; padding:40px; color:#666;">
+            <p>Customers module coming soon...</p>
+        </div>
+    </div>
+
+    <!-- Billing Screen -->
+    <div class="screen" id="billingScreen">
+        <div class="header">
+            <h2>💰 Billing</h2>
+            <p>Create new bills</p>
+        </div>
+        <div style="text-align:center; padding:40px; color:#666;">
+            <p>Billing module coming soon...</p>
+        </div>
+    </div>
+
+    <!-- Reports Screen -->
+    <div class="screen" id="reportsScreen">
+        <div class="header">
+            <h2>📊 Reports</h2>
+            <p>View sales reports</p>
+        </div>
+        <div style="text-align:center; padding:40px; color:#666;">
+            <p>Reports module coming soon...</p>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="nav-bar" id="navBar">
+        <div class="nav-item active" onclick="showScreen('dashboard')">
+            <div class="icon">🏠</div>
+            <p>Home</p>
+        </div>
+        <div class="nav-item" onclick="showScreen('products')">
+            <div class="icon">📦</div>
+            <p>Products</p>
+        </div>
+        <div class="nav-item" onclick="showScreen('billing')">
+            <div class="icon">💰</div>
+            <p>Billing</p>
+        </div>
+        <div class="nav-item" onclick="showScreen('customers')">
+            <div class="icon">👥</div>
+            <p>Customers</p>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div style="font-size:3rem;">👤</div>
+            <h3>Admin User</h3>
+            <p>admin@demo.com</p>
+        </div>
+        
+        <div class="section-title">Core Modules</div>
+        <div class="menu-item" onclick="navigate('dashboard')">
+            <div class="icon">🏠</div>
+            <span>Dashboard</span>
+        </div>
+        <div class="menu-item" onclick="navigate('billing')">
+            <div class="icon">💰</div>
+            <span>Billing</span>
+        </div>
+        <div class="menu-item" onclick="navigate('products')">
+            <div class="icon">📦</div>
+            <span>Products</span>
+        </div>
+        <div class="menu-item" onclick="navigate('customers')">
+            <div class="icon">👥</div>
+            <span>Customers</span>
+        </div>
+        <div class="menu-item" onclick="navigate('reports')">
+            <div class="icon">📊</div>
+            <span>Reports</span>
+        </div>
+        
+        <div style="height:1px;background:rgba(255,255,255,0.2);margin:20px 25px;"></div>
+        
+        <div class="menu-item" onclick="logout()">
+            <div class="icon">🚪</div>
+            <span>Logout</span>
+        </div>
+    </div>
+
+    <script>
+        // Hide loader and show login
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 1500);
+        });
+
+        // Login function
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (email === 'bizpulse.erp@gmail.com' && password === 'demo123') {
+                document.getElementById('loginScreen').classList.remove('active');
+                document.getElementById('dashboardScreen').classList.add('active');
+                document.getElementById('topBar').classList.add('show');
+                document.getElementById('navBar').classList.add('show');
+            } else {
+                alert('❌ Wrong credentials!');
+            }
+        }
+
+        // Show screen
+        function showScreen(screenName) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            
+            // Show selected screen
+            document.getElementById(screenName + 'Screen').classList.add('active');
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.closest('.nav-item')?.classList.add('active');
+        }
+
+        // Toggle menu
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('open');
+            document.getElementById('menuOverlay').classList.toggle('show');
+        }
+
+        // Navigate from menu
+        function navigate(screen) {
+            toggleMenu();
+            showScreen(screen);
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('dashboardScreen').classList.remove('active');
+                document.getElementById('loginScreen').classList.add('active');
+                document.getElementById('topBar').classList.remove('show');
+                document.getElementById('navBar').classList.remove('show');
+                toggleMenu();
+            }
+        }
+    </script>
+</body>
+</html>

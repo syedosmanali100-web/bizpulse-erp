@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>BizPulse - Retail Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 400px; margin: 0 auto; padding-top: 50px; }
+        .logo { text-align: center; margin-bottom: 40px; }
+        .logo h1 { font-size: 2.5rem; color: #732C3F; margin-bottom: 10px; }
+        .logo p { color: #666; font-size: 1.1rem; }
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(115, 44, 63, 0.1);
+        }
+        .card h2 { color: #732C3F; margin-bottom: 15px; font-size: 1.4rem; }
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>BizPulse</h1>
+            <p>Retail Management</p>
+        </div>
+        <div class="card">
+            <h2>Mobile App</h2>
+            <p>Your complete retail management solution is ready!</p>
+            <button class="btn" onclick="openDashboard()">Dashboard</button>
+            <button class="btn" onclick="openBilling()">Billing</button>
+            <button class="btn" onclick="openProducts()">Products</button>
+        </div>
+        <div class="status">
+            Standalone Mobile App Ready
+        </div>
+    </div>
+    <script>
+        function openDashboard() {
+            window.location.href = '/retail/dashboard';
+        }
+        function openBilling() {
+            window.location.href = '/retail/billing';
+        }
+        function openProducts() {
+            window.location.href = '/retail/products';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+com.bizpulse.erp.app-pngs-0 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\generated\res\pngs\debug
+com.bizpulse.erp.app-resValues-1 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\generated\res\resValues\debug
+com.bizpulse.erp.app-rs-2 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\generated\res\rs\debug
+com.bizpulse.erp.app-mergeDebugResources-3 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
+com.bizpulse.erp.app-mergeDebugResources-4 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+com.bizpulse.erp.app-merged_res-5 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\build\intermediates\merged_res\debug
+com.bizpulse.erp.app-debug-6 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\src\debug\res
+com.bizpulse.erp.app-main-7 C:\Users\osman\OneDrive\Desktop\Mobile-ERP\BizPulse_Dynamic_APK\android\app\src\main\res

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Builder - BizPulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
+        /* Top Toolbar */
+        .builder-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .toolbar-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .toolbar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toolbar-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(115, 44, 63, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Device Preview Buttons */
+        .device-preview {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--secondary);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .device-btn {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .device-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Left Sidebar - Components Panel */
+        .left-sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 280px;
+            height: calc(100vh - 60px);
+            background: white;
+            border-right: 2px solid var(--border);
+            overflow-y: auto;
+            z-index: 900;
+        }
+
+        .sidebar-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .component-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .component-item {
+            padding: 1rem;
+            background: var(--secondary);
+            border-radius: 10px;
+            cursor: move;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .component-item:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .component-icon {
+            font-size: 1.25rem;
+        }
+
+        .component-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Right Sidebar - Properties Panel */
+        .right-sidebar {
+            position: fixed;
+            right: 0;
+            top: 60px;
+            width: 320px;
+            height: calc(100vh - 60px);
+            background: white;
+            border-left: 2px solid var(--border);
+            overflow-y: auto;
+            z-index: 900;
+        }
+
+        .properties-header {
+            padding: 1.5rem;
+            background: var(--secondary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .properties-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .property-group {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .property-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .property-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .property-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .color-picker-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .color-input {
+            height: 45px;
+            cursor: pointer;
+        }
+
+        /* Canvas - Website Preview */
+        .canvas-container {
+            position: fixed;
+            left: 280px;
+            right: 320px;
+            top: 60px;
+            height: calc(100vh - 60px);
+            background: #e5e7eb;
+            overflow: auto;
+            padding: 2rem;
+        }
+
+        .canvas-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .canvas-wrapper.desktop {
+            width: 100%;
+        }
+
+        .canvas-wrapper.tablet {
+            width: 768px;
+        }
+
+        .canvas-wrapper.mobile {
+            width: 375px;
+        }
+
+        /* Editable Sections */
+        .editable-section {
+            position: relative;
+            min-height: 50px;
+            transition: all 0.3s;
+        }
+
+        .editable-section:hover {
+            outline: 2px dashed var(--primary);
+            outline-offset: 5px;
+        }
+
+        .editable-section.selected {
+            outline: 3px solid var(--primary);
+            outline-offset: 5px;
+        }
+
+        .section-controls {
+            position: absolute;
+            top: -35px;
+            right: 10px;
+            display: none;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .editable-section:hover .section-controls,
+        .editable-section.selected .section-controls {
+            display: flex;
+        }
+
+        .control-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Success Message */
+        .success-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+
+        .success-toast.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .left-sidebar {
+                width: 250px;
+            }
+            .right-sidebar {
+                width: 280px;
+            }
+            .canvas-container {
+                left: 250px;
+                right: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Toolbar -->
+    <div class="builder-toolbar">
+        <div class="toolbar-left">
+            <div class="toolbar-logo">🎨 BizPulse</div>
+            <div class="toolbar-title">Website Builder</div>
+        </div>
+
+        <div class="toolbar-right">
+            <!-- Device Preview -->
+            <div class="device-preview">
+                <button class="device-btn active" onclick="setDevice('desktop')" title="Desktop">
+                    <i class="fas fa-desktop"></i>
+                </button>
+                <button class="device-btn" onclick="setDevice('tablet')" title="Tablet">
+                    <i class="fas fa-tablet-alt"></i>
+                </button>
+                <button class="device-btn" onclick="setDevice('mobile')" title="Mobile">
+                    <i class="fas fa-mobile-alt"></i>
+                </button>
+            </div>
+
+            <button class="toolbar-btn btn-secondary" onclick="previewWebsite()">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+
+            <button class="toolbar-btn btn-success" onclick="saveChanges()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+
+            <button class="toolbar-btn btn-secondary" onclick="exitBuilder()">
+                <i class="fas fa-times"></i> Exit
+            </button>
+        </div>
+    </div>
+
+    <!-- Left Sidebar - Components -->
+    <div class="left-sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">📦 Components</div>
+            <div class="component-list">
+                <div class="component-item" draggable="true" data-component="hero">
+                    <div class="component-icon">🎯</div>
+                    <div class="component-name">Hero Section</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="features">
+                    <div class="component-icon">⭐</div>
+                    <div class="component-name">Features</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="pricing">
+                    <div class="component-icon">💰</div>
+                    <div class="component-name">Pricing</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="testimonials">
+                    <div class="component-icon">💬</div>
+                    <div class="component-name">Testimonials</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="gallery">
+                    <div class="component-icon">🖼️</div>
+                    <div class="component-name">Gallery</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="cta">
+                    <div class="component-icon">📢</div>
+                    <div class="component-name">Call to Action</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="text">
+                    <div class="component-icon">📝</div>
+                    <div class="component-name">Text Block</div>
+                </div>
+                <div class="component-item" draggable="true" data-component="image">
+                    <div class="component-icon">🖼️</div>
+                    <div class="component-name">Image</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">🎨 Quick Actions</div>
+            <div class="component-list">
+                <div class="component-item" onclick="openThemeCustomizer()">
+                    <div class="component-icon">🎨</div>
+                    <div class="component-name">Theme Colors</div>
+                </div>
+                <div class="component-item" onclick="openFontManager()">
+                    <div class="component-icon">🔤</div>
+                    <div class="component-name">Fonts</div>
+                </div>
+                <div class="component-item" onclick="openImageManager()">
+                    <div class="component-icon">📸</div>
+                    <div class="component-name">Images</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar - Properties -->
+    <div class="right-sidebar">
+        <div class="properties-header">
+            <div class="properties-title">⚙️ Properties</div>
+        </div>
+
+        <div id="propertiesPanel">
+            <div class="property-group">
+                <p style="color: var(--text-light); text-align: center; padding: 2rem;">
+                    Select an element to edit its properties
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas - Website Preview -->
+    <div class="canvas-container">
+        <div class="canvas-wrapper desktop" id="canvas">
+            <iframe id="websiteFrame" src="/" style="width: 100%; height: 100%; border: none; min-height: 100vh;"></iframe>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p style="color: var(--text); font-weight: 600;">Saving changes...</p>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="success-toast" id="successToast">
+        <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+        <span>Changes saved successfully!</span>
+    </div>
+
+    <script>
+        let selectedElement = null;
+        let currentDevice = 'desktop';
+
+        // Initialize builder
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Website Builder Initialized');
+            setupIframeInteraction();
+        });
+
+        // Setup iframe interaction
+        function setupIframeInteraction() {
+            const iframe = document.getElementById('websiteFrame');
+            
+            iframe.addEventListener('load', () => {
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Add edit mode class
+                    iframeDoc.body.classList.add('builder-edit-mode');
+                    
+                    // Make sections editable
+                    makeElementsEditable(iframeDoc);
+                    
+                } catch (error) {
+                    console.error('Cannot access iframe:', error);
+                }
+            });
+        }
+
+        // Make elements editable
+        function makeElementsEditable(doc) {
+            const sections = doc.querySelectorAll('section, .hero, .features, .pricing, .testimonials, .gallery, .cta');
+            
+            sections.forEach((section, index) => {
+                section.classList.add('editable-section');
+                section.setAttribute('data-section-id', index);
+                
+                // Add controls
+                const controls = document.createElement('div');
+                controls.className = 'section-controls';
+                controls.innerHTML = `
+                    <button class="control-btn" onclick="parent.editSection(${index})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="control-btn" onclick="parent.moveUp(${index})" title="Move Up">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button class="control-btn" onclick="parent.moveDown(${index})" title="Move Down">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                    <button class="control-btn" onclick="parent.deleteSection(${index})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                section.appendChild(controls);
+                
+                // Click to select
+                section.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    parent.selectSection(index);
+                });
+            });
+        }
+
+        // Select section
+        function selectSection(index) {
+            const iframe = document.getElementById('websiteFrame');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // Remove previous selection
+            iframeDoc.querySelectorAll('.editable-section').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Select new
+            const section = iframeDoc.querySelector(`[data-section-id="${index}"]`);
+            if (section) {
+                section.classList.add('selected');
+                selectedElement = section;
+                showProperties(section);
+            }
+        }
+
+        // Show properties panel
+        function showProperties(element) {
+            const panel = document.getElementById('propertiesPanel');
+            
+            panel.innerHTML = `
+                <div class="property-group">
+                    <label class="property-label">Section Type</label>
+                    <input type="text" class="property-input" value="${element.tagName}" readonly>
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Background Color</label>
+                    <input type="color" class="property-input color-input" value="#ffffff" onchange="updateBgColor(this.value)">
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Text Color</label>
+                    <input type="color" class="property-input color-input" value="#000000" onchange="updateTextColor(this.value)">
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Padding (px)</label>
+                    <input type="number" class="property-input" value="20" onchange="updatePadding(this.value)">
+                </div>
+                
+                <div class="property-group">
+                    <button class="toolbar-btn btn-primary" style="width: 100%;" onclick="editContent()">
+                        <i class="fas fa-edit"></i> Edit Content
+                    </button>
+                </div>
+            `;
+        }
+
+        // Update styles
+        function updateBgColor(color) {
+            if (selectedElement) {
+                selectedElement.style.backgroundColor = color;
+            }
+        }
+
+        function updateTextColor(color) {
+            if (selectedElement) {
+                selectedElement.style.color = color;
+            }
+        }
+
+        function updatePadding(value) {
+            if (selectedElement) {
+                selectedElement.style.padding = value + 'px';
+            }
+        }
+
+        // Edit content
+        function editContent() {
+            if (selectedElement) {
+                const currentText = selectedElement.textContent;
+                const newText = prompt('Edit content:', currentText);
+                if (newText !== null) {
+                    selectedElement.textContent = newText;
+                }
+            }
+        }
+
+        // Device preview
+        function setDevice(device) {
+            currentDevice = device;
+            const canvas = document.getElementById('canvas');
+            const buttons = document.querySelectorAll('.device-btn');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.device-btn').classList.add('active');
+            
+            canvas.className = 'canvas-wrapper ' + device;
+        }
+
+        // Save changes
+        async function saveChanges() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('active');
+            
+            // Simulate save
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                showSuccess();
+            }, 1500);
+        }
+
+        // Show success message
+        function showSuccess() {
+            const toast = document.getElementById('successToast');
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        // Preview website
+        function previewWebsite() {
+            window.open('/', '_blank');
+        }
+
+        // Exit builder
+        function exitBuilder() {
+            if (confirm('Exit builder? Unsaved changes will be lost.')) {
+                window.location.href = '/cms';
+            }
+        }
+
+        // Section actions
+        function editSection(index) {
+            selectSection(index);
+            alert('Edit section ' + index);
+        }
+
+        function moveUp(index) {
+            alert('Move up section ' + index);
+        }
+
+        function moveDown(index) {
+            alert('Move down section ' + index);
+        }
+
+        function deleteSection(index) {
+            if (confirm('Delete this section?')) {
+                const iframe = document.getElementById('websiteFrame');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const section = iframeDoc.querySelector(`[data-section-id="${index}"]`);
+                if (section) {
+                    section.remove();
+                }
+            }
+        }
+
+        // Quick actions
+        function openThemeCustomizer() {
+            alert('Theme Customizer - Coming in next update!');
+        }
+
+        function openFontManager() {
+            alert('Font Manager - Coming in next update!');
+        }
+
+        function openImageManager() {
+            alert('Image Manager - Coming in next update!');
+        }
+    </script>
+</body>
+</html>

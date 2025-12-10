@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BizPulse ERP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 400px; margin: 0 auto; text-align: center; }
+        .logo { font-size: 4rem; margin: 50px 0 30px 0; }
+        .title { font-size: 2rem; margin-bottom: 30px; }
+        .status { 
+            background: rgba(255,255,255,0.1); 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+        }
+        .server-list { text-align: left; margin: 20px 0; }
+        .server-item { 
+            background: rgba(255,255,255,0.1); 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-dot { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: #ff4757;
+        }
+        .status-dot.connected { background: #2ed573; }
+        .btn { 
+            background: #ff6b6b; 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            border-radius: 25px; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            margin: 10px;
+        }
+        .btn:hover { background: #ff5252; }
+        .btn.success { background: #2ed573; }
+        #app-frame { 
+            display: none; 
+            width: 100%; 
+            height: 100vh; 
+            border: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainScreen">
+        <div class="logo">🛒</div>
+        <div class="title">BizPulse ERP</div>
+        <div class="status" id="statusBox">
+            <h3>Connecting to Server...</h3>
+            <p id="statusText">Searching for your server...</p>
+        </div>
+        
+        <div class="server-list">
+            <h4>Server Status:</h4>
+            <div class="server-item">
+                <span>192.168.31.75:5000</span>
+                <div class="status-dot" id="server1"></div>
+            </div>
+            <div class="server-item">
+                <span>192.168.1.100:5000</span>
+                <div class="status-dot" id="server2"></div>
+            </div>
+            <div class="server-item">
+                <span>localhost:5000</span>
+                <div class="status-dot" id="server3"></div>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="connectToServer()">Connect to Server</button>
+        <button class="btn" onclick="showDemo()">Demo Mode</button>
+    </div>
+    
+    <iframe id="app-frame" src=""></iframe>
+
+    <script>
+        const SERVERS = [
+            { url: 'http://192.168.31.75:5000', id: 'server1' },
+            { url: 'http://192.168.1.100:5000', id: 'server2' },
+            { url: 'http://localhost:5000', id: 'server3' }
+        ];
+        
+        let connectedServer = null;
+        
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+        
+        function updateServerStatus(serverId, connected) {
+            const dot = document.getElementById(serverId);
+            if (connected) {
+                dot.classList.add('connected');
+            } else {
+                dot.classList.remove('connected');
+            }
+        }
+        
+        async function testServer(server) {
+            try {
+                updateStatus(`Testing ${server.url}...`);
+                const response = await fetch(server.url + '/api/products', {
+                    method: 'GET',
+                    timeout: 3000
+                });
+                
+                if (response.ok) {
+                    updateServerStatus(server.id, true);
+                    return true;
+                }
+            } catch (error) {
+                console.log(`Server ${server.url} failed:`, error);
+            }
+            
+            updateServerStatus(server.id, false);
+            return false;
+        }
+        
+        async function connectToServer() {
+            updateStatus('Searching for servers...');
+            
+            for (const server of SERVERS) {
+                const isConnected = await testServer(server);
+                if (isConnected) {
+                    connectedServer = server.url;
+                    updateStatus(`Connected to ${server.url}!`);
+                    
+                    setTimeout(() => {
+                        document.getElementById('mainScreen').style.display = 'none';
+                        document.getElementById('app-frame').style.display = 'block';
+                        document.getElementById('app-frame').src = server.url;
+                    }, 1500);
+                    
+                    return;
+                }
+            }
+            
+            updateStatus('No server found. Make sure your server is running.');
+        }
+        
+        function showDemo() {
+            document.getElementById('mainScreen').style.display = 'none';
+            document.getElementById('app-frame').style.display = 'block';
+            document.getElementById('app-frame').src = 'data:text/html,<html><body style="font-family:Arial;padding:20px;background:#f0f0f0;"><h1>🛒 BizPulse ERP Demo</h1><p>This is demo mode. Your actual app will load when server is running.</p><div style="background:white;padding:20px;margin:20px 0;border-radius:10px;"><h3>Features:</h3><ul><li>✅ Product Management</li><li>✅ Inventory Tracking</li><li>✅ Sales Reports</li><li>✅ Customer Management</li></ul></div></body></html>';
+        }
+        
+        // Auto-connect on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(connectToServer, 1000);
+        });
+        
+        // Auto-refresh every 30 seconds if connected
+        setInterval(() => {
+            if (connectedServer) {
+                document.getElementById('app-frame').src = connectedServer + '?t=' + Date.now();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

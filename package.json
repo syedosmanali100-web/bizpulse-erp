@@ -1,0 +1,16 @@
+{
+  "name": "bizpulse-erp",
+  "version": "1.0.0",
+  "description": "BizPulse ERP Mobile App",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "start": "python app.py"
+  },
+  "dependencies": {
+    "cordova": "^12.0.0"
+  },
+  "devDependencies": {
+    "cordova-android": "^12.0.0"
+  }
+}

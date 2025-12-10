@@ -1,0 +1,51 @@
+{
+  "name": "BizPulse - Retail Management",
+  "short_name": "BizPulse",
+  "description": "Complete Retail Management ERP System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7E8EC",
+  "theme_color": "#732C3F",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/static/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Billing",
+      "short_name": "Billing",
+      "description": "Open billing system",
+      "url": "/retail/billing",
+      "icons": [{"src": "/static/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard", 
+      "description": "Open main dashboard",
+      "url": "/retail/dashboard",
+      "icons": [{"src": "/static/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}
