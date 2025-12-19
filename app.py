@@ -107,7 +107,7 @@ def init_db():
             min_stock INTEGER DEFAULT 0,
             unit TEXT DEFAULT 'piece',
             business_type TEXT DEFAULT 'both',
-            barcode_data TEXT,
+            barcode_data TEXT UNIQUE,
             barcode_image TEXT,
             is_active BOOLEAN DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -307,12 +307,18 @@ def init_db():
     
     # Add barcode fields to products table if they don't exist
     try:
-        cursor.execute('ALTER TABLE products ADD COLUMN barcode_data TEXT')
+        cursor.execute('ALTER TABLE products ADD COLUMN barcode_data TEXT UNIQUE')
     except sqlite3.OperationalError:
         pass
     
     try:
         cursor.execute('ALTER TABLE products ADD COLUMN barcode_image TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    # Create index on barcode_data for fast lookups
+    try:
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode_data)')
     except sqlite3.OperationalError:
         pass
     
@@ -1356,7 +1362,7 @@ def add_barcode_to_product(product_id):
 
 @app.route('/api/products/search/barcode/<barcode>', methods=['GET'])
 def search_product_by_barcode(barcode):
-    """Search product by barcode data - Fixed for HTTP 404 issue"""
+    """Search product by barcode data - Production ready"""
     try:
         print(f"🔍 [BARCODE SEARCH] Searching for barcode: {barcode}")
         
@@ -1368,27 +1374,14 @@ def search_product_by_barcode(barcode):
             }), 400
         
         barcode = barcode.strip()
-        print(f"🔍 [BARCODE SEARCH] Cleaned barcode: '{barcode}'")
-        
         conn = get_db_connection()
         
-        # First, let's see all products with barcode data for debugging
-        all_products = conn.execute('''
-            SELECT id, name, code, barcode_data FROM products 
-            WHERE is_active = 1 AND (barcode_data IS NOT NULL OR code IS NOT NULL)
-        ''').fetchall()
-        
-        print(f"📦 [BARCODE SEARCH] Found {len(all_products)} products with barcode/code data:")
-        for p in all_products:
-            print(f"  - {p['name']}: code='{p['code']}', barcode_data='{p['barcode_data']}'")
-        
-        # Search by barcode_data or code field (exact match and LIKE match)
+        # EXACT MATCH ONLY - Primary lookup by barcode_data
         product = conn.execute('''
             SELECT * FROM products 
-            WHERE (barcode_data = ? OR code = ? OR barcode_data LIKE ? OR code LIKE ?) 
-            AND is_active = 1
+            WHERE barcode_data = ? AND is_active = 1
             LIMIT 1
-        ''', (barcode, barcode, f'%{barcode}%', f'%{barcode}%')).fetchone()
+        ''', (barcode,)).fetchone()
         
         conn.close()
         
@@ -1396,26 +1389,21 @@ def search_product_by_barcode(barcode):
             print(f"✅ [BARCODE SEARCH] Found product: {product['name']}")
             return jsonify({
                 "success": True,
-                "product": dict(product),
-                "matched_barcode": barcode
+                "product": dict(product)
             }), 200
         else:
             print(f"❌ [BARCODE SEARCH] No product found for barcode: {barcode}")
             return jsonify({
                 "success": False,
-                "message": f"Product not found for barcode: {barcode}",
-                "searched_barcode": barcode,
-                "total_products_with_barcodes": len(all_products),
-                "available_barcodes": [p['barcode_data'] for p in all_products if p['barcode_data']]
+                "message": f"Product not found",
+                "barcode": barcode
             }), 404
             
     except Exception as e:
         print(f"❌ [BARCODE SEARCH] Error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             "success": False,
-            "error": str(e),
+            "error": "Search failed",
             "barcode": barcode
         }), 500
 
@@ -1424,54 +1412,157 @@ def search_product_by_barcode(barcode):
 def add_product():
     try:
         data = request.json
+        print(f"[PRODUCT ADD] Received data: {data}")
         
         # Validate required fields
         if not data or not data.get('name') or not data.get('price'):
-            return jsonify({"error": "Product name and price are required"}), 400
+            return jsonify({
+                "success": False,
+                "error": "Product name and price are required"
+            }), 400
         
-        # Generate product ID and code if not provided
-        product_id = generate_id()
-        product_code = data.get('code') or f"P{len(str(product_id))[:6]}"
+        # Extract and validate barcode data
+        barcode_data = data.get('barcode_data', '').strip() if data.get('barcode_data') else None
+        barcode_image = data.get('barcode_image')
         
         conn = get_db_connection()
         
-        # Check if code already exists
-        existing = conn.execute('SELECT id FROM products WHERE code = ?', (product_code,)).fetchone()
-        if existing:
+        # CRITICAL: Check if barcode already exists (if provided)
+        if barcode_data:
+            existing_barcode = conn.execute('''
+                SELECT id, name FROM products 
+                WHERE barcode_data = ? AND is_active = 1
+            ''', (barcode_data,)).fetchone()
+            
+            if existing_barcode:
+                conn.close()
+                return jsonify({
+                    "success": False,
+                    "error": f"Product already exists with this barcode",
+                    "existing_product": {
+                        "id": existing_barcode['id'],
+                        "name": existing_barcode['name']
+                    },
+                    "barcode": barcode_data
+                }), 409  # Conflict status code
+        
+        # Generate product ID and code
+        product_id = generate_id()
+        product_code = data.get('code', '').strip() or f"P{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        # Check if product code already exists
+        existing_code = conn.execute('SELECT id FROM products WHERE code = ?', (product_code,)).fetchone()
+        if existing_code:
             product_code = f"{product_code}_{datetime.now().strftime('%H%M%S')}"
         
-        # Insert product with barcode data
-        conn.execute('''
-            INSERT INTO products (id, code, name, category, price, cost, stock, min_stock, unit, business_type, barcode_data, barcode_image)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            product_id, 
-            product_code, 
-            data['name'], 
-            data.get('category', 'General'),
-            float(data['price']), 
-            float(data.get('cost', 0)), 
-            int(data.get('stock', 0)),
-            int(data.get('min_stock', 0)), 
-            data.get('unit', 'piece'), 
-            data.get('business_type', 'both'),
-            data.get('barcode_data'),  # Store scanned barcode value
-            data.get('barcode_image')  # Store barcode image
-        ))
-        conn.commit()
+        # Insert product with all validations
+        try:
+            conn.execute('''
+                INSERT INTO products (
+                    id, code, name, category, price, cost, stock, min_stock, 
+                    unit, business_type, barcode_data, barcode_image, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                product_id, 
+                product_code, 
+                data['name'].strip(), 
+                data.get('category', 'General'),
+                float(data['price']), 
+                float(data.get('cost', 0)), 
+                int(data.get('stock', 0)),
+                int(data.get('min_stock', 0)), 
+                data.get('unit', 'piece'), 
+                data.get('business_type', 'both'),
+                barcode_data,  # Store scanned barcode value (unique)
+                barcode_image,  # Store barcode image
+                1  # is_active
+            ))
+            
+            conn.commit()
+            print(f"[PRODUCT ADD] Successfully added product: {product_id}")
+            
+        except sqlite3.IntegrityError as e:
+            conn.close()
+            if 'barcode_data' in str(e):
+                return jsonify({
+                    "success": False,
+                    "error": "Product with this barcode already exists",
+                    "barcode": barcode_data
+                }), 409
+            else:
+                return jsonify({
+                    "success": False,
+                    "error": f"Database constraint error: {str(e)}"
+                }), 400
+        
         conn.close()
         
         return jsonify({
             "success": True,
             "message": "Product added successfully", 
-            "id": product_id,
-            "code": product_code
+            "product": {
+                "id": product_id,
+                "code": product_code,
+                "name": data['name'],
+                "barcode": barcode_data
+            }
         }), 201
         
+    except ValueError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Invalid data format: {str(e)}"
+        }), 400
     except Exception as e:
+        print(f"[PRODUCT ADD] Error: {str(e)}")
         return jsonify({
             "success": False,
             "error": f"Failed to add product: {str(e)}"
+        }), 500
+
+@app.route('/api/products/<product_id>', methods=['DELETE'])
+@require_auth
+def delete_product(product_id):
+    """Delete product completely from database"""
+    try:
+        print(f"[PRODUCT DELETE] Deleting product: {product_id}")
+        
+        conn = get_db_connection()
+        
+        # Check if product exists
+        product = conn.execute('''
+            SELECT id, name, barcode_data FROM products WHERE id = ?
+        ''', (product_id,)).fetchone()
+        
+        if not product:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "error": "Product not found"
+            }), 404
+        
+        # HARD DELETE - Remove from database completely
+        conn.execute('DELETE FROM products WHERE id = ?', (product_id,))
+        conn.commit()
+        conn.close()
+        
+        print(f"[PRODUCT DELETE] Successfully deleted: {product['name']}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Product '{product['name']}' deleted successfully",
+            "deleted_product": {
+                "id": product_id,
+                "name": product['name'],
+                "barcode": product['barcode_data']
+            }
+        }), 200
+        
+    except Exception as e:
+        print(f"[PRODUCT DELETE] Error: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"Failed to delete product: {str(e)}"
         }), 500
 
 # Customers API
