@@ -1285,11 +1285,44 @@ def get_products():
     conn.close()
     return jsonify([dict(row) for row in products])
 
+@app.route('/api/products/debug', methods=['GET'])
+def debug_products():
+    """Debug endpoint to see all products with barcode data"""
+    try:
+        conn = get_db_connection()
+        products = conn.execute('''
+            SELECT id, name, code, barcode_data, price, stock 
+            FROM products 
+            WHERE is_active = 1 
+            ORDER BY created_at DESC
+            LIMIT 20
+        ''').fetchall()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "total_products": len(products),
+            "products": [dict(p) for p in products]
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.route('/api/products/search/barcode/<barcode>', methods=['GET'])
 def search_product_by_barcode(barcode):
     """Search product by barcode data"""
     try:
+        print(f"🔍 Searching for barcode: {barcode}")
         conn = get_db_connection()
+        
+        # First, let's see all products with barcode data for debugging
+        all_products = conn.execute('''
+            SELECT id, name, code, barcode_data FROM products 
+            WHERE is_active = 1 AND (barcode_data IS NOT NULL OR code IS NOT NULL)
+        ''').fetchall()
+        
+        print(f"📦 Found {len(all_products)} products with barcode/code data:")
+        for p in all_products:
+            print(f"  - {p['name']}: code='{p['code']}', barcode_data='{p['barcode_data']}'")
         
         # Search by barcode_data or code field
         product = conn.execute('''
@@ -1301,17 +1334,24 @@ def search_product_by_barcode(barcode):
         conn.close()
         
         if product:
+            print(f"✅ Found product: {product['name']}")
             return jsonify({
                 "success": True,
                 "product": dict(product)
             })
         else:
+            print(f"❌ No product found for barcode: {barcode}")
             return jsonify({
                 "success": False,
-                "message": "Product not found for barcode: " + barcode
+                "message": f"Product not found for barcode: {barcode}",
+                "debug_info": {
+                    "searched_barcode": barcode,
+                    "total_products_with_barcodes": len(all_products)
+                }
             }), 404
             
     except Exception as e:
+        print(f"❌ Error in barcode search: {str(e)}")
         return jsonify({
             "success": False,
             "error": str(e)

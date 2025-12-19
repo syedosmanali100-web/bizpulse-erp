@@ -3755,6 +3755,8 @@
         // Search product by barcode and add to bill - Real mart style
         async function searchAndAddProductByBarcode(barcode) {
             try {
+                console.log('🔍 Searching for barcode:', barcode);
+                
                 // Show scanning feedback
                 const camera = document.getElementById('billBarcodeCamera');
                 const originalContent = camera.innerHTML;
@@ -3768,8 +3770,17 @@
                     </div>
                 `;
                 
+                console.log('📡 Making API request to:', `/api/products/search/barcode/${barcode}`);
+                
                 const response = await fetch(`/api/products/search/barcode/${barcode}`);
+                console.log('📡 Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const result = await response.json();
+                console.log('📡 API Response:', result);
                 
                 if (result.success && result.product) {
                     const product = result.product;
@@ -3807,20 +3818,27 @@
                     showToast(`❌ Product not found: ${barcode}`, 'error');
                 }
             } catch (error) {
-                console.error('Error searching product by barcode:', error);
+                console.error('❌ Error searching product by barcode:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    barcode: barcode
+                });
                 
-                // Show network error
+                // Show detailed error
                 const camera = document.getElementById('billBarcodeCamera');
                 camera.innerHTML = `
                     <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); border-radius: 8px; color: white;">
                         <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
-                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Connection Error</div>
-                        <div style="font-size: 14px; opacity: 0.9;">Please check internet connection</div>
-                        <button onclick="closeBillBarcodeScanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-top: 15px;">Close</button>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Search Error</div>
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Barcode: ${barcode}</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">Error: ${error.message}</div>
+                        <button onclick="closeBillBarcodeScanner()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-right: 10px;">Close</button>
+                        <button onclick="searchAndAddProductByBarcode('${barcode}')" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 8px;">Retry</button>
                     </div>
                 `;
                 
-                showToast('❌ Network error. Please try again.', 'error');
+                showToast(`❌ Error: ${error.message}`, 'error');
             }
         }
         
