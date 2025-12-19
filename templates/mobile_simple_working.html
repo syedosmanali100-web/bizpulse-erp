@@ -1138,6 +1138,117 @@
             background: linear-gradient(135deg, #8B3A47 0%, #732C3F 100%);
         }
         
+        /* Billing Product Boxes - Desktop Style */
+        .bill-product-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .bill-product-box:hover {
+            border-color: #732C3F;
+            box-shadow: 0 4px 12px rgba(115, 44, 63, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .bill-product-box:active {
+            transform: scale(0.95);
+        }
+        
+        .bill-product-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            line-height: 1.2;
+            height: 28px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .bill-product-price {
+            font-size: 14px;
+            font-weight: 700;
+            color: #732C3F;
+            margin-bottom: 4px;
+        }
+        
+        .bill-product-stock {
+            font-size: 10px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .bill-product-box.out-of-stock {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .bill-product-box.out-of-stock:hover {
+            border-color: #e0e0e0;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        /* Bill Items List */
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+        }
+        
+        .bill-item:last-child {
+            border-bottom: none;
+        }
+        
+        .bill-item-info {
+            flex: 1;
+        }
+        
+        .bill-item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .bill-item-details {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .bill-item-total {
+            font-weight: 700;
+            color: #732C3F;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .bill-item-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
         /* Add padding to content for bottom nav */
         .content {
             padding: 70px 15px 80px 15px;
@@ -1391,49 +1502,49 @@
             <div id="customersList"></div>
         </div>
         
-        <!-- Billing Module -->
+        <!-- Billing Module - Desktop Style -->
         <div class="card" id="billingModule" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">💳 Create Bill</h2>
-                <button onclick="clearBill()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px;">Clear</button>
+                <h2 style="margin: 0;">💳 Smart Billing</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="openBillBarcodeScanner()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px;">📷 Scan</button>
+                    <button onclick="clearBill()" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px;">Clear</button>
+                </div>
             </div>
             
-            <!-- Add Product Section -->
-            <div style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <h3 style="margin-bottom: 10px; font-size: 16px; color: #732C3F;">Add Product</h3>
-                
-                <select id="billProductSelect" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; font-size: 14px;">
-                    <option value="">-- Select Product --</option>
-                </select>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div>
-                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">Quantity</label>
-                        <input type="number" id="billQuantity" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 12px; color: #666; display: block; margin-bottom: 5px;">Price</label>
-                        <input type="number" id="billPrice" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; font-size: 14px;">
-                    </div>
+            <!-- Barcode Scanner Section for Billing -->
+            <div id="billBarcodeSection" style="display: none; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0; color: #28a745;">📷 Scan Product Barcode</h4>
+                    <button onclick="closeBillBarcodeScanner()" style="background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px;">✕</button>
+                </div>
+                <div id="billBarcodeCamera"></div>
+            </div>
+            
+            <!-- Products Grid - Desktop Style -->
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 16px; color: #732C3F;">📦 Select Products</h3>
+                    <input type="text" id="billProductSearch" placeholder="🔍 Search products..." style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 20px; width: 200px; font-size: 14px;">
                 </div>
                 
-                <button onclick="addToBillMobile()" style="background: #732C3F; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-size: 16px; font-weight: 600;">
-                    ➕ Add to Bill
-                </button>
+                <div id="billProductsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding: 10px; background: #f8f9fa; border-radius: 10px;">
+                    <!-- Products will be loaded here -->
+                </div>
             </div>
             
             <!-- Bill Items -->
             <div style="margin-bottom: 15px;">
-                <h3 style="margin-bottom: 10px; font-size: 16px; color: #732C3F;">Bill Items</h3>
-                <div id="billItemsList" style="max-height: 300px; overflow-y: auto;">
+                <h3 style="margin-bottom: 10px; font-size: 16px; color: #732C3F;">🛒 Bill Items</h3>
+                <div id="billItemsList" style="max-height: 200px; overflow-y: auto; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
                     <div style="text-align: center; padding: 30px; color: #999;">
                         <div style="font-size: 48px; margin-bottom: 10px;">🛒</div>
-                        <p>No items added yet</p>
+                        <p>Scan or click products to add</p>
                     </div>
                 </div>
             </div>
             
-            <!-- Bill Summary -->
+            <!-- Bill Summary & Payment -->
             <div style="background: linear-gradient(135deg, #732C3F 0%, #8B3A47 100%); padding: 20px; border-radius: 10px; color: white;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span>Subtotal:</span>
@@ -1443,10 +1554,25 @@
                     <span>GST (18%):</span>
                     <span style="font-weight: 600;">₹<span id="billGST">0</span></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 20px; font-weight: 700;">
+                <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 20px; font-weight: 700; margin-bottom: 15px;">
                     <span>Total:</span>
                     <span>₹<span id="billTotal">0</span></span>
                 </div>
+                
+                <!-- Payment Method Selection -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">💳 Payment Method:</label>
+                    <select id="paymentMethod" style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 14px; color: #333;">
+                        <option value="cash">💵 Cash</option>
+                        <option value="card">💳 Card</option>
+                        <option value="upi">📱 UPI</option>
+                        <option value="credit">📝 Credit</option>
+                    </select>
+                </div>
+                
+                <button onclick="completeBill()" id="completeBillBtn" style="background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-size: 18px; font-weight: 700;" disabled>
+                    💰 Complete Bill
+                </button>
             </div>
             
             <!-- Payment Method -->
@@ -2285,6 +2411,7 @@
             if (module === 'billing') {
                 document.getElementById('billingModule').style.display = 'block';
                 await loadBillingProducts();
+                setupBillingSearch();
                 return;
             }
             
@@ -2825,6 +2952,7 @@
                     const productCodeField = document.getElementById('productCode');
                     if (productCodeField) {
                         productCodeField.value = code;
+                        window.detectedBarcodeData = code; // Store for saving
                         showToast('✅ Barcode detected: ' + code, 'success');
                         
                         // Close scanner and focus next field
@@ -2870,6 +2998,7 @@
                 min_stock: parseInt(document.getElementById('productMinStock').value) || 0,
                 unit: document.getElementById('productUnit').value || 'piece',
                 business_type: 'both',
+                barcode_data: window.detectedBarcodeData || document.getElementById('productCode').value.trim(), // Store detected barcode
                 barcode_image: barcodeImageData // Include barcode image if captured
             };
             
@@ -3225,27 +3354,61 @@
         let billItems = [];
         let billProducts = [];
         
-        // Load products for billing
+        // Load products for billing - Desktop Grid Style
         async function loadBillingProducts() {
             try {
                 console.log('📦 Loading products for billing...');
                 billProducts = await apiCall('/api/products');
                 
-                const select = document.getElementById('billProductSelect');
-                select.innerHTML = '<option value="">-- Select Product --</option>';
-                
-                billProducts.forEach(product => {
-                    const option = document.createElement('option');
-                    option.value = product.id;
-                    option.textContent = `${product.name} - ₹${product.price}`;
-                    option.dataset.price = product.price;
-                    option.dataset.name = product.name;
-                    select.appendChild(option);
-                });
+                renderBillingProductsGrid(billProducts);
                 
                 console.log(`✅ Loaded ${billProducts.length} products for billing`);
             } catch (error) {
                 console.error('❌ Error loading billing products:', error);
+                document.getElementById('billProductsGrid').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #666;">Error loading products</div>';
+            }
+        }
+        
+        // Render products in grid layout
+        function renderBillingProductsGrid(products) {
+            const grid = document.getElementById('billProductsGrid');
+            
+            if (!products || products.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No products available</div>';
+                return;
+            }
+            
+            grid.innerHTML = products.map(product => {
+                const isOutOfStock = product.stock <= 0;
+                const stockClass = isOutOfStock ? 'out-of-stock' : '';
+                const stockText = isOutOfStock ? 'Out of Stock' : `Stock: ${product.stock}`;
+                
+                return `
+                    <div class="bill-product-box ${stockClass}" 
+                         onclick="${isOutOfStock ? '' : `addProductToBill('${product.id}')`}"
+                         data-product-id="${product.id}">
+                        <div class="bill-product-name">${product.name}</div>
+                        <div class="bill-product-price">₹${product.price}</div>
+                        <div class="bill-product-stock">${stockText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Search products in billing
+        function setupBillingSearch() {
+            const searchInput = document.getElementById('billProductSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    const filteredProducts = billProducts.filter(product => 
+                        product.name.toLowerCase().includes(query) ||
+                        product.code.toLowerCase().includes(query) ||
+                        (product.category && product.category.toLowerCase().includes(query))
+                    );
+                    renderBillingProductsGrid(filteredProducts);
+                });
             }
         }
         
@@ -3358,6 +3521,88 @@
             document.getElementById('billTotal').textContent = total.toFixed(2);
         }
         
+        // Add product to bill from grid
+        function addProductToBill(productId) {
+            const product = billProducts.find(p => p.id === productId);
+            if (!product) {
+                showToast('❌ Product not found', 'error');
+                return;
+            }
+            
+            if (product.stock <= 0) {
+                showToast('❌ Product out of stock', 'error');
+                return;
+            }
+            
+            // Check if product already in bill
+            const existingItem = billItems.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.quantity += 1;
+                existingItem.total = existingItem.quantity * existingItem.price;
+            } else {
+                billItems.push({
+                    id: productId,
+                    name: product.name,
+                    quantity: 1,
+                    price: product.price,
+                    total: product.price
+                });
+            }
+            
+            renderBillItems();
+            calculateBillTotal();
+            showToast(`✅ ${product.name} added to bill`, 'success');
+        }
+        
+        // Render bill items
+        function renderBillItems() {
+            const container = document.getElementById('billItemsList');
+            
+            if (billItems.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">🛒</div>
+                        <p>Scan or click products to add</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = billItems.map((item, index) => `
+                <div class="bill-item">
+                    <div class="bill-item-info">
+                        <div class="bill-item-name">${item.name}</div>
+                        <div class="bill-item-details">₹${item.price} × ${item.quantity}</div>
+                    </div>
+                    <div class="bill-item-total">₹${item.total.toFixed(2)}</div>
+                    <button class="bill-item-remove" onclick="removeBillItem(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        // Remove item from bill
+        function removeBillItem(index) {
+            billItems.splice(index, 1);
+            renderBillItems();
+            calculateBillTotal();
+            showToast('Item removed from bill', 'info');
+        }
+        
+        // Calculate bill total
+        function calculateBillTotal() {
+            const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
+            const gst = subtotal * 0.18;
+            const total = subtotal + gst;
+            
+            document.getElementById('billSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('billGST').textContent = gst.toFixed(2);
+            document.getElementById('billTotal').textContent = total.toFixed(2);
+            
+            // Enable/disable complete bill button
+            const completeBtn = document.getElementById('completeBillBtn');
+            completeBtn.disabled = billItems.length === 0;
+        }
+        
         // Clear bill
         function clearBill() {
             if (billItems.length === 0) {
@@ -3369,6 +3614,217 @@
                 renderBillItems();
                 calculateBillTotal();
                 console.log('🧹 Bill cleared');
+            }
+        }
+        
+        // Barcode Scanner for Billing
+        let billBarcodeStream = null;
+        
+        // Open barcode scanner for billing
+        async function openBillBarcodeScanner() {
+            const section = document.getElementById('billBarcodeSection');
+            const camera = document.getElementById('billBarcodeCamera');
+            section.style.display = 'block';
+            
+            try {
+                camera.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: #e8f5e9; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">📷</div>
+                        <p style="color: #2e7d32; margin-bottom: 5px; font-weight: 600;">Requesting Camera Access...</p>
+                        <p style="font-size: 12px; color: #2e7d32;">Point camera at product barcode</p>
+                    </div>
+                `;
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                
+                camera.innerHTML = `
+                    <video id="billBarcodeVideo" autoplay playsinline style="width: 100%; border-radius: 8px; background: #000;"></video>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button onclick="captureBillBarcode()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-right: 10px;">📸 Capture</button>
+                        <button onclick="closeBillBarcodeScanner()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px;">✕ Cancel</button>
+                    </div>
+                `;
+                
+                const video = document.getElementById('billBarcodeVideo');
+                billBarcodeStream = stream;
+                video.srcObject = stream;
+                
+                // Start real-time barcode detection for billing
+                video.addEventListener('loadedmetadata', () => {
+                    startBillBarcodeDetection();
+                });
+                
+                console.log('✅ Billing barcode scanner opened');
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                camera.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px;">
+                        <div style="font-size: 36px; margin-bottom: 10px;">⚠️</div>
+                        <p style="color: #856404;">Camera access denied or not available</p>
+                        <button onclick="closeBillBarcodeScanner()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; margin-top: 10px;">Close</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // Start barcode detection for billing
+        function startBillBarcodeDetection() {
+            if (typeof Quagga !== 'undefined') {
+                const video = document.getElementById('billBarcodeVideo');
+                if (!video) return;
+                
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: video,
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: "environment"
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "upc_reader",
+                            "upc_e_reader"
+                        ]
+                    }
+                }, function(err) {
+                    if (err) {
+                        console.log('Billing barcode detection error:', err);
+                        return;
+                    }
+                    console.log("✅ Billing barcode detection started");
+                    Quagga.start();
+                });
+                
+                // Listen for barcode detection
+                Quagga.onDetected(function(data) {
+                    const barcode = data.codeResult.code;
+                    console.log('🎯 Billing barcode detected:', barcode);
+                    
+                    // Search product by barcode and add to bill
+                    searchAndAddProductByBarcode(barcode);
+                });
+            }
+        }
+        
+        // Search product by barcode and add to bill
+        async function searchAndAddProductByBarcode(barcode) {
+            try {
+                showToast('🔍 Searching product...', 'info');
+                
+                const response = await fetch(`/api/products/search/barcode/${barcode}`);
+                const result = await response.json();
+                
+                if (result.success && result.product) {
+                    const product = result.product;
+                    
+                    // Close scanner
+                    closeBillBarcodeScanner();
+                    
+                    // Add product to bill
+                    addProductToBill(product.id);
+                    
+                    showToast(`✅ ${product.name} added to bill!`, 'success');
+                } else {
+                    showToast(`❌ Product not found for barcode: ${barcode}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error searching product by barcode:', error);
+                showToast('❌ Error searching product', 'error');
+            }
+        }
+        
+        // Close billing barcode scanner
+        function closeBillBarcodeScanner() {
+            const section = document.getElementById('billBarcodeSection');
+            section.style.display = 'none';
+            
+            // Stop Quagga
+            if (typeof Quagga !== 'undefined') {
+                Quagga.stop();
+            }
+            
+            // Stop camera stream
+            if (billBarcodeStream) {
+                billBarcodeStream.getTracks().forEach(track => track.stop());
+                billBarcodeStream = null;
+            }
+        }
+        
+        // Complete bill
+        async function completeBill() {
+            if (billItems.length === 0) {
+                showToast('❌ Please add products to bill', 'error');
+                return;
+            }
+            
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
+            const gst = subtotal * 0.18;
+            const total = subtotal + gst;
+            
+            const billData = {
+                business_type: 'retail',
+                items: billItems.map(item => ({
+                    product_id: item.id,
+                    product_name: item.name,
+                    quantity: item.quantity,
+                    unit_price: item.price,
+                    total_price: item.total
+                })),
+                subtotal: subtotal,
+                tax_amount: gst,
+                total_amount: total,
+                payment_method: paymentMethod
+            };
+            
+            try {
+                const btn = document.getElementById('completeBillBtn');
+                btn.textContent = '⏳ Processing...';
+                btn.disabled = true;
+                
+                const response = await fetch('/api/bills', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(billData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showToast('✅ Bill completed successfully!', 'success');
+                    
+                    // Clear bill
+                    billItems = [];
+                    renderBillItems();
+                    calculateBillTotal();
+                    
+                    // Show success message
+                    alert(`🎉 Bill Completed!\n\nTotal: ₹${total.toFixed(2)}\nPayment: ${paymentMethod.toUpperCase()}\n\nThank you!`);
+                } else {
+                    showToast('❌ Error completing bill: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error completing bill:', error);
+                showToast('❌ Network error. Please try again.', 'error');
+            } finally {
+                const btn = document.getElementById('completeBillBtn');
+                btn.textContent = '💰 Complete Bill';
+                btn.disabled = billItems.length === 0;
             }
         }
         

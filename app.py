@@ -107,6 +107,8 @@ def init_db():
             min_stock INTEGER DEFAULT 0,
             unit TEXT DEFAULT 'piece',
             business_type TEXT DEFAULT 'both',
+            barcode_data TEXT,
+            barcode_image TEXT,
             is_active BOOLEAN DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -301,6 +303,17 @@ def init_db():
         cursor.execute('ALTER TABLE client_users ADD COLUMN password_plain TEXT')
     except sqlite3.OperationalError:
         # Column already exists
+        pass
+    
+    # Add barcode fields to products table if they don't exist
+    try:
+        cursor.execute('ALTER TABLE products ADD COLUMN barcode_data TEXT')
+    except sqlite3.OperationalError:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE products ADD COLUMN barcode_image TEXT')
+    except sqlite3.OperationalError:
         pass
     
     # CMS Tables for Content Management
@@ -1272,6 +1285,38 @@ def get_products():
     conn.close()
     return jsonify([dict(row) for row in products])
 
+@app.route('/api/products/search/barcode/<barcode>', methods=['GET'])
+def search_product_by_barcode(barcode):
+    """Search product by barcode data"""
+    try:
+        conn = get_db_connection()
+        
+        # Search by barcode_data or code field
+        product = conn.execute('''
+            SELECT * FROM products 
+            WHERE (barcode_data = ? OR code = ?) AND is_active = 1
+            LIMIT 1
+        ''', (barcode, barcode)).fetchone()
+        
+        conn.close()
+        
+        if product:
+            return jsonify({
+                "success": True,
+                "product": dict(product)
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Product not found for barcode: " + barcode
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 @app.route('/api/products', methods=['POST'])
 @require_auth
 def add_product():
@@ -1293,10 +1338,10 @@ def add_product():
         if existing:
             product_code = f"{product_code}_{datetime.now().strftime('%H%M%S')}"
         
-        # Insert product with error handling
+        # Insert product with barcode data
         conn.execute('''
-            INSERT INTO products (id, code, name, category, price, cost, stock, min_stock, unit, business_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO products (id, code, name, category, price, cost, stock, min_stock, unit, business_type, barcode_data, barcode_image)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             product_id, 
             product_code, 
@@ -1307,7 +1352,9 @@ def add_product():
             int(data.get('stock', 0)),
             int(data.get('min_stock', 0)), 
             data.get('unit', 'piece'), 
-            data.get('business_type', 'both')
+            data.get('business_type', 'both'),
+            data.get('barcode_data'),  # Store scanned barcode value
+            data.get('barcode_image')  # Store barcode image
         ))
         conn.commit()
         conn.close()
