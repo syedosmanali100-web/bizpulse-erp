@@ -487,7 +487,21 @@
                 return;
             }
             
-            tbody.innerHTML = sales.map(sale => `
+            // Filter out sales with None/null values for better display
+            const validSales = sales.filter(sale => 
+                sale.total_amount !== null && 
+                sale.total_amount !== undefined && 
+                sale.total_amount !== 'None' &&
+                sale.product_name !== null &&
+                sale.product_name !== 'None'
+            );
+            
+            if (validSales.length === 0) {
+                showEmptyState('No valid sales data found for the selected filters');
+                return;
+            }
+            
+            tbody.innerHTML = validSales.map(sale => `
                 <tr>
                     <td><strong>#${sale.bill_number || sale.id || 'N/A'}</strong></td>
                     <td>${formatDate(sale.date || sale.created_at)}</td>
@@ -638,12 +652,11 @@
         }
         
         function formatNumber(num) {
-            return new Intl.NumberFormat('en-IN').format(num);
-        }
-        
-        function filterSales() {
-            // Implement filtering logic
-            loadSales();
+            if (!num) return '0.00';
+            return parseFloat(num).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
         
         function resetFilters() {
