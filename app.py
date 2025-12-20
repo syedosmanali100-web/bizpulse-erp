@@ -1942,45 +1942,53 @@ def get_quick_access_modules():
 # Sales Module APIs
 @app.route('/api/sales/summary', methods=['GET'])
 def get_sales_summary():
-    """Get sales summary for today, week, month with IST timezone support"""
+    """Get sales summary for today, week, month with IST timezone support and backward compatibility"""
     from datetime import datetime, timedelta
-    import pytz
     
-    # Get IST timezone
-    ist = pytz.timezone('Asia/Kolkata')
-    now_ist = datetime.now(ist)
-    today_ist = now_ist.strftime('%Y-%m-%d')
+    # Use local system time (should be IST in India)
+    now = datetime.now()
+    today = now.strftime('%Y-%m-%d')
     
-    # Calculate date ranges in IST
-    yesterday_ist = (now_ist - timedelta(days=1)).strftime('%Y-%m-%d')
-    week_start_ist = (now_ist - timedelta(days=now_ist.weekday())).strftime('%Y-%m-%d')
-    month_start_ist = now_ist.replace(day=1).strftime('%Y-%m-%d')
+    # Calculate date ranges
+    yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+    week_start = (now - timedelta(days=now.weekday())).strftime('%Y-%m-%d')
+    month_start = now.replace(day=1).strftime('%Y-%m-%d')
     
     conn = get_db_connection()
     
-    # Today's sales (IST)
+    # Today's sales
     today_sales = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
-        FROM bills WHERE DATE(created_at) = ?
-    ''', (today_ist,)).fetchone()
+        FROM bills 
+        WHERE DATE(created_at) = ?
+    ''', (today,)).fetchone()
     
-    # Yesterday's sales (IST)
+    # Yesterday's sales
     yesterday_sales = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
-        FROM bills WHERE DATE(created_at) = ?
-    ''', (yesterday_ist,)).fetchone()
+        FROM bills 
+        WHERE DATE(created_at) = ?
+    ''', (yesterday,)).fetchone()
     
-    # This week's sales (IST)
+    # This week's sales
     week_sales = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
-        FROM bills WHERE DATE(created_at) >= ?
-    ''', (week_start_ist,)).fetchone()
+        FROM bills 
+        WHERE DATE(created_at) >= ?
+    ''', (week_start,)).fetchone()
     
-    # This month's sales (IST)
+    # This month's sales
     month_sales = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
-        FROM bills WHERE DATE(created_at) >= ?
-    ''', (month_start_ist,)).fetchone()
+        FROM bills 
+        WHERE DATE(created_at) >= ?
+    ''', (month_start,)).fetchone()
+    
+    # All time sales
+    all_time_sales = conn.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total
+        FROM bills
+    ''').fetchone()
     
     # Top products today
     top_products = conn.execute('''
@@ -1995,15 +2003,20 @@ def get_sales_summary():
         GROUP BY p.id, p.name
         ORDER BY quantity DESC
         LIMIT 5
-    ''', (today_ist,)).fetchall()
+    ''', (today,)).fetchall()
     
-    # Recent transactions
+    # Recent transactions (all data)
     recent_transactions = conn.execute('''
         SELECT b.bill_number, b.total_amount, b.created_at, c.name as customer_name
         FROM bills b
         LEFT JOIN customers c ON b.customer_id = c.id
         ORDER BY b.created_at DESC
         LIMIT 10
+    ''').fetchall()
+    
+    # Get sample of existing bills to check timezone format
+    sample_bills = conn.execute('''
+        SELECT created_at, bill_number, DATE(created_at) as bill_date FROM bills ORDER BY created_at DESC LIMIT 10
     ''').fetchall()
     
     conn.close()
@@ -2013,17 +2026,18 @@ def get_sales_summary():
         "yesterday": dict(yesterday_sales) if yesterday_sales else {"total": 0, "count": 0},
         "week": dict(week_sales) if week_sales else {"total": 0, "count": 0},
         "month": dict(month_sales) if month_sales else {"total": 0, "count": 0},
+        "all_time": dict(all_time_sales) if all_time_sales else {"total": 0, "count": 0},
         "top_products": [dict(row) for row in top_products],
         "recent_transactions": [dict(row) for row in recent_transactions],
-        "timezone": "Asia/Kolkata",
-        "current_date_ist": today_ist,
+        "timezone": "Local Time (IST)",
+        "current_date": today,
         "debug_info": {
-            "server_time_utc": datetime.utcnow().isoformat(),
-            "server_time_ist": now_ist.isoformat(),
-            "today_ist": today_ist,
-            "yesterday_ist": yesterday_ist,
-            "week_start_ist": week_start_ist,
-            "month_start_ist": month_start_ist
+            "server_time": now.isoformat(),
+            "today": today,
+            "yesterday": yesterday,
+            "week_start": week_start,
+            "month_start": month_start,
+            "sample_bills": [dict(row) for row in sample_bills]
         }
     })
 
@@ -3056,16 +3070,14 @@ def create_bill():
         data = request.json
         print("📥 Received bill data:", data)
         
-        # Use IST timezone for bill number generation
+        # Use local system time (IST) for bill number generation
         from datetime import datetime
-        import pytz
         
-        ist = pytz.timezone('Asia/Kolkata')
-        now_ist = datetime.now(ist)
+        now = datetime.now()
         
         bill_id = generate_id()
-        bill_number = f"BILL-{now_ist.strftime('%Y%m%d')}-{bill_id[:8]}"
-        print(f"📝 Generated bill: {bill_number} at IST: {now_ist}")
+        bill_number = f"BILL-{now.strftime('%Y%m%d')}-{bill_id[:8]}"
+        print(f"📝 Generated bill: {bill_number} at: {now}")
         
         conn = get_db_connection()
     except Exception as e:
@@ -3073,22 +3085,20 @@ def create_bill():
         return jsonify({"error": str(e)}), 500
     
     try:
-        # Create bill with IST timestamp
+        # Create bill with local timestamp (IST)
         from datetime import datetime
-        import pytz
         
-        ist = pytz.timezone('Asia/Kolkata')
-        now_ist = datetime.now(ist)
-        ist_timestamp = now_ist.strftime('%Y-%m-%d %H:%M:%S')
+        now = datetime.now()
+        timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
         
-        print(f"📝 Creating bill at IST: {ist_timestamp}")
+        print(f"📝 Creating bill at: {timestamp}")
         
         conn.execute('''
             INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             bill_id, bill_number, data.get('customer_id'), data['business_type'],
-            data['subtotal'], data['tax_amount'], data['total_amount'], ist_timestamp
+            data['subtotal'], data['tax_amount'], data['total_amount'], timestamp
         ))
         
         # Get customer name if customer_id exists
@@ -3120,10 +3130,10 @@ def create_bill():
                 SELECT category FROM products WHERE id = ?
             ''', (item['product_id'],)).fetchone()
             
-            # Create sales entry for each item (AUTOMATIC SALES ENTRY) with IST timestamps
+            # Create sales entry for each item (AUTOMATIC SALES ENTRY) with local timestamps
             sale_id = generate_id()
-            sale_date = now_ist.strftime('%Y-%m-%d')
-            sale_time = now_ist.strftime('%H:%M:%S')
+            sale_date = now.strftime('%Y-%m-%d')
+            sale_time = now.strftime('%H:%M:%S')
             
             # Calculate item tax amount (proportional to item total)
             item_tax = (item['total_price'] / data['subtotal']) * data['tax_amount'] if data['subtotal'] > 0 else 0
@@ -3142,22 +3152,22 @@ def create_bill():
                 item['product_id'], item['product_name'], product['category'] if product else 'General',
                 item['quantity'], item['unit_price'], item['total_price'],
                 item_tax, item_discount, data.get('payment_method', 'cash'),
-                sale_date, sale_time, ist_timestamp
+                sale_date, sale_time, timestamp
             ))
         
-        # Add payment record with IST timestamp
+        # Add payment record with local timestamp
         if 'payment_method' in data:
             payment_id = generate_id()
             conn.execute('''
                 INSERT INTO payments (id, bill_id, method, amount, processed_at)
                 VALUES (?, ?, ?, ?, ?)
-            ''', (payment_id, bill_id, data['payment_method'], data['total_amount'], ist_timestamp))
+            ''', (payment_id, bill_id, data['payment_method'], data['total_amount'], timestamp))
         
         conn.commit()
         
-        # Get updated hourly stats for real-time update using IST
-        current_hour = now_ist.strftime('%H')
-        today_ist = now_ist.strftime('%Y-%m-%d')
+        # Get updated hourly stats for real-time update using local time
+        current_hour = now.strftime('%H')
+        today = now.strftime('%Y-%m-%d')
         
         hourly_stats = conn.execute('''
             SELECT 
@@ -3165,18 +3175,18 @@ def create_bill():
                 COALESCE(SUM(total_amount), 0) as sales
             FROM bills 
             WHERE DATE(created_at) = ? AND strftime('%H', created_at) = ?
-        ''', (today_ist, current_hour)).fetchone()
+        ''', (today, current_hour)).fetchone()
         
         conn.close()
         
-        print(f"✅ Bill created successfully: {bill_number} at IST: {ist_timestamp}")
+        print(f"✅ Bill created successfully: {bill_number} at: {timestamp}")
         print(f"✅ Sales entries created: {len(data['items'])}")
         
         return jsonify({
             "message": "Bill created successfully",
             "bill_id": bill_id,
             "bill_number": bill_number,
-            "created_at_ist": ist_timestamp,
+            "created_at": timestamp,
             "hourly_update": {
                 "hour": f"{current_hour}:00",
                 "transactions": hourly_stats['transactions'],
@@ -3617,11 +3627,9 @@ def sales_api():
     if request.method == 'GET':
         # GET: Return sales data with proper date filtering
         from datetime import datetime, timedelta
-        import pytz
         
-        # Get IST timezone
-        ist = pytz.timezone('Asia/Kolkata')
-        now_ist = datetime.now(ist)
+        # Get local time (IST)
+        now = datetime.now()
         
         # Get filter parameters
         date_filter = request.args.get('filter', 'today')  # today, yesterday, week, month, custom
@@ -3631,29 +3639,33 @@ def sales_api():
         
         conn = get_db_connection()
         
-        # Build date filter based on IST
+        # Build date filter based on local time
         if date_filter == 'today':
-            filter_date = now_ist.strftime('%Y-%m-%d')
+            filter_date = now.strftime('%Y-%m-%d')
             date_condition = "DATE(s.created_at) = ?"
             params = [filter_date]
         elif date_filter == 'yesterday':
-            filter_date = (now_ist - timedelta(days=1)).strftime('%Y-%m-%d')
+            filter_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
             date_condition = "DATE(s.created_at) = ?"
             params = [filter_date]
         elif date_filter == 'week':
-            week_start = (now_ist - timedelta(days=now_ist.weekday())).strftime('%Y-%m-%d')
+            week_start = (now - timedelta(days=now.weekday())).strftime('%Y-%m-%d')
             date_condition = "DATE(s.created_at) >= ?"
             params = [week_start]
         elif date_filter == 'month':
-            month_start = now_ist.replace(day=1).strftime('%Y-%m-%d')
+            month_start = now.replace(day=1).strftime('%Y-%m-%d')
             date_condition = "DATE(s.created_at) >= ?"
             params = [month_start]
+        elif date_filter == 'all':
+            # Show all data regardless of date
+            date_condition = "1=1"
+            params = []
         elif date_filter == 'custom' and from_date and to_date:
             date_condition = "DATE(s.created_at) BETWEEN ? AND ?"
             params = [from_date, to_date]
         else:
             # Default to today if invalid filter
-            filter_date = now_ist.strftime('%Y-%m-%d')
+            filter_date = now.strftime('%Y-%m-%d')
             date_condition = "DATE(s.created_at) = ?"
             params = [filter_date]
         
@@ -3705,7 +3717,7 @@ def sales_api():
                 "from": params[0] if len(params) >= 1 else None,
                 "to": params[1] if len(params) >= 2 else None
             },
-            "timezone": "Asia/Kolkata",
+            "timezone": "Local Time (IST)",
             "total_records": len(sales)
         })
     
@@ -3794,10 +3806,9 @@ def sales_api():
                     
                     # Create sales entry (CRITICAL: One bill item = one sales record)
                     sale_id = generate_id()
-                    ist = pytz.timezone('Asia/Kolkata')
-                    now_ist = datetime.now(ist)
-                    sale_date = now_ist.strftime('%Y-%m-%d')
-                    sale_time = now_ist.strftime('%H:%M:%S')
+                    now = datetime.now()
+                    sale_date = now.strftime('%Y-%m-%d')
+                    sale_time = now.strftime('%H:%M:%S')
                     
                     # Calculate proportional tax and discount for this item
                     subtotal = data.get('subtotal', data['total_amount'])
