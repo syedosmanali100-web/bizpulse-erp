@@ -3056,9 +3056,16 @@ def create_bill():
         data = request.json
         print("📥 Received bill data:", data)
         
+        # Use IST timezone for bill number generation
+        from datetime import datetime
+        import pytz
+        
+        ist = pytz.timezone('Asia/Kolkata')
+        now_ist = datetime.now(ist)
+        
         bill_id = generate_id()
-        bill_number = f"BILL-{datetime.now().strftime('%Y%m%d')}-{bill_id[:8]}"
-        print(f"📝 Generated bill: {bill_number}")
+        bill_number = f"BILL-{now_ist.strftime('%Y%m%d')}-{bill_id[:8]}"
+        print(f"📝 Generated bill: {bill_number} at IST: {now_ist}")
         
         conn = get_db_connection()
     except Exception as e:
@@ -3066,13 +3073,22 @@ def create_bill():
         return jsonify({"error": str(e)}), 500
     
     try:
-        # Create bill
+        # Create bill with IST timestamp
+        from datetime import datetime
+        import pytz
+        
+        ist = pytz.timezone('Asia/Kolkata')
+        now_ist = datetime.now(ist)
+        ist_timestamp = now_ist.strftime('%Y-%m-%d %H:%M:%S')
+        
+        print(f"📝 Creating bill at IST: {ist_timestamp}")
+        
         conn.execute('''
-            INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             bill_id, bill_number, data.get('customer_id'), data['business_type'],
-            data['subtotal'], data['tax_amount'], data['total_amount']
+            data['subtotal'], data['tax_amount'], data['total_amount'], ist_timestamp
         ))
         
         # Get customer name if customer_id exists
@@ -3104,10 +3120,10 @@ def create_bill():
                 SELECT category FROM products WHERE id = ?
             ''', (item['product_id'],)).fetchone()
             
-            # Create sales entry for each item (AUTOMATIC SALES ENTRY)
+            # Create sales entry for each item (AUTOMATIC SALES ENTRY) with IST timestamps
             sale_id = generate_id()
-            sale_date = datetime.now().strftime('%Y-%m-%d')
-            sale_time = datetime.now().strftime('%H:%M:%S')
+            sale_date = now_ist.strftime('%Y-%m-%d')
+            sale_time = now_ist.strftime('%H:%M:%S')
             
             # Calculate item tax amount (proportional to item total)
             item_tax = (item['total_price'] / data['subtotal']) * data['tax_amount'] if data['subtotal'] > 0 else 0
@@ -3118,30 +3134,30 @@ def create_bill():
                     id, bill_id, bill_number, customer_id, customer_name,
                     product_id, product_name, category, quantity, unit_price,
                     total_price, tax_amount, discount_amount, payment_method,
-                    sale_date, sale_time
+                    sale_date, sale_time, created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 sale_id, bill_id, bill_number, data.get('customer_id'), customer_name,
                 item['product_id'], item['product_name'], product['category'] if product else 'General',
                 item['quantity'], item['unit_price'], item['total_price'],
                 item_tax, item_discount, data.get('payment_method', 'cash'),
-                sale_date, sale_time
+                sale_date, sale_time, ist_timestamp
             ))
         
-        # Add payment record
+        # Add payment record with IST timestamp
         if 'payment_method' in data:
             payment_id = generate_id()
             conn.execute('''
-                INSERT INTO payments (id, bill_id, method, amount)
-                VALUES (?, ?, ?, ?)
-            ''', (payment_id, bill_id, data['payment_method'], data['total_amount']))
+                INSERT INTO payments (id, bill_id, method, amount, processed_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (payment_id, bill_id, data['payment_method'], data['total_amount'], ist_timestamp))
         
         conn.commit()
         
-        # Get updated hourly stats for real-time update
-        current_hour = datetime.now().strftime('%H')
-        today = datetime.now().strftime('%Y-%m-%d')
+        # Get updated hourly stats for real-time update using IST
+        current_hour = now_ist.strftime('%H')
+        today_ist = now_ist.strftime('%Y-%m-%d')
         
         hourly_stats = conn.execute('''
             SELECT 
@@ -3149,17 +3165,18 @@ def create_bill():
                 COALESCE(SUM(total_amount), 0) as sales
             FROM bills 
             WHERE DATE(created_at) = ? AND strftime('%H', created_at) = ?
-        ''', (today, current_hour)).fetchone()
+        ''', (today_ist, current_hour)).fetchone()
         
         conn.close()
         
-        print(f">> Bill created successfully: {bill_number}")
-        print(f">> Sales entries created: {len(data['items'])}")
+        print(f"✅ Bill created successfully: {bill_number} at IST: {ist_timestamp}")
+        print(f"✅ Sales entries created: {len(data['items'])}")
         
         return jsonify({
             "message": "Bill created successfully",
             "bill_id": bill_id,
             "bill_number": bill_number,
+            "created_at_ist": ist_timestamp,
             "hourly_update": {
                 "hour": f"{current_hour}:00",
                 "transactions": hourly_stats['transactions'],
