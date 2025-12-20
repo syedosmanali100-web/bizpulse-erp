@@ -827,7 +827,7 @@ def api_version():
     return jsonify({
         "version": "1.0.0",
         "last_updated": datetime.now().isoformat(),
-        "features": ["billing", "products", "customers", "reports"]
+        "features": ["products", "customers", "reports"]
     })
 
 # Retail Management module routes
@@ -838,12 +838,6 @@ def retail_products_page():
 @app.route('/retail/customers')
 def retail_customers():
     return render_template('retail_customers.html')
-
-@app.route('/retail/billing')
-@require_auth
-def retail_billing():
-    """Simple Kirana Billing - Traditional Style"""
-    return render_template('retail_billing.html')
 
 @app.route('/retail/dashboard')
 @require_auth
@@ -1011,14 +1005,6 @@ def retail_sales():
 def retail_sales_old():
     return render_template('retail_sales_enhanced.html')
 
-@app.route('/retail/invoices')
-def retail_invoices():
-    return render_template('invoices_professional.html')
-
-@app.route('/retail/invoice/<invoice_id>')
-def retail_invoice_detail(invoice_id):
-    return render_template('retail_invoice_detail.html', invoice_id=invoice_id)
-
 @app.route('/retail/inventory')
 def retail_inventory():
     return render_template('inventory_professional.html')
@@ -1026,10 +1012,6 @@ def retail_inventory():
 @app.route('/retail/settings')
 def retail_settings():
     return render_template('settings_professional.html')
-
-@app.route('/invoice-demo')
-def invoice_demo():
-    return render_template('invoice_demo.html')
 
 @app.route('/test-navigation')
 def test_navigation():
@@ -1609,29 +1591,6 @@ def add_customer():
     
     return jsonify({"message": "Customer added successfully", "id": customer_id}), 201
 
-# Bills API (Enhanced version with hourly tracking is defined later)
-
-@app.route('/api/bills', methods=['GET'])
-def get_bills():
-    conn = get_db_connection()
-    bills = conn.execute('''
-        SELECT b.*, c.name as customer_name 
-        FROM bills b 
-        LEFT JOIN customers c ON b.customer_id = c.id 
-        ORDER BY b.created_at DESC
-    ''').fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in bills])
-
-@app.route('/api/bills/<bill_id>/items', methods=['GET'])
-def get_bill_items(bill_id):
-    conn = get_db_connection()
-    items = conn.execute('''
-        SELECT * FROM bill_items WHERE bill_id = ?
-    ''', (bill_id,)).fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in items])
-
 # Reports API
 @app.route('/api/reports/sales', methods=['GET'])
 def get_sales_report():
@@ -1738,14 +1697,6 @@ def get_erp_modules():
                 "icon": "📄",
                 "description": "Invoice Management",
                 "route": "invoices",
-                "category": "core"
-            },
-            {
-                "id": "billing",
-                "name": "Billing",
-                "icon": "🧾",
-                "description": "Quick Billing",
-                "route": "billing",
                 "category": "core"
             }
         ],
@@ -1903,14 +1854,6 @@ def get_erp_modules():
 def get_quick_access_modules():
     """Get frequently used modules for quick access"""
     quick_modules = [
-        {
-            "id": "billing",
-            "name": "Quick Bill",
-            "icon": "⚡",
-            "description": "Create new bill",
-            "route": "billing",
-            "action": "create"
-        },
         {
             "id": "sales",
             "name": "Today's Sales",
@@ -2153,182 +2096,6 @@ def refresh_sales_data():
             "success": False,
             "message": f"Error refreshing sales data: {str(e)}"
         }), 500
-
-# Invoices Module APIs - Enhanced with proper data flow
-@app.route('/api/invoices', methods=['GET', 'POST', 'DELETE'])
-def invoices_api():
-    """Invoices API - GET for listing, POST for creating, DELETE for removing"""
-    
-    if request.method == 'GET':
-        # GET: List invoices with filtering
-        status = request.args.get('status', 'all')
-        limit = int(request.args.get('limit', 50))
-        date_filter = request.args.get('filter', 'all')  # today, week, month, all
-        
-        from datetime import datetime, timedelta
-        import pytz
-        
-        # Get IST timezone
-        ist = pytz.timezone('Asia/Kolkata')
-        now_ist = datetime.now(ist)
-        
-        conn = get_db_connection()
-        
-        # Build query with date filtering
-        query = '''
-            SELECT b.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address
-            FROM bills b
-            LEFT JOIN customers c ON b.customer_id = c.id
-        '''
-        
-        params = []
-        conditions = []
-        
-        # Add status filter
-        if status != 'all':
-            conditions.append('b.status = ?')
-            params.append(status)
-        
-        # Add date filter
-        if date_filter == 'today':
-            filter_date = now_ist.strftime('%Y-%m-%d')
-            conditions.append('DATE(b.created_at) = ?')
-            params.append(filter_date)
-        elif date_filter == 'week':
-            week_start = (now_ist - timedelta(days=now_ist.weekday())).strftime('%Y-%m-%d')
-            conditions.append('DATE(b.created_at) >= ?')
-            params.append(week_start)
-        elif date_filter == 'month':
-            month_start = now_ist.replace(day=1).strftime('%Y-%m-%d')
-            conditions.append('DATE(b.created_at) >= ?')
-            params.append(month_start)
-        
-        # Add conditions to query
-        if conditions:
-            query += ' WHERE ' + ' AND '.join(conditions)
-        
-        query += ' ORDER BY b.created_at DESC LIMIT ?'
-        params.append(limit)
-        
-        invoices = conn.execute(query, params).fetchall()
-        
-        # Get summary statistics
-        summary_query = '''
-            SELECT 
-                COUNT(*) as total_invoices,
-                COALESCE(SUM(total_amount), 0) as total_value,
-                COALESCE(AVG(total_amount), 0) as avg_value,
-                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
-                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
-            FROM bills b
-        '''
-        
-        if conditions:
-            summary_query += ' WHERE ' + ' AND '.join(conditions[:-1] if date_filter != 'all' else conditions)
-            summary_params = params[:-1] if date_filter != 'all' else params[:-1]
-        else:
-            summary_params = []
-        
-        summary = conn.execute(summary_query, summary_params).fetchone()
-        conn.close()
-        
-        return jsonify({
-            "success": True,
-            "invoices": [dict(row) for row in invoices],
-            "summary": dict(summary) if summary else {},
-            "filter_applied": {
-                "status": status,
-                "date_filter": date_filter
-            },
-            "total_records": len(invoices)
-        })
-    
-    elif request.method == 'POST':
-        # POST: Create invoice (same as bill creation but with invoice focus)
-        try:
-            data = request.json
-            print("📥 [INVOICE API] Creating invoice:", data)
-            
-            # Validate required fields
-            if not data.get('items') or len(data['items']) == 0:
-                return jsonify({"success": False, "error": "No items in invoice"}), 400
-            
-            # Use the same bill creation logic but return invoice-focused response
-            result = sales_api()  # Call the POST method of sales API
-            
-            if result[1] == 201:  # Success
-                response_data = result[0].get_json()
-                return jsonify({
-                    "success": True,
-                    "message": "Invoice created successfully",
-                    "invoice_id": response_data["bill_id"],
-                    "invoice_number": response_data["bill_number"],
-                    "total_amount": response_data["total_amount"],
-                    "items_count": response_data["items_count"]
-                }), 201
-            else:
-                return result
-                
-        except Exception as e:
-            print(f"❌ [INVOICE API] Error creating invoice: {str(e)}")
-            return jsonify({"success": False, "error": str(e)}), 500
-    
-    elif request.method == 'DELETE':
-        # DELETE: Remove invoice and revert all changes
-        try:
-            invoice_id = request.args.get('id')
-            if not invoice_id:
-                return jsonify({"success": False, "error": "Invoice ID required"}), 400
-            
-            conn = get_db_connection()
-            
-            # Check if invoice exists
-            invoice = conn.execute('SELECT * FROM bills WHERE id = ?', (invoice_id,)).fetchone()
-            if not invoice:
-                conn.close()
-                return jsonify({"success": False, "error": "Invoice not found"}), 404
-            
-            # Start transaction
-            conn.execute('BEGIN TRANSACTION')
-            
-            try:
-                # Get all bill items to revert stock
-                bill_items = conn.execute('''
-                    SELECT product_id, quantity FROM bill_items WHERE bill_id = ?
-                ''', (invoice_id,)).fetchall()
-                
-                # Revert stock for each item
-                for item in bill_items:
-                    conn.execute('''
-                        UPDATE products SET stock = stock + ? WHERE id = ?
-                    ''', (item['quantity'], item['product_id']))
-                
-                # Delete related records in correct order
-                conn.execute('DELETE FROM payments WHERE bill_id = ?', (invoice_id,))
-                conn.execute('DELETE FROM sales WHERE bill_id = ?', (invoice_id,))
-                conn.execute('DELETE FROM bill_items WHERE bill_id = ?', (invoice_id,))
-                conn.execute('DELETE FROM bills WHERE id = ?', (invoice_id,))
-                
-                conn.commit()
-                conn.close()
-                
-                print(f"✅ [INVOICE API] Invoice deleted and stock reverted: {invoice['bill_number']}")
-                
-                return jsonify({
-                    "success": True,
-                    "message": f"Invoice {invoice['bill_number']} deleted successfully",
-                    "reverted_items": len(bill_items)
-                })
-                
-            except Exception as e:
-                conn.rollback()
-                conn.close()
-                print(f"❌ [INVOICE API] Delete transaction failed: {str(e)}")
-                return jsonify({"success": False, "error": f"Delete failed: {str(e)}"}), 500
-                
-        except Exception as e:
-            print(f"❌ [INVOICE API] Error deleting invoice: {str(e)}")
-            return jsonify({"success": False, "error": str(e)}), 500
 
 # Inventory Management APIs - Complete integration with Products, Sales, and Bills
 @app.route('/api/inventory', methods=['GET'])
@@ -3062,200 +2829,7 @@ def get_live_sales_stats():
         "recent_transactions": [dict(row) for row in recent_transactions]
     })
 
-# Enhanced Bills API with hourly tracking
-@app.route('/api/bills', methods=['POST'])
-@require_auth
-def create_bill():
-    """Create a new bill with proper transaction handling and error management"""
-    
-    try:
-        data = request.json
-        print("📥 Received bill data:", data)
-        
-        # Basic validation - just check items exist
-        if not data.get('items') or len(data['items']) == 0:
-            return jsonify({"error": "No items in bill"}), 400
-        
-        # Set default values if missing
-        if not data.get('total_amount'):
-            data['total_amount'] = 100.0  # Default value to avoid error
-        if not data.get('subtotal'):
-            data['subtotal'] = data['total_amount']
-        if not data.get('tax_amount'):
-            data['tax_amount'] = 0
-        if not data.get('business_type'):
-            data['business_type'] = 'retail'
-        
-        print(f"📝 Using total_amount: {data['total_amount']}")
-        
-        # Use current time for all operations - NO LOCAL IMPORT
-        current_time = datetime.now()
-        
-        bill_id = generate_id()
-        bill_number = f"BILL-{current_time.strftime('%Y%m%d')}-{bill_id[:8]}"
-        print(f"📝 Generated bill: {bill_number} at: {current_time}")
-        
-        conn = get_db_connection()
-        
-    except Exception as e:
-        print(f"❌ Error in bill creation setup: {str(e)}")
-        return jsonify({"error": "Failed to initialize bill creation"}), 500
-    
-    
-    try:
-        # Start database transaction
-        conn.execute('BEGIN TRANSACTION')
-        
-        # Create bill with timestamp string
-        bill_timestamp = current_time.strftime('%Y-%m-%d %H:%M:%S')
-        
-        print(f"📝 Creating bill at: {bill_timestamp}")
-        
-        conn.execute('''
-            INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            bill_id, bill_number, data.get('customer_id'), data['business_type'],
-            data['subtotal'], data['tax_amount'], data['total_amount'], bill_timestamp
-        ))
-        
-        # Get customer name if customer_id exists
-        customer_name = None
-        if data.get('customer_id'):
-            customer = conn.execute('''
-                SELECT name FROM customers WHERE id = ?
-            ''', (data.get('customer_id'),)).fetchone()
-            customer_name = customer['name'] if customer else None
-        
-        # Process each bill item
-        for item in data['items']:
-            # Fix product_id - try multiple field names
-            product_id = item.get('product_id') or item.get('id') or item.get('productId') or 'default-product'
-            product_name = item.get('product_name') or item.get('name') or 'Unknown Product'
-            quantity = item.get('quantity', 1)
-            unit_price = item.get('unit_price') or item.get('price', 0)
-            total_price = item.get('total_price') or (unit_price * quantity)
-            
-            # Insert bill item
-            item_id = generate_id()
-            conn.execute('''
-                INSERT INTO bill_items (id, bill_id, product_id, product_name, quantity, unit_price, total_price)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                item_id, bill_id, product_id, product_name,
-                quantity, unit_price, total_price
-            ))
-            
-            # Update product stock - skip if product_id is default
-            if product_id != 'default-product':
-                # Check if product exists and has sufficient stock
-                product_check = conn.execute('''
-                    SELECT stock, name FROM products WHERE id = ?
-                ''', (product_id,)).fetchone()
-                
-                if product_check:
-                    if product_check['stock'] >= quantity:
-                        conn.execute('''
-                            UPDATE products SET stock = stock - ? WHERE id = ?
-                        ''', (quantity, product_id))
-                    else:
-                        # Rollback and return error for insufficient stock
-                        conn.rollback()
-                        conn.close()
-                        return jsonify({
-                            "error": f"Insufficient stock for {product_check['name']}. Available: {product_check['stock']}, Required: {quantity}"
-                        }), 400
-            
-            # Get product details for sales entry
-            product = None
-            if product_id != 'default-product':
-                product = conn.execute('''
-                    SELECT category FROM products WHERE id = ?
-                ''', (product_id,)).fetchone()
-            
-            # Create sales entry with proper timestamps
-            sale_id = generate_id()
-            sale_date_str = current_time.strftime('%Y-%m-%d')
-            sale_time_str = current_time.strftime('%H:%M:%S')
-            
-            # Calculate item tax amount
-            item_tax = (total_price / data['subtotal']) * data['tax_amount'] if data['subtotal'] > 0 else 0
-            item_discount = (total_price / data['subtotal']) * data.get('discount_amount', 0) if data['subtotal'] > 0 else 0
-            
-            conn.execute('''
-                INSERT INTO sales (
-                    id, bill_id, bill_number, customer_id, customer_name,
-                    product_id, product_name, category, quantity, unit_price,
-                    total_price, tax_amount, discount_amount, payment_method,
-                    sale_date, sale_time, created_at
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                sale_id, bill_id, bill_number, data.get('customer_id'), customer_name,
-                product_id, product_name, product['category'] if product else 'General',
-                quantity, unit_price, total_price,
-                item_tax, item_discount, data.get('payment_method', 'cash'),
-                sale_date_str, sale_time_str, bill_timestamp
-            ))
-        
-        # Add payment record
-        if 'payment_method' in data:
-            payment_id = generate_id()
-            conn.execute('''
-                INSERT INTO payments (id, bill_id, method, amount, processed_at)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (payment_id, bill_id, data['payment_method'], data['total_amount'], bill_timestamp))
-        
-        # Commit transaction
-        conn.commit()
-        
-        # Get updated hourly stats
-        current_hour_str = current_time.strftime('%H')
-        today_date_str = current_time.strftime('%Y-%m-%d')
-        
-        hourly_stats = conn.execute('''
-            SELECT 
-                COUNT(*) as transactions,
-                COALESCE(SUM(total_amount), 0) as sales
-            FROM bills 
-            WHERE DATE(created_at) = ? AND strftime('%H', created_at) = ?
-        ''', (today_date_str, current_hour_str)).fetchone()
-        
-        conn.close()
-        
-        print(f"✅ Bill created successfully: {bill_number} at: {bill_timestamp}")
-        print(f"✅ Sales entries created: {len(data['items'])}")
-        
-        return jsonify({
-            "message": "Bill created successfully",
-            "bill_id": bill_id,
-            "bill_number": bill_number,
-            "created_at": bill_timestamp,
-            "hourly_update": {
-                "hour": f"{current_hour_str}:00",
-                "transactions": hourly_stats['transactions'],
-                "sales": float(hourly_stats['sales']),
-                "avg_order_value": float(hourly_stats['sales'] / hourly_stats['transactions']) if hourly_stats['transactions'] > 0 else 0
-            }
-        }), 201
-        
-    except Exception as e:
-        print(f"❌ Error creating bill: {str(e)}")
-        import traceback
-        print(f"❌ Traceback: {traceback.format_exc()}")
-        
-        # Rollback transaction on error
-        try:
-            conn.rollback()
-            conn.close()
-        except:
-            pass
-            
-        # Return clean error message
-        return jsonify({
-            "error": "Failed to create bill. Please try again.",
-            "details": "Internal server error occurred during bill creation"
-        }), 500
+
 
 # Inventory Module APIs
 @app.route('/api/inventory/summary', methods=['GET'])
@@ -3476,82 +3050,7 @@ def get_live_sales_stats_duplicate():
         "recent_transactions": [dict(row) for row in recent_transactions]
     })
 
-# Enhanced Bills API with hourly tracking - DUPLICATE REMOVED
-# @app.route('/api/bills', methods=['POST'])
-# @require_auth
-def create_bill_duplicate():
-    data = request.json
-    bill_id = generate_id()
-    bill_number = f"BILL-{datetime.now().strftime('%Y%m%d')}-{bill_id[:8]}"
-    
-    conn = get_db_connection()
-    
-    try:
-        # Create bill
-        conn.execute('''
-            INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            bill_id, bill_number, data.get('customer_id'), data['business_type'],
-            data['subtotal'], data['tax_amount'], data['total_amount']
-        ))
-        
-        # Add bill items
-        for item in data['items']:
-            item_id = generate_id()
-            conn.execute('''
-                INSERT INTO bill_items (id, bill_id, product_id, product_name, quantity, unit_price, total_price)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                item_id, bill_id, item['product_id'], item['product_name'],
-                item['quantity'], item['unit_price'], item['total_price']
-            ))
-            
-            # Update product stock
-            conn.execute('''
-                UPDATE products SET stock = stock - ? WHERE id = ?
-            ''', (item['quantity'], item['product_id']))
-        
-        # Add payment record
-        if 'payment_method' in data:
-            payment_id = generate_id()
-            conn.execute('''
-                INSERT INTO payments (id, bill_id, method, amount)
-                VALUES (?, ?, ?, ?)
-            ''', (payment_id, bill_id, data['payment_method'], data['total_amount']))
-        
-        conn.commit()
-        
-        # Get updated hourly stats for real-time update
-        current_hour = datetime.now().strftime('%H')
-        today = datetime.now().strftime('%Y-%m-%d')
-        
-        hourly_stats = conn.execute('''
-            SELECT 
-                COUNT(*) as transactions,
-                COALESCE(SUM(total_amount), 0) as sales
-            FROM bills 
-            WHERE DATE(created_at) = ? AND strftime('%H', created_at) = ?
-        ''', (today, current_hour)).fetchone()
-        
-        conn.close()
-        
-        return jsonify({
-            "message": "Bill created successfully",
-            "bill_id": bill_id,
-            "bill_number": bill_number,
-            "hourly_update": {
-                "hour": f"{current_hour}:00",
-                "transactions": hourly_stats['transactions'],
-                "sales": float(hourly_stats['sales']),
-                "avg_order_value": float(hourly_stats['sales'] / hourly_stats['transactions']) if hourly_stats['transactions'] > 0 else 0
-            }
-        }), 201
-        
-    except Exception as e:
-        conn.rollback()
-        conn.close()
-        return jsonify({"error": str(e)}), 500
+
 
 # Inventory Module APIs
 # @app.route('/api/inventory/summary', methods=['GET'])
@@ -3920,18 +3419,6 @@ def sales_api():
         except Exception as e:
             print(f"❌ [SALES API] Error creating bill: {str(e)}")
             return jsonify({"success": False, "error": "Failed to process bill creation"}), 500
-                    "items_count": len(data['items'])
-                }), 201
-                
-            except Exception as e:
-                conn.rollback()
-                conn.close()
-                print(f"❌ [SALES API] Transaction failed: {str(e)}")
-                return jsonify({"success": False, "error": f"Transaction failed: {str(e)}"}), 500
-                
-        except Exception as e:
-            print(f"❌ [SALES API] Error creating bill: {str(e)}")
-            return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/sales/all', methods=['GET'])
 def get_all_sales():
@@ -6717,7 +6204,7 @@ def get_user_permissions(user_id):
         # Parse permissions (default to all enabled if none set)
         permissions = {
             'enabled': True,
-            'modules': ['sales', 'products', 'inventory', 'customers', 'reports', 'billing', 'invoices', 'settings']
+            'modules': ['sales', 'products', 'inventory', 'customers', 'reports', 'invoices', 'settings']
         }
         
         if user['permissions']:
@@ -8166,7 +7653,166 @@ def print_startup_info():
     print()
 
 # ============================================================================
+# BILLING MODULE BACKEND RESTORED - WORKING VERSION
+# ============================================================================
+
+@app.route('/api/bills', methods=['GET'])
+def get_bills():
+    """Get all bills with customer information"""
+    conn = get_db_connection()
+    bills = conn.execute('''
+        SELECT b.*, c.name as customer_name 
+        FROM bills b 
+        LEFT JOIN customers c ON b.customer_id = c.id 
+        ORDER BY b.created_at DESC
+    ''').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in bills])
+
+@app.route('/api/bills/<bill_id>/items', methods=['GET'])
+def get_bill_items(bill_id):
+    """Get items for a specific bill"""
+    conn = get_db_connection()
+    items = conn.execute('''
+        SELECT * FROM bill_items WHERE bill_id = ?
+    ''', (bill_id,)).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in items])
+
+@app.route('/api/bills', methods=['POST'])
+@require_auth
+def create_bill():
+    """Enhanced Bills API with hourly tracking - WORKING VERSION"""
+    try:
+        data = request.json
+        print("📥 Received bill data:", data)
+        
+        bill_id = generate_id()
+        bill_number = f"BILL-{datetime.now().strftime('%Y%m%d')}-{bill_id[:8]}"
+        print(f"📝 Generated bill: {bill_number}")
+        
+        conn = get_db_connection()
+    except Exception as e:
+        print(f"❌ Error in bill creation setup: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+    try:
+        # Create bill
+        conn.execute('''
+            INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, total_amount)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            bill_id, bill_number, data.get('customer_id'), data['business_type'],
+            data['subtotal'], data['tax_amount'], data['total_amount']
+        ))
+        
+        # Get customer name if customer_id exists
+        customer_name = None
+        if data.get('customer_id'):
+            customer = conn.execute('''
+                SELECT name FROM customers WHERE id = ?
+            ''', (data.get('customer_id'),)).fetchone()
+            customer_name = customer['name'] if customer else None
+        
+        # Add bill items and create sales entries
+        for item in data['items']:
+            item_id = generate_id()
+            conn.execute('''
+                INSERT INTO bill_items (id, bill_id, product_id, product_name, quantity, unit_price, total_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                item_id, bill_id, item['product_id'], item['product_name'],
+                item['quantity'], item['unit_price'], item['total_price']
+            ))
+            
+            # Update product stock (AUTOMATIC STOCK REDUCTION)
+            conn.execute('''
+                UPDATE products SET stock = stock - ? WHERE id = ?
+            ''', (item['quantity'], item['product_id']))
+            
+            # Get product details for sales entry
+            product = conn.execute('''
+                SELECT category FROM products WHERE id = ?
+            ''', (item['product_id'],)).fetchone()
+            
+            # Create sales entry for each item (AUTOMATIC SALES ENTRY)
+            sale_id = generate_id()
+            sale_date = datetime.now().strftime('%Y-%m-%d')
+            sale_time = datetime.now().strftime('%H:%M:%S')
+            
+            # Calculate item tax amount (proportional to item total)
+            item_tax = (item['total_price'] / data['subtotal']) * data['tax_amount'] if data['subtotal'] > 0 else 0
+            item_discount = (item['total_price'] / data['subtotal']) * data.get('discount_amount', 0) if data['subtotal'] > 0 else 0
+            
+            conn.execute('''
+                INSERT INTO sales (
+                    id, bill_id, bill_number, customer_id, customer_name,
+                    product_id, product_name, category, quantity, unit_price,
+                    total_price, tax_amount, discount_amount, payment_method,
+                    sale_date, sale_time
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                sale_id, bill_id, bill_number, data.get('customer_id'), customer_name,
+                item['product_id'], item['product_name'], product['category'] if product else 'General',
+                item['quantity'], item['unit_price'], item['total_price'],
+                item_tax, item_discount, data.get('payment_method', 'cash'),
+                sale_date, sale_time
+            ))
+        
+        # Add payment record
+        if 'payment_method' in data:
+            payment_id = generate_id()
+            conn.execute('''
+                INSERT INTO payments (id, bill_id, method, amount)
+                VALUES (?, ?, ?, ?)
+            ''', (payment_id, bill_id, data['payment_method'], data['total_amount']))
+        
+        conn.commit()
+        
+        # Get updated hourly stats for real-time update
+        current_hour = datetime.now().strftime('%H')
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        hourly_stats = conn.execute('''
+            SELECT 
+                COUNT(*) as transactions,
+                COALESCE(SUM(total_amount), 0) as sales
+            FROM bills 
+            WHERE DATE(created_at) = ? AND strftime('%H', created_at) = ?
+        ''', (today, current_hour)).fetchone()
+        
+        conn.close()
+        
+        print(f">> Bill created successfully: {bill_number}")
+        print(f">> Sales entries created: {len(data['items'])}")
+        
+        return jsonify({
+            "message": "Bill created successfully",
+            "bill_id": bill_id,
+            "bill_number": bill_number,
+            "hourly_update": {
+                "hour": f"{current_hour}:00",
+                "transactions": hourly_stats['transactions'],
+                "sales": float(hourly_stats['sales']),
+                "avg_order_value": float(hourly_stats['sales'] / hourly_stats['transactions']) if hourly_stats['transactions'] > 0 else 0
+            }
+        }), 201
+        
+    except Exception as e:
+        print(f">> Error creating bill: {str(e)}")
+        import traceback
+        print(f">> Traceback: {traceback.format_exc()}")
+        try:
+            conn.rollback()
+            conn.close()
+        except:
+            pass
+        return jsonify({"error": str(e), "details": traceback.format_exc()}), 500
+
+# ============================================================================
 # REPORTS MODULE - Comprehensive Business Reports & Analytics
+# ============================================================================
 # ============================================================================
 
 @app.route('/mobile/reports')
@@ -8180,6 +7826,11 @@ def mobile_reports():
 
 if __name__ == '__main__':
     init_db()
+    
+    # Register new production-grade API routes
+    from register_new_routes import register_new_routes
+    register_new_routes(app)
+    
     print_startup_info()
     app.run(host='0.0.0.0', port=5000, debug=True)
 
