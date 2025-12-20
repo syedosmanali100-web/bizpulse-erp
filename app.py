@@ -1021,6 +1021,18 @@ def retail_inventory():
 def retail_settings():
     return render_template('settings_professional.html')
 
+@app.route('/retail/invoices')
+def retail_invoices():
+    return render_template('invoices_professional.html')
+
+@app.route('/retail/invoice/<invoice_id>')
+def retail_invoice_detail(invoice_id):
+    return render_template('retail_invoice_detail.html', invoice_id=invoice_id)
+
+@app.route('/invoice-demo')
+def invoice_demo():
+    return render_template('invoice_demo.html')
+
 @app.route('/test-navigation')
 def test_navigation():
     return render_template('test_navigation.html')
@@ -7878,6 +7890,71 @@ def create_bill():
     except Exception as main_error:
         print(f"❌ Bill creation error: {str(main_error)}")
         return jsonify({"error": f"Bill creation failed: {str(main_error)}"}), 500
+
+# ============================================================================
+# INVOICES MODULE - PROFESSIONAL INVOICE MANAGEMENT
+# ============================================================================
+
+@app.route('/api/invoices', methods=['GET'])
+def get_invoices():
+    """Get all invoices with filtering options"""
+    status = request.args.get('status', 'all')
+    limit = int(request.args.get('limit', 50))
+    
+    conn = get_db_connection()
+    
+    query = '''
+        SELECT b.*, c.name as customer_name, c.phone as customer_phone
+        FROM bills b
+        LEFT JOIN customers c ON b.customer_id = c.id
+    '''
+    
+    params = []
+    if status != 'all':
+        query += ' WHERE b.status = ?'
+        params.append(status)
+    
+    query += ' ORDER BY b.created_at DESC LIMIT ?'
+    params.append(limit)
+    
+    invoices = conn.execute(query, params).fetchall()
+    conn.close()
+    
+    return jsonify([dict(row) for row in invoices])
+
+@app.route('/api/invoices/<invoice_id>', methods=['GET'])
+def get_invoice_details(invoice_id):
+    """Get detailed invoice information"""
+    conn = get_db_connection()
+    
+    # Get invoice
+    invoice = conn.execute('''
+        SELECT b.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address
+        FROM bills b
+        LEFT JOIN customers c ON b.customer_id = c.id
+        WHERE b.id = ?
+    ''', (invoice_id,)).fetchone()
+    
+    if not invoice:
+        return jsonify({"error": "Invoice not found"}), 404
+    
+    # Get invoice items
+    items = conn.execute('''
+        SELECT * FROM bill_items WHERE bill_id = ?
+    ''', (invoice_id,)).fetchall()
+    
+    # Get payments
+    payments = conn.execute('''
+        SELECT * FROM payments WHERE bill_id = ?
+    ''', (invoice_id,)).fetchall()
+    
+    conn.close()
+    
+    return jsonify({
+        "invoice": dict(invoice),
+        "items": [dict(row) for row in items],
+        "payments": [dict(row) for row in payments]
+    })
 
 # ============================================================================
 # SALES MODULE - MOBILE ERP PERFECT CODE IMPLEMENTATION  

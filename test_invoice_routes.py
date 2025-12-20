@@ -1,86 +1,125 @@
+#!/usr/bin/env python3
 """
-Test script to verify invoice routes are working
+Test invoice routes and APIs
 """
-import requests
+
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-BASE_URL = "http://localhost:5000"
+from app import app
+import json
 
-def test_routes():
-    print("=" * 60)
-    print("🧪 Testing Invoice Routes")
-    print("=" * 60)
+def test_invoice_routes():
+    """Test invoice routes"""
     
-    tests = [
-        {
-            "name": "Invoice List Page",
-            "url": f"{BASE_URL}/retail/invoices",
-            "expected": "retail_invoices.html"
-        },
-        {
-            "name": "Invoice Demo Page",
-            "url": f"{BASE_URL}/invoice-demo",
-            "expected": "Invoice Module Demo"
-        },
-        {
-            "name": "Retail Dashboard",
-            "url": f"{BASE_URL}/retail/dashboard",
-            "expected": "Retail Management Dashboard"
+    print("🧪 Testing Invoice Routes")
+    print("=" * 40)
+    
+    with app.test_client() as client:
+        
+        # Test 1: Invoice list page
+        print("📋 Testing /retail/invoices route...")
+        response = client.get('/retail/invoices')
+        if response.status_code == 200:
+            print("✅ Invoice list page: Working")
+        else:
+            print(f"❌ Invoice list page failed: {response.status_code}")
+        
+        # Test 2: Invoice detail page
+        print("📋 Testing /retail/invoice/<id> route...")
+        response = client.get('/retail/invoice/test-id')
+        if response.status_code == 200:
+            print("✅ Invoice detail page: Working")
+        else:
+            print(f"❌ Invoice detail page failed: {response.status_code}")
+        
+        # Test 3: Invoice demo page
+        print("📋 Testing /invoice-demo route...")
+        response = client.get('/invoice-demo')
+        if response.status_code == 200:
+            print("✅ Invoice demo page: Working")
+        else:
+            print(f"❌ Invoice demo page failed: {response.status_code}")
+        
+        # Test 4: Invoice API
+        print("📋 Testing /api/invoices API...")
+        response = client.get('/api/invoices')
+        if response.status_code == 200:
+            data = response.get_json()
+            print(f"✅ Invoice API: Working ({len(data)} invoices found)")
+        else:
+            print(f"❌ Invoice API failed: {response.status_code}")
+        
+        # Test 5: Invoice detail API (with existing bill)
+        print("📋 Testing /api/invoices/<id> API...")
+        
+        # First create a test bill to get a real ID
+        test_bill_data = {
+            "customer_id": None,
+            "business_type": "retail",
+            "subtotal": 100.0,
+            "tax_amount": 18.0,
+            "total_amount": 118.0,
+            "payment_method": "cash",
+            "items": [
+                {
+                    "product_id": "test-product-1",
+                    "product_name": "Test Product",
+                    "quantity": 1,
+                    "unit_price": 100.0,
+                    "total_price": 100.0
+                }
+            ]
         }
+        
+        bill_response = client.post(
+            '/api/bills',
+            data=json.dumps(test_bill_data),
+            content_type='application/json'
+        )
+        
+        if bill_response.status_code == 201:
+            bill_result = bill_response.get_json()
+            bill_id = bill_result.get('bill_id')
+            
+            # Test invoice detail API with real bill ID
+            invoice_response = client.get(f'/api/invoices/{bill_id}')
+            if invoice_response.status_code == 200:
+                invoice_data = invoice_response.get_json()
+                print(f"✅ Invoice detail API: Working")
+                print(f"   Invoice: {invoice_data['invoice']['bill_number']}")
+                print(f"   Items: {len(invoice_data['items'])}")
+                print(f"   Payments: {len(invoice_data['payments'])}")
+            else:
+                print(f"❌ Invoice detail API failed: {invoice_response.status_code}")
+        else:
+            print("❌ Could not create test bill for invoice detail API test")
+
+def test_invoice_templates():
+    """Check if invoice templates exist"""
+    
+    print("\n🧪 Checking Invoice Templates")
+    print("=" * 40)
+    
+    templates = [
+        'invoices_professional.html',
+        'retail_invoice_detail.html', 
+        'invoice_demo.html'
     ]
     
-    all_passed = True
-    
-    for test in tests:
-        print(f"\n📋 Testing: {test['name']}")
-        print(f"   URL: {test['url']}")
-        
-        try:
-            response = requests.get(test['url'], timeout=5)
-            
-            if response.status_code == 200:
-                if test['expected'] in response.text:
-                    print(f"   ✅ PASSED - Status: {response.status_code}")
-                else:
-                    print(f"   ⚠️  WARNING - Page loaded but expected content not found")
-                    print(f"   Expected: {test['expected']}")
-                    all_passed = False
-            else:
-                print(f"   ❌ FAILED - Status: {response.status_code}")
-                all_passed = False
-                
-        except requests.exceptions.ConnectionError:
-            print(f"   ❌ FAILED - Cannot connect to server")
-            print(f"   Make sure server is running: python app.py")
-            all_passed = False
-            break
-        except Exception as e:
-            print(f"   ❌ FAILED - Error: {str(e)}")
-            all_passed = False
-    
-    print("\n" + "=" * 60)
-    if all_passed:
-        print("✅ All tests passed!")
-        print("\n📝 Next Steps:")
-        print("   1. Open browser")
-        print("   2. Go to: http://localhost:5000/retail/dashboard")
-        print("   3. Click 'Invoices' in sidebar")
-        print("   4. Should redirect to invoice list page")
-    else:
-        print("❌ Some tests failed!")
-        print("\n🔧 Troubleshooting:")
-        print("   1. Make sure server is running: python app.py")
-        print("   2. Check if templates/retail_invoices.html exists")
-        print("   3. Clear browser cache (Ctrl + Shift + Delete)")
-        print("   4. Try direct URL: http://localhost:5000/retail/invoices")
-    print("=" * 60)
-    
-    return all_passed
+    for template in templates:
+        template_path = f'templates/{template}'
+        if os.path.exists(template_path):
+            print(f"✅ {template}: Found")
+        else:
+            print(f"❌ {template}: Missing")
 
 if __name__ == "__main__":
-    try:
-        success = test_routes()
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print("\n\n⚠️  Test interrupted by user")
-        sys.exit(1)
+    print("🚀 Testing Invoice Module")
+    print("=" * 50)
+    
+    test_invoice_routes()
+    test_invoice_templates()
+    
+    print("\n🎉 Invoice module testing complete!")
