@@ -3299,13 +3299,22 @@ def sales_api():
             if not data.get('items') or len(data['items']) == 0:
                 return jsonify({"success": False, "error": "No items in bill"}), 400
             
+            # Handle different field names from frontend
+            # Frontend sends 'total', backend expects 'total_amount'
+            if data.get('total') and not data.get('total_amount'):
+                data['total_amount'] = data['total']
+            
+            # Frontend sends 'cgst' and 'sgst', backend expects 'tax_amount'
+            if not data.get('tax_amount'):
+                cgst = data.get('cgst', 0)
+                sgst = data.get('sgst', 0)
+                data['tax_amount'] = cgst + sgst
+            
             # Set default values if missing
             if not data.get('total_amount'):
                 data['total_amount'] = 100.0  # Default to avoid error
             if not data.get('subtotal'):
-                data['subtotal'] = data['total_amount']
-            if not data.get('tax_amount'):
-                data['tax_amount'] = 0
+                data['subtotal'] = data.get('total_amount', 100.0)
             if not data.get('business_type'):
                 data['business_type'] = 'retail'
             
@@ -3320,6 +3329,35 @@ def sales_api():
             bill_id = generate_id()
             bill_number = f"BILL-{current_time.strftime('%Y%m%d')}-{bill_id[:8]}"
             
+            # Handle customer creation if name provided
+            customer_id = data.get('customer_id')
+            customer_name = data.get('customer_name', 'Walk-in Customer')
+            customer_phone = data.get('customer_phone')
+            
+            # Create customer if name provided and not exists
+            if customer_name and customer_name != 'Walk-in Customer' and not customer_id:
+                try:
+                    # Check if customer exists by phone
+                    if customer_phone:
+                        existing_customer = conn.execute(
+                            'SELECT id FROM customers WHERE phone = ?', (customer_phone,)
+                        ).fetchone()
+                        if existing_customer:
+                            customer_id = existing_customer['id']
+                    
+                    # Create new customer if not found
+                    if not customer_id:
+                        customer_id = generate_id()
+                        conn.execute('''
+                            INSERT INTO customers (id, name, phone, created_at)
+                            VALUES (?, ?, ?, ?)
+                        ''', (customer_id, customer_name, customer_phone, current_time.strftime('%Y-%m-%d %H:%M:%S')))
+                        print(f"📝 [SALES API] Created new customer: {customer_name}")
+                except Exception as e:
+                    print(f"⚠️ [SALES API] Customer creation failed: {str(e)}")
+                    # Continue without customer_id
+                    customer_id = None
+            
             # Start transaction
             conn.execute('BEGIN TRANSACTION')
             
@@ -3331,22 +3369,23 @@ def sales_api():
                     INSERT INTO bills (id, bill_number, customer_id, business_type, subtotal, tax_amount, discount_amount, total_amount, status, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
-                    bill_id, bill_number, data.get('customer_id'), 
+                    bill_id, bill_number, customer_id, 
                     data.get('business_type', 'retail'),
                     data.get('subtotal', 0), data.get('tax_amount', 0), 
                     data.get('discount_amount', 0), data['total_amount'], 'completed', bill_timestamp
                 ))
                 
                 # Get customer name if exists
-                customer_name = None
-                if data.get('customer_id'):
-                    customer = conn.execute('SELECT name FROM customers WHERE id = ?', (data['customer_id'],)).fetchone()
-                    customer_name = customer['name'] if customer else None
+                if customer_id and not customer_name:
+                    customer = conn.execute('SELECT name FROM customers WHERE id = ?', (customer_id,)).fetchone()
+                    customer_name = customer['name'] if customer else 'Walk-in Customer'
                 
                 # Process each item
                 for item in data['items']:
-                    # Fix product_id - try multiple field names
-                    product_id = item.get('product_id') or item.get('id') or item.get('productId') or 'default-product'
+                    # Handle different field names from frontend
+                    # Frontend sends: id, name, price
+                    # Backend expects: product_id, product_name, unit_price
+                    product_id = item.get('product_id') or item.get('id') or 'default-product'
                     product_name = item.get('product_name') or item.get('name') or 'Unknown Product'
                     quantity = item.get('quantity', 1)
                     unit_price = item.get('unit_price') or item.get('price', 0)
