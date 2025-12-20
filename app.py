@@ -3191,9 +3191,11 @@ def get_sales_analytics():
 def sales_api():
     """Sales API - GET for listing with date filters, POST for creating bills"""
     
+    # Import datetime at function level to avoid conflicts
+    from datetime import datetime, timedelta
+    
     if request.method == 'GET':
         # GET: Return sales data with proper date filtering
-        from datetime import datetime, timedelta
         
         # Get local time (IST)
         now = datetime.now()
@@ -3320,7 +3322,7 @@ def sales_api():
             
             print(f"📝 [SALES API] Using total_amount: {data['total_amount']}")
             
-            # Get current time for all operations - NO LOCAL IMPORT
+            # Get current time for all operations
             current_time = datetime.now()
             
             conn = get_db_connection()
@@ -3329,7 +3331,7 @@ def sales_api():
             bill_id = generate_id()
             bill_number = f"BILL-{current_time.strftime('%Y%m%d')}-{bill_id[:8]}"
             
-            # Handle customer creation if name provided
+            # Handle customer creation if name provided (use separate connection)
             customer_id = data.get('customer_id')
             customer_name = data.get('customer_name', 'Walk-in Customer')
             customer_phone = data.get('customer_phone')
@@ -3337,9 +3339,12 @@ def sales_api():
             # Create customer if name provided and not exists
             if customer_name and customer_name != 'Walk-in Customer' and not customer_id:
                 try:
+                    # Use separate connection for customer operations
+                    customer_conn = get_db_connection()
+                    
                     # Check if customer exists by phone
                     if customer_phone:
-                        existing_customer = conn.execute(
+                        existing_customer = customer_conn.execute(
                             'SELECT id FROM customers WHERE phone = ?', (customer_phone,)
                         ).fetchone()
                         if existing_customer:
@@ -3348,17 +3353,21 @@ def sales_api():
                     # Create new customer if not found
                     if not customer_id:
                         customer_id = generate_id()
-                        conn.execute('''
+                        customer_conn.execute('''
                             INSERT INTO customers (id, name, phone, created_at)
                             VALUES (?, ?, ?, ?)
                         ''', (customer_id, customer_name, customer_phone, current_time.strftime('%Y-%m-%d %H:%M:%S')))
+                        customer_conn.commit()
                         print(f"📝 [SALES API] Created new customer: {customer_name}")
+                    
+                    customer_conn.close()
+                    
                 except Exception as e:
                     print(f"⚠️ [SALES API] Customer creation failed: {str(e)}")
                     # Continue without customer_id
                     customer_id = None
             
-            # Start transaction
+            # Start transaction for bill creation
             conn.execute('BEGIN TRANSACTION')
             
             try:
