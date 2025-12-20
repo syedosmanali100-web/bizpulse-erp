@@ -839,6 +839,11 @@ def retail_products_page():
 def retail_customers():
     return render_template('retail_customers.html')
 
+@app.route('/retail/billing')
+@require_auth
+def retail_billing():
+    return render_template('retail_billing.html')
+
 @app.route('/retail/dashboard')
 @require_auth
 def retail_dashboard():
