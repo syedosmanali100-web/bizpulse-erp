@@ -3070,6 +3070,25 @@ def create_bill():
         data = request.json
         print("📥 Received bill data:", data)
         
+        # Validate required fields
+        if not data.get('items') or len(data['items']) == 0:
+            return jsonify({"error": "No items in bill"}), 400
+        
+        # Calculate total_amount if not provided or invalid
+        if not data.get('total_amount') or data.get('total_amount', 0) <= 0:
+            # Calculate from items
+            calculated_total = sum(item.get('total_price', 0) for item in data['items'])
+            if calculated_total <= 0:
+                return jsonify({"error": "Invalid total amount - no items with price"}), 400
+            data['total_amount'] = calculated_total
+            print(f"📝 Calculated total_amount: {calculated_total}")
+        
+        # Ensure subtotal and tax_amount exist
+        if not data.get('subtotal'):
+            data['subtotal'] = data['total_amount']
+        if not data.get('tax_amount'):
+            data['tax_amount'] = 0
+        
         # Use local system time (IST) for bill number generation
         from datetime import datetime
         
@@ -3731,8 +3750,14 @@ def sales_api():
             if not data.get('items') or len(data['items']) == 0:
                 return jsonify({"success": False, "error": "No items in bill"}), 400
             
-            if not data.get('total_amount') or data['total_amount'] <= 0:
-                return jsonify({"success": False, "error": "Invalid total amount"}), 400
+            # Calculate total_amount if not provided or invalid
+            if not data.get('total_amount') or data.get('total_amount', 0) <= 0:
+                # Calculate from items
+                calculated_total = sum(item.get('total_price', 0) for item in data['items'])
+                if calculated_total <= 0:
+                    return jsonify({"success": False, "error": "Invalid total amount - no items with price"}), 400
+                data['total_amount'] = calculated_total
+                print(f"📝 [SALES API] Calculated total_amount: {calculated_total}")
             
             # Check stock availability before creating bill
             conn = get_db_connection()
