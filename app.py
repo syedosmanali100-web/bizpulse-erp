@@ -3069,6 +3069,11 @@ def create_bill():
     try:
         data = request.json
         print("📥 Received bill data:", data)
+        print("📝 Items received:", data.get('items', []))
+        
+        # Debug: Print each item details
+        for i, item in enumerate(data.get('items', [])):
+            print(f"📦 Item {i+1}: {item}")
         
         # Validate required fields
         if not data.get('items') or len(data['items']) == 0:
@@ -3076,10 +3081,19 @@ def create_bill():
         
         # Calculate total_amount if not provided or invalid
         if not data.get('total_amount') or data.get('total_amount', 0) <= 0:
-            # Calculate from items
-            calculated_total = sum(item.get('total_price', 0) for item in data['items'])
+            # Calculate from items - try multiple fields
+            calculated_total = 0
+            for item in data['items']:
+                item_total = item.get('total_price', 0)
+                if item_total <= 0:
+                    # Fallback: calculate from unit_price * quantity
+                    unit_price = item.get('unit_price', 0) or item.get('price', 0)
+                    quantity = item.get('quantity', 1)
+                    item_total = unit_price * quantity
+                calculated_total += item_total
+            
             if calculated_total <= 0:
-                return jsonify({"error": "Invalid total amount - no items with price"}), 400
+                return jsonify({"error": "Invalid bill - items must have price and quantity"}), 400
             data['total_amount'] = calculated_total
             print(f"📝 Calculated total_amount: {calculated_total}")
         
@@ -3745,6 +3759,11 @@ def sales_api():
         try:
             data = request.json
             print("📥 [SALES API] Received bill data:", data)
+            print("📝 [SALES API] Items received:", data.get('items', []))
+            
+            # Debug: Print each item details
+            for i, item in enumerate(data.get('items', [])):
+                print(f"📦 [SALES API] Item {i+1}: {item}")
             
             # Validate required fields
             if not data.get('items') or len(data['items']) == 0:
@@ -3752,10 +3771,19 @@ def sales_api():
             
             # Calculate total_amount if not provided or invalid
             if not data.get('total_amount') or data.get('total_amount', 0) <= 0:
-                # Calculate from items
-                calculated_total = sum(item.get('total_price', 0) for item in data['items'])
+                # Calculate from items - try multiple fields
+                calculated_total = 0
+                for item in data['items']:
+                    item_total = item.get('total_price', 0)
+                    if item_total <= 0:
+                        # Fallback: calculate from unit_price * quantity
+                        unit_price = item.get('unit_price', 0) or item.get('price', 0)
+                        quantity = item.get('quantity', 1)
+                        item_total = unit_price * quantity
+                    calculated_total += item_total
+                
                 if calculated_total <= 0:
-                    return jsonify({"success": False, "error": "Invalid total amount - no items with price"}), 400
+                    return jsonify({"success": False, "error": "Invalid bill - items must have price and quantity"}), 400
                 data['total_amount'] = calculated_total
                 print(f"📝 [SALES API] Calculated total_amount: {calculated_total}")
             
