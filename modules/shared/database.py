@@ -336,9 +336,7 @@ def init_db():
     
     # Create index on barcode_data for fast lookups
     try:
-        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_products_barcode_fast ON products(barcode_data)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_products_active_barcode ON products(is_active, barcode_data)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_products_name_search ON products(name)')
+        cursor.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode_data)')
     except sqlite3.OperationalError:
         pass
     

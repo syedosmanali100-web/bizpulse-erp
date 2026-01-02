@@ -53,16 +53,15 @@ class ProductsService:
         }
     
     def search_product_by_barcode(self, barcode):
-        """⚡ LIGHTNING-FAST barcode search - Optimized for instant response like RetailsDaddy"""
-        # Quick validation - no logging for speed
+        """⚡ FAST barcode search - Optimized for instant response"""
+        # Quick validation
         if not barcode or len(barcode.strip()) == 0:
             return {"success": False, "error": "Invalid barcode"}
         
         barcode = barcode.strip()
         conn = get_db_connection()
         
-        # ⚡ OPTIMIZED QUERY - Single query with index lookup
-        # Uses the unique index on barcode_data for instant search
+        # ⚡ SINGLE OPTIMIZED QUERY - Fast lookup with index
         product = conn.execute("""SELECT id, code, name, category, price, cost, stock, 
                                          min_stock, unit, business_type, barcode_data, 
                                          barcode_image, image_url, is_active 
@@ -73,7 +72,7 @@ class ProductsService:
         conn.close()
         
         if product:
-            # ⚡ INSTANT RESPONSE - Return immediately with minimal data
+            # ⚡ INSTANT RESPONSE - Return product data immediately
             return {
                 "success": True,
                 "product": {

@@ -56,21 +56,60 @@ def add_barcode_to_product(product_id):
 
 @products_bp.route('/api/products/search/barcode/<barcode>', methods=['GET'])
 def search_product_by_barcode(barcode):
-    """⚡ LIGHTNING-FAST barcode search - Optimized for instant response like RetailsDaddy"""
+    """⚡ FAST barcode search - Optimized for instant response"""
     try:
         result = products_service.search_product_by_barcode(barcode)
         
-        # ⚡ INSTANT RESPONSE - No extra processing
         if result['success']:
             return jsonify(result), 200
         else:
             return jsonify(result), 404
             
     except Exception as e:
-        # ⚡ MINIMAL ERROR HANDLING - Fast failure
         return jsonify({
             "success": False,
             "error": "Search failed",
+            "barcode": barcode
+        }), 500
+
+@products_bp.route('/api/products/barcode-to-cart/<barcode>', methods=['POST'])
+def barcode_to_cart(barcode):
+    """⚡ INSTANT barcode-to-cart - For billing system"""
+    try:
+        # ⚡ LIGHTNING-FAST barcode lookup
+        result = products_service.search_product_by_barcode(barcode)
+        
+        if result['success']:
+            product = result['product']
+            
+            # ⚡ INSTANT CART ITEM FORMAT - Ready for billing
+            cart_item = {
+                "product_id": product['id'],
+                "product_name": product['name'],
+                "unit_price": product['price'],
+                "quantity": 1,  # Default quantity
+                "total_price": product['price'],
+                "stock_available": product['stock'],
+                "unit": product['unit'],
+                "barcode": product['barcode_data']
+            }
+            
+            return jsonify({
+                "success": True,
+                "cart_item": cart_item,
+                "message": f"Added {product['name']} to cart"
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Product not found",
+                "barcode": barcode
+            }), 404
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": "Failed to add to cart",
             "barcode": barcode
         }), 500
 
@@ -140,47 +179,6 @@ def delete_product(product_id):
         return jsonify({
             "success": False,
             "error": f"Failed to delete product: {str(e)}"
-        }), 500
-
-@products_bp.route('/api/products/barcode-to-cart/<barcode>', methods=['POST'])
-def barcode_to_cart(barcode):
-    """⚡ INSTANT barcode-to-cart - Like RetailsDaddy speed"""
-    try:
-        # ⚡ LIGHTNING-FAST barcode lookup
-        result = products_service.search_product_by_barcode(barcode)
-        
-        if result['success']:
-            product = result['product']
-            
-            # ⚡ INSTANT CART ITEM FORMAT - Ready for billing
-            cart_item = {
-                "product_id": product['id'],
-                "product_name": product['name'],
-                "unit_price": product['price'],
-                "quantity": 1,  # Default quantity
-                "total_price": product['price'],
-                "stock_available": product['stock'],
-                "unit": product['unit'],
-                "barcode": product['barcode_data']
-            }
-            
-            return jsonify({
-                "success": True,
-                "cart_item": cart_item,
-                "message": f"Added {product['name']} to cart"
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": "Product not found",
-                "barcode": barcode
-            }), 404
-            
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": "Failed to add to cart",
-            "barcode": barcode
         }), 500
 
 @products_bp.route('/api/products/recommend-images', methods=['POST'])
