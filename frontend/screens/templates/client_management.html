@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Management - BizPulse Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #722F37 0%, #8B3A47 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #722F37 0%, #8B3A47 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(114, 47, 55, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .clients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .client-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .client-card:hover {
+            border-color: #722F37;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(114, 47, 55, 0.2);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .client-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #722F37;
+        }
+
+        .client-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .client-info {
+            margin-bottom: 15px;
+        }
+
+        .client-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #722F37;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #722F37;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #722F37 0%, #8B3A47 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #722F37;
+        }
+
+        @media (max-width: 768px) {
+            .clients-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Client Management</h1>
+            <a href="/retail/dashboard" class="back-btn">← Back to Dashboard</a>
+        </div>
+
+        <div class="content">
+            <!-- Statistics -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalClients">0</div>
+                    <div class="stat-label">Total Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeClients">0</div>
+                    <div class="stat-label">Active Clients</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="newClients">0</div>
+                    <div class="stat-label">New This Month</div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    ➕ Create New Client
+                </button>
+                <button class="btn btn-success" onclick="refreshClients()">
+                    🔄 Refresh List
+                </button>
+            </div>
+
+            <!-- Search -->
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search clients by name, email, or company..." onkeyup="searchClients()">
+
+            <!-- Clients Grid -->
+            <div class="clients-grid" id="clientsGrid">
+                <!-- Clients will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Client Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Client</h3>
+                <button class="close-btn" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form id="createClientForm">
+                <div class="form-group">
+                    <label for="companyName">Company Name *</label>
+                    <input type="text" id="companyName" name="companyName" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactName">Contact Person *</label>
+                    <input type="text" id="contactName" name="contactName" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactEmail">Email *</label>
+                    <input type="email" id="contactEmail" name="contactEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="contactPhone">Phone</label>
+                    <input type="tel" id="contactPhone" name="contactPhone">
+                </div>
+                <div class="form-group">
+                    <label for="businessType">Business Type</label>
+                    <select id="businessType" name="businessType">
+                        <option value="retail">Retail Store</option>
+                        <option value="kirana">Kirana Store</option>
+                        <option value="restaurant">Restaurant</option>
+                        <option value="pharmacy">Pharmacy</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password">Login Password *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Create Client</button>
+                    <button type="button" class="btn" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let clients = [];
+
+        // Load clients on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClients();
+        });
+
+        // Load all clients
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/admin/clients');
+                const data = await response.json();
+                
+                if (data.success) {
+                    clients = data.clients;
+                    displayClients(clients);
+                    updateStats();
+                } else {
+                    console.error('Failed to load clients:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading clients:', error);
+            }
+        }
+
+        // Display clients in grid
+        function displayClients(clientList) {
+            const grid = document.getElementById('clientsGrid');
+            
+            if (clientList.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #666;">
+                        <h3>No clients found</h3>
+                        <p>Create your first client to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = clientList.map(client => `
+                <div class="client-card">
+                    <div class="client-header">
+                        <div class="client-name">${client.company_name}</div>
+                        <div class="client-status ${client.is_active ? 'status-active' : 'status-inactive'}">
+                            ${client.is_active ? 'Active' : 'Inactive'}
+                        </div>
+                    </div>
+                    <div class="client-info">
+                        <p><strong>Contact:</strong> ${client.contact_name}</p>
+                        <p><strong>Email:</strong> ${client.contact_email}</p>
+                        <p><strong>Phone:</strong> ${client.contact_phone || 'Not provided'}</p>
+                        <p><strong>Business:</strong> ${client.business_type}</p>
+                        <p><strong>Created:</strong> ${new Date(client.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div class="client-actions">
+                        <button class="btn btn-primary btn-sm" onclick="loginAsClient('${client.id}')">
+                            🔑 Login as Client
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="editClient('${client.id}')">
+                            ✏️ Edit
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteClient('${client.id}')">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = clients.length;
+            const active = clients.filter(c => c.is_active).length;
+            const thisMonth = clients.filter(c => {
+                const created = new Date(c.created_at);
+                const now = new Date();
+                return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+            }).length;
+
+            document.getElementById('totalClients').textContent = total;
+            document.getElementById('activeClients').textContent = active;
+            document.getElementById('newClients').textContent = thisMonth;
+        }
+
+        // Search clients
+        function searchClients() {
+            const query = document.getElementById('searchBox').value.toLowerCase();
+            const filtered = clients.filter(client => 
+                client.company_name.toLowerCase().includes(query) ||
+                client.contact_name.toLowerCase().includes(query) ||
+                client.contact_email.toLowerCase().includes(query) ||
+                client.business_type.toLowerCase().includes(query)
+            );
+            displayClients(filtered);
+        }
+
+        // Open create modal
+        function openCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        // Close create modal
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('createClientForm').reset();
+        }
+
+        // Create new client
+        document.getElementById('createClientForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const clientData = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/api/admin/clients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(clientData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Client created successfully!');
+                    closeCreateModal();
+                    loadClients();
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error creating client:', error);
+                alert('❌ Error creating client');
+            }
+        });
+
+        // Login as client
+        async function loginAsClient(clientId) {
+            try {
+                const response = await fetch('/api/admin/login-as-client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ client_id: clientId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Logging in as client...');
+                    window.open('/retail/dashboard', '_blank');
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error logging in as client:', error);
+                alert('❌ Error logging in as client');
+            }
+        }
+
+        // Edit client
+        function editClient(clientId) {
+            alert('Edit functionality coming soon!');
+        }
+
+        // Delete client
+        async function deleteClient(clientId) {
+            if (!confirm('Are you sure you want to delete this client?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/clients/${clientId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ Client deleted successfully!');
+                    loadClients();
+                } else {
+                    alert('❌ Error: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error deleting client:', error);
+                alert('❌ Error deleting client');
+            }
+        }
+
+        // Refresh clients
+        function refreshClients() {
+            loadClients();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('createModal');
+            if (event.target === modal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+</body>
+</html>

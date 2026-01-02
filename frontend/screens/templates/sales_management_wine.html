@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Management - BizPulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --wine: #8B3A47;
+            --wine-dark: #722F37;
+            --wine-light: #A66B7A;
+            --wine-lighter: #C5A5B0;
+            --bg: #fafafa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, 
+                #722F37 0%, 
+                #8B3A47 25%,
+                #A66B7A 50%,
+                #8B3A47 75%,
+                #722F37 100%
+            );
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 20px rgba(114, 47, 55, 0.25);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.sales { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-icon.revenue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .stat-icon.profit { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .stat-icon.avg { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Filters */
+        .filters-card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .filter-input {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--wine);
+            box-shadow: 0 0 0 3px rgba(139, 58, 71, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--wine);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--wine-dark);
+        }
+
+        /* Table */
+        .table-card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8fafc;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: var(--text);
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-light);
+        }
+
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .export-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .pdf-btn { 
+            background: linear-gradient(135deg, #e53e3e, #c53030); 
+            color: white; 
+        }
+        
+        .excel-btn { 
+            background: linear-gradient(135deg, #38a169, #2f855a); 
+            color: white; 
+        }
+        
+        .csv-btn { 
+            background: linear-gradient(135deg, #3182ce, #2c5282); 
+            color: white; 
+        }
+        
+        .whatsapp-btn { 
+            background: linear-gradient(135deg, #25d366, #128c7e); 
+            color: white; 
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-desc {
+            font-size: 0.875rem;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            gap: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid var(--wine);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Pagination */
+        .pagination-container {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--wine);
+            color: white;
+            border-color: var(--wine);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f1f5f9;
+        }
+
+        .pagination-numbers {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .page-number {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .page-number:hover {
+            background: var(--wine-light);
+            color: white;
+            border-color: var(--wine-light);
+        }
+
+        .page-number.active {
+            background: var(--wine);
+            color: white;
+            border-color: var(--wine);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/retail/dashboard" class="back-btn">
+                    ← Back to Dashboard
+                </a>
+                <h1 class="page-title">Sales Management</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-container">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon sales">📊</div>
+                    <div class="stat-title">Total Sales</div>
+                </div>
+                <div class="stat-value" id="totalSales">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon revenue">💰</div>
+                    <div class="stat-title">Total Revenue</div>
+                </div>
+                <div class="stat-value" id="totalRevenue">₹0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon profit">💵</div>
+                    <div class="stat-title">Net Profit</div>
+                </div>
+                <div class="stat-value" id="totalProfit">₹0</div>
+                <div class="stat-receivable">
+                    <span style="font-size: 10px; color: #666; margin-left: 5px;">Receivable:</span>
+                    <span id="receivableAmount" style="font-size: 10px; color: #8B4A5C; font-weight: bold;">₹0</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon avg">📈</div>
+                    <div class="stat-title">Average Order</div>
+                </div>
+                <div class="stat-value" id="avgOrder">₹0</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-input" id="dateRange" onchange="loadSales()">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Time</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group" id="customFromDate" style="display: none;">
+                    <label class="filter-label">From Date</label>
+                    <input type="date" class="filter-input" id="fromDate" onchange="loadSales()">
+                </div>
+                
+                <div class="filter-group" id="customToDate" style="display: none;">
+                    <label class="filter-label">To Date</label>
+                    <input type="date" class="filter-input" id="toDate" onchange="loadSales()">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Payment Method</label>
+                    <select class="filter-input" id="paymentMethod" onchange="loadSales()">
+                        <option value="all">All Methods</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="credit">Credit</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <button class="btn btn-primary" onclick="resetFilters()">
+                        🔄 Reset Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3 class="table-title">Recent Sales</h3>
+                <div class="export-buttons">
+                    <button class="export-btn pdf-btn" onclick="exportToPDF()" title="Export to PDF">
+                        <svg width="20" height="20" viewBox="0 0 240 234" fill="white">
+                            <path d="M42.5 0h155C221 0 240 19 240 42.5v149c0 23.5-19 42.5-42.5 42.5h-155C19 234 0 215 0 191.5v-149C0 19 19 0 42.5 0z"/>
+                            <path d="M59.5 142.5c4.5 0 8.5-1.5 11.5-4.5s4.5-7 4.5-11.5-1.5-8.5-4.5-11.5-7-4.5-11.5-4.5h-7v32h7zm0-24c2.5 0 4.5.5 6 2s2.5 3.5 2.5 6-.5 4.5-2.5 6-3.5 2-6 2h-1v-16h1z" fill="#DC143C"/>
+                            <path d="M95.5 142.5c4.5 0 8.5-1.5 11.5-4.5s4.5-7 4.5-11.5-1.5-8.5-4.5-11.5-7-4.5-11.5-4.5h-7v32h7zm0-24c2.5 0 4.5.5 6 2s2.5 3.5 2.5 6-.5 4.5-2.5 6-3.5 2-6 2h-1v-16h1z" fill="#DC143C"/>
+                            <path d="M131.5 142.5h6v-16h8v-6h-8v-4h10v-6h-16v32z" fill="#DC143C"/>
+                        </svg>
+                    </button>
+                    <button class="export-btn excel-btn" onclick="exportToExcel()" title="Export to Excel">
+                        <svg width="20" height="20" viewBox="0 0 2080 2080" fill="white">
+                            <path d="M1920 0H160C72 0 0 72 0 160v1760c0 88 72 160 160 160h1760c88 0 160-72 160-160V160c0-88-72-160-160-160z"/>
+                            <path d="M1280 640h480v160h-480V640zm0 240h480v160h-480V880zm0 240h480v160h-480v-160zm0 240h480v160h-480v-160z" fill="#107C41"/>
+                            <path d="M320 640h800v800H320V640z" fill="#107C41"/>
+                            <path d="M480 800l160 160-160 160 80 80 160-160 160 160 80-80-160-160 160-160-80-80-160 160-160-160-80 80z" fill="white"/>
+                        </svg>
+                    </button>
+                    <button class="export-btn csv-btn" onclick="exportToCSV()" title="Export to CSV">
+                        <svg width="20" height="20" viewBox="0 0 384 512" fill="white">
+                            <path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm-96 144c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm96-128c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm96-128c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zM377 105L279.1 7c-4.5-4.5-10.6-7-17-7H256v128h128v-6.1c0-6.3-2.5-12.4-7-16.9z"/>
+                        </svg>
+                    </button>
+                    <button class="export-btn whatsapp-btn" onclick="shareViaWhatsApp()" title="Share via WhatsApp">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Bill #</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Products</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="salesTable">
+                    <tr>
+                        <td colspan="8">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                Loading sales data...
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Pagination Controls -->
+            <div class="pagination-container" id="paginationContainer" style="display: none;">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Showing 0 of 0 records</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="prevBtn" onclick="changePage(currentPage - 1)" disabled>
+                        ← Previous
+                    </button>
+                    <div class="pagination-numbers" id="paginationNumbers">
+                        <!-- Page numbers will be inserted here -->
+                    </div>
+                    <button class="pagination-btn" id="nextBtn" onclick="changePage(currentPage + 1)" disabled>
+                        Next →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentBills = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        
+        // Load sales data
+        async function loadSales(page = 1) {
+            try {
+                console.log('🔄 Loading sales data...');
+                showLoading();
+                
+                // Get filter values
+                const dateRange = document.getElementById('dateRange').value;
+                const paymentMethod = document.getElementById('paymentMethod').value;
+                
+                // Handle custom date range visibility
+                const customFromDate = document.getElementById('customFromDate');
+                const customToDate = document.getElementById('customToDate');
+                
+                if (dateRange === 'custom') {
+                    customFromDate.style.display = 'block';
+                    customToDate.style.display = 'block';
+                } else {
+                    customFromDate.style.display = 'none';
+                    customToDate.style.display = 'none';
+                }
+                
+                // Build API parameters
+                const params = new URLSearchParams();
+                params.append('filter', dateRange);
+                params.append('page', page);
+                params.append('per_page', 15);
+                
+                if (dateRange === 'custom') {
+                    const fromDate = document.getElementById('fromDate').value;
+                    const toDate = document.getElementById('toDate').value;
+                    
+                    if (!fromDate || !toDate) {
+                        console.log('⚠️ Custom range selected but dates not provided');
+                        return;
+                    }
+                    
+                    params.append('startDate', fromDate);
+                    params.append('endDate', toDate);
+                }
+                
+                if (paymentMethod !== 'all') {
+                    params.append('payment_method', paymentMethod);
+                }
+                
+                // Call API
+                const url = `/api/sales/all?${params.toString()}`;
+                console.log('🔗 API Call:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('📊 API Response:', data);
+                
+                if (data.success && data.bills) {
+                    currentBills = data.bills;
+                    currentPage = data.pagination.current_page;
+                    totalPages = data.pagination.total_pages;
+                    
+                    renderBills(data.bills);
+                    updateStats(data.summary);
+                    updateFilterInfo(data.filters, data.pagination);
+                    updatePagination(data.pagination);
+                } else {
+                    console.error('❌ API Error:', data.error);
+                    showEmptyState(data.error || 'No sales data available');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading sales:', error);
+                showError('Failed to load sales data');
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('salesTable').innerHTML = `
+                <tr>
+                    <td colspan="9">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading sales data...
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function showEmptyState(message = 'No sales found for the selected filters') {
+            document.getElementById('salesTable').innerHTML = `
+                <tr>
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <div class="empty-state-text">No Sales Found</div>
+                            <div class="empty-state-desc">${message}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('salesTable').innerHTML = `
+                <tr>
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❌</div>
+                            <div class="empty-state-text">Error Loading Data</div>
+                            <div class="empty-state-desc">${message}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function renderBills(bills) {
+            if (!bills || bills.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            const tbody = document.getElementById('salesTable');
+            tbody.innerHTML = bills.map(bill => `
+                <tr>
+                    <td><strong>${bill.serial_no}</strong></td>
+                    <td><strong>#${bill.bill_number || bill.bill_id || 'N/A'}</strong></td>
+                    <td>${formatDate(bill.date || bill.created_at)}</td>
+                    <td>${bill.customer_name || 'Walk-in Customer'}</td>
+                    <td>
+                        <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${bill.product_list || 'N/A'}">
+                            ${bill.product_list || 'N/A'}
+                        </div>
+                    </td>
+                    <td>${bill.total_items || 1} items (${bill.total_quantity || 1}x)</td>
+                    <td><strong>₹${formatNumber(bill.total_amount || 0)}</strong></td>
+                    <td><span class="badge badge-info">${getPaymentBadge(bill.payment_method || 'cash')}</span></td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                </tr>
+            `).join('');
+        }
+        
+        function getPaymentBadge(paymentMethod) {
+            const method = paymentMethod.toLowerCase();
+            switch(method) {
+                case 'cash': return '💵 CASH';
+                case 'card': return '💳 CARD';
+                case 'upi': return '📱 UPI';
+                case 'credit': return '🏦 CREDIT';
+                default: return method.toUpperCase();
+            }
+        }
+        
+        function updateStats(summary) {
+            if (!summary) return;
+            
+            console.log('📊 Updating stats:', summary);
+            
+            document.getElementById('totalSales').textContent = summary.total_bills || 0;
+            document.getElementById('totalRevenue').textContent = '₹' + formatNumber(summary.total_sales || 0);
+            document.getElementById('totalProfit').textContent = '₹' + formatNumber(summary.net_profit || 0);
+            document.getElementById('receivableAmount').textContent = '₹' + formatNumber(summary.receivable_profit || 0);
+            document.getElementById('avgOrder').textContent = '₹' + formatNumber(summary.avg_sale_value || 0);
+        }
+        
+        function updateFilterInfo(filters, pagination) {
+            // Filter info removed from UI - function kept for compatibility
+            return;
+        }
+        
+        function resetFilters() {
+            document.getElementById('dateRange').value = 'today';
+            document.getElementById('paymentMethod').value = 'all';
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            
+            document.getElementById('customFromDate').style.display = 'none';
+            document.getElementById('customToDate').style.display = 'none';
+            
+            loadSales();
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+        
+        function formatNumber(num) {
+            if (!num) return '0.00';
+            return parseFloat(num).toLocaleString('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        // Pagination functions
+        function updatePagination(pagination) {
+            if (!pagination) return;
+            
+            const container = document.getElementById('paginationContainer');
+            const info = document.getElementById('paginationInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const numbersContainer = document.getElementById('paginationNumbers');
+            
+            // Show/hide pagination based on total pages
+            if (pagination.total_pages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            
+            // Update info text
+            const start = (pagination.current_page - 1) * pagination.per_page + 1;
+            const end = Math.min(pagination.current_page * pagination.per_page, pagination.total_records);
+            info.textContent = `Showing ${start}-${end} of ${pagination.total_records} records`;
+            
+            // Update prev/next buttons
+            prevBtn.disabled = !pagination.has_prev;
+            nextBtn.disabled = !pagination.has_next;
+            
+            // Generate page numbers
+            numbersContainer.innerHTML = '';
+            const maxPages = 5; // Show max 5 page numbers
+            let startPage = Math.max(1, pagination.current_page - 2);
+            let endPage = Math.min(pagination.total_pages, startPage + maxPages - 1);
+            
+            // Adjust start if we're near the end
+            if (endPage - startPage < maxPages - 1) {
+                startPage = Math.max(1, endPage - maxPages + 1);
+            }
+            
+            // Add first page and ellipsis if needed
+            if (startPage > 1) {
+                numbersContainer.innerHTML += `<button class="page-number" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    numbersContainer.innerHTML += `<span style="padding: 0.5rem;">...</span>`;
+                }
+            }
+            
+            // Add page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                const activeClass = i === pagination.current_page ? 'active' : '';
+                numbersContainer.innerHTML += `<button class="page-number ${activeClass}" onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            // Add last page and ellipsis if needed
+            if (endPage < pagination.total_pages) {
+                if (endPage < pagination.total_pages - 1) {
+                    numbersContainer.innerHTML += `<span style="padding: 0.5rem;">...</span>`;
+                }
+                numbersContainer.innerHTML += `<button class="page-number" onclick="changePage(${pagination.total_pages})">${pagination.total_pages}</button>`;
+            }
+        }
+        
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadSales(page);
+        }
+        
+        // Export Functions
+        function exportToPDF() {
+            const dateRange = document.getElementById('dateRange').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            const params = new URLSearchParams({
+                format: 'pdf',
+                filter: dateRange,
+                payment_method: paymentMethod !== 'all' ? paymentMethod : ''
+            });
+            
+            if (dateRange === 'custom') {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                if (fromDate && toDate) {
+                    params.append('startDate', fromDate);
+                    params.append('endDate', toDate);
+                }
+            }
+            
+            window.open(`/api/sales/export?${params.toString()}`, '_blank');
+        }
+        
+        function exportToExcel() {
+            const dateRange = document.getElementById('dateRange').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            const params = new URLSearchParams({
+                format: 'excel',
+                filter: dateRange,
+                payment_method: paymentMethod !== 'all' ? paymentMethod : ''
+            });
+            
+            if (dateRange === 'custom') {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                if (fromDate && toDate) {
+                    params.append('startDate', fromDate);
+                    params.append('endDate', toDate);
+                }
+            }
+            
+            window.open(`/api/sales/export?${params.toString()}`, '_blank');
+        }
+        
+        function exportToCSV() {
+            const dateRange = document.getElementById('dateRange').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            const params = new URLSearchParams({
+                format: 'csv',
+                filter: dateRange,
+                payment_method: paymentMethod !== 'all' ? paymentMethod : ''
+            });
+            
+            if (dateRange === 'custom') {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                if (fromDate && toDate) {
+                    params.append('startDate', fromDate);
+                    params.append('endDate', toDate);
+                }
+            }
+            
+            const link = document.createElement('a');
+            link.href = `/api/sales/export?${params.toString()}`;
+            link.download = `sales_export_${dateRange}.csv`;
+            link.click();
+        }
+        
+        function shareViaWhatsApp() {
+            const dateRange = document.getElementById('dateRange').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            const params = new URLSearchParams({
+                format: 'whatsapp',
+                filter: dateRange,
+                payment_method: paymentMethod !== 'all' ? paymentMethod : ''
+            });
+            
+            if (dateRange === 'custom') {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                if (fromDate && toDate) {
+                    params.append('startDate', fromDate);
+                    params.append('endDate', toDate);
+                }
+            }
+            
+            fetch(`/api/sales/export?${params.toString()}`)
+                .then(response => response.text())
+                .then(data => {
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(data)}`;
+                    window.open(whatsappUrl, '_blank');
+                })
+                .catch(error => {
+                    console.error('Error sharing via WhatsApp:', error);
+                    alert('Error sharing data via WhatsApp');
+                });
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded, initializing...');
+            loadSales();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadSales, 30000);
+        });
+    </script>
+</body>
+</html>

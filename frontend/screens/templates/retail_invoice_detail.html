@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Invoice - BizPulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --wine: #722F37;
+            --wine-dark: #5a2329;
+            --wine-light: #8B3A47;
+            --wine-accent: #B85450;
+            --gold: #D4AF37;
+            --cream: #FDF6E3;
+            --light-gray: #F8F9FA;
+            --dark-gray: #2C3E50;
+            --text: #2C3E50;
+            --text-light: #6C757D;
+            --border: #E9ECEF;
+        }
+
+        /* Letter Size Paper - 8.5" x 11" */
+        @page {
+            size: letter;
+            margin: 0.5in;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: white;
+            color: var(--text);
+            line-height: 1.4;
+            font-size: 12px;
+        }
+
+        .invoice-container {
+            max-width: 7.5in; /* Letter width minus margins */
+            margin: 0 auto;
+            background: white;
+            min-height: 10in; /* Letter height minus margins */
+            position: relative;
+        }
+
+        /* Back Button for Screen View */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--wine);
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: var(--wine-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Premium Header */
+        .invoice-header {
+            background: linear-gradient(135deg, var(--wine) 0%, var(--wine-dark) 100%);
+            color: white;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .invoice-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            z-index: 2;
+        }
+
+        .company-info h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .company-tagline {
+            font-size: 11px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+        .invoice-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+        }
+
+        .invoice-number {
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 11px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--wine);
+        }
+
+        .btn-white:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        /* Compact Info Section */
+        .info-section {
+            padding: 16px 20px;
+            background: var(--light-gray);
+            border-bottom: 3px solid var(--wine);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            font-size: 11px;
+        }
+
+        .info-block h4 {
+            color: var(--wine);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .info-block p {
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .info-block strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Compact Items Table */
+        .items-section {
+            padding: 0;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .items-table thead {
+            background: var(--wine);
+            color: white;
+        }
+
+        .items-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table th:last-child {
+            text-align: right;
+        }
+
+        .items-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .items-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background: #FAFBFC;
+        }
+
+        .items-table tbody tr:hover {
+            background: var(--cream);
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .product-details {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* Compact Totals */
+        .totals-section {
+            padding: 16px 20px;
+            background: var(--light-gray);
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: 1fr 200px;
+            gap: 20px;
+        }
+
+        .payment-info {
+            font-size: 10px;
+        }
+
+        .payment-info h4 {
+            color: var(--wine);
+            font-weight: 700;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .totals-table {
+            width: 200px;
+            font-size: 11px;
+        }
+
+        .totals-table tr {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .totals-table .subtotal-row {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+        }
+
+        .totals-table .total-row {
+            background: var(--wine);
+            color: white;
+            padding: 8px 12px;
+            margin: 6px -12px 0;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        /* Premium Footer */
+        .invoice-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--wine-dark) 0%, var(--wine) 100%);
+            color: white;
+            padding: 12px 20px;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-left {
+            text-align: left;
+        }
+
+        .footer-right {
+            text-align: right;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-completed { background: #D4EDDA; color: #155724; }
+        .status-pending { background: #FFF3CD; color: #856404; }
+        .status-cancelled { background: #F8D7DA; color: #721C24; }
+        .status-due { background: #FFF3CD; color: #856404; } /* Same as pending - orange/yellow */
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--wine);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Print Optimizations */
+        @media print {
+            body {
+                font-size: 11px;
+            }
+            
+            .back-button,
+            .action-buttons {
+                display: none !important;
+            }
+            
+            .invoice-container {
+                max-width: none;
+                margin: 0;
+                box-shadow: none;
+            }
+            
+            .invoice-header,
+            .invoice-footer {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* Ensure header layout stays intact during print */
+            .header-content {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+            }
+            
+            .invoice-meta {
+                text-align: right !important;
+            }
+            
+            .company-info {
+                text-align: left !important;
+            }
+        }
+
+        /* Responsive for screen view */
+        @media screen {
+            body {
+                background: #F5F5F5;
+                padding: 20px;
+            }
+            
+            .invoice-container {
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .totals-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 60px;
+            color: rgba(114, 47, 55, 0.03);
+            font-weight: 800;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <a href="/retail/invoices" class="back-button">
+        ← Back to Invoices
+    </a>
+
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading invoice...</p>
+    </div>
+
+    <div id="invoiceContent" style="display: none;">
+        <div class="invoice-container">
+            <!-- Watermark -->
+            <div class="watermark">BIZPULSE</div>
+            
+            <!-- Premium Header -->
+            <div class="invoice-header">
+                <div class="header-content">
+                    <div class="company-info">
+                        <h1>BizPulse ERP</h1>
+                        <div class="company-tagline">Complete Business Management Solution</div>
+                        <div style="margin-top: 8px; font-size: 10px; opacity: 0.8;">
+                            📧 bizpulse.erp@gmail.com | 📱 +91 70936 35305
+                        </div>
+                    </div>
+                    <div class="invoice-meta">
+                        <div class="invoice-title">INVOICE</div>
+                        <div class="invoice-number" id="billNumber">#INV-001</div>
+                        <div style="margin-top: 6px; font-size: 10px;">
+                            <span id="invoiceDate">22 Dec 2024</span>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-white" onclick="window.location.href='/retail/dashboard'">
+                                🏠 Dashboard
+                            </button>
+                            <button class="btn btn-white" onclick="window.print()">
+                                🖨️ Print
+                            </button>
+                            <button class="btn btn-white" onclick="downloadPDF()">
+                                📄 Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Info Section -->
+            <div class="info-section">
+                <div class="info-grid">
+                    <div class="info-block">
+                        <h4>Bill To</h4>
+                        <p><strong id="customerName">Customer Name</strong></p>
+                        <p id="customerPhone">+91 98765 43210</p>
+                        <p id="customerEmail">customer@email.com</p>
+                        <p id="customerAddress">Customer Address</p>
+                    </div>
+                    <div class="info-block">
+                        <h4>Invoice Details</h4>
+                        <p><strong>Date:</strong> <span id="invoiceDate2">22 Dec 2024</span></p>
+                        <p><strong>Due Date:</strong> <span id="dueDate">31 Dec 2024</span></p>
+                        <p><strong>Payment Terms:</strong> Net 30</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-completed" id="invoiceStatus">COMPLETED</span></p>
+                    </div>
+                    <div class="info-block">
+                        <h4>Business Details</h4>
+                        <p><strong>BizPulse ERP</strong></p>
+                        <p>Hyderabad, Telangana</p>
+                        <p>India - 500001</p>
+                        <p><strong>GST:</strong> 36XXXXX1234X1ZX</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact Items Table -->
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Product/Service</th>
+                            <th style="width: 15%;">Qty</th>
+                            <th style="width: 15%;">Rate</th>
+                            <th style="width: 15%;">Tax</th>
+                            <th style="width: 15%;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTableBody">
+                        <!-- Items will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Compact Totals -->
+            <div class="totals-section">
+                <div class="totals-grid">
+                    <div class="payment-info">
+                        <h4>Payment Information</h4>
+                        <p><strong>Payment Method:</strong> <span id="paymentMethod">Cash</span></p>
+                        <p><strong>Transaction ID:</strong> <span id="transactionId">TXN123456789</span></p>
+                        <p style="margin-top: 8px; font-size: 9px; color: var(--text-light);">
+                            Thank you for your business! For any queries, contact us at bizpulse.erp@gmail.com
+                        </p>
+                        <div id="paymentsSection" style="margin-top: 12px; display: none;">
+                            <h4>Payment History</h4>
+                            <div id="paymentDetails"></div>
+                        </div>
+                    </div>
+                    <div class="totals-table">
+                        <div class="subtotal-row">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                <span>Tax (18%):</span>
+                                <span id="taxAmount">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Discount:</span>
+                                <span id="discountAmount">₹0.00</span>
+                            </div>
+                        </div>
+                        <div class="total-row">
+                            <span>TOTAL:</span>
+                            <span id="grandTotal">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Premium Footer -->
+            <div class="invoice-footer">
+                <div class="footer-content">
+                    <div class="footer-left">
+                        <div><strong>BizPulse ERP</strong> - Your Business Partner</div>
+                        <div>Generated on <span id="generatedDate">22 Dec 2024, 2:30 PM</span></div>
+                    </div>
+                    <div class="footer-right">
+                        <div>🌐 www.bizpulse.com</div>
+                        <div>📧 support@bizpulse.com</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const invoiceId = '{{ invoice_id }}';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadInvoiceDetails();
+            
+            // Auto-populate current date and time
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            document.getElementById('generatedDate').textContent = `${dateStr}, ${timeStr}`;
+        });
+
+        async function loadInvoiceDetails() {
+            try {
+                const response = await fetch(`/api/invoices/${invoiceId}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Invoice not found');
+                    window.location.href = '/retail/invoices';
+                    return;
+                }
+
+                displayInvoice(data);
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('invoiceContent').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading invoice:', error);
+                alert('Error loading invoice details');
+            }
+        }
+
+        function displayInvoice(data) {
+            const invoice = data.invoice;
+            const items = data.items;
+            const payments = data.payments;
+
+            // Invoice header
+            document.getElementById('billNumber').textContent = invoice.bill_number;
+
+            // Customer details
+            document.getElementById('customerName').textContent = invoice.customer_name || 'Walk-in Customer';
+            document.getElementById('customerPhone').textContent = invoice.customer_phone || 'N/A';
+            document.getElementById('customerEmail').textContent = invoice.customer_email || 'N/A';
+            document.getElementById('customerAddress').textContent = invoice.customer_address || 'N/A';
+
+            // Invoice details
+            const invoiceDate = formatDate(invoice.created_at);
+            document.getElementById('invoiceDate').textContent = invoiceDate;
+            document.getElementById('invoiceDate2').textContent = invoiceDate;
+            
+            // Due date (30 days from invoice date)
+            const dueDate = new Date(invoice.created_at);
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('dueDate').textContent = formatDate(dueDate.toISOString());
+            
+            const statusBadge = document.getElementById('invoiceStatus');
+            
+            // Special logic for credit transactions
+            let displayStatus = invoice.status;
+            let statusClass = invoice.status;
+            
+            // If it's a credit transaction (payment_method is credit or is_credit is true)
+            if (invoice.payment_method === 'credit' || invoice.is_credit === 1 || invoice.is_credit === true) {
+                // For credit bills, show DUE instead of COMPLETED
+                if (invoice.status === 'completed') {
+                    displayStatus = 'DUE';
+                    statusClass = 'pending'; // Use pending class for orange color
+                }
+            }
+            
+            statusBadge.className = `status-badge status-${statusClass}`;
+            statusBadge.textContent = displayStatus.toUpperCase();
+
+            // Items
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                const taxAmount = (item.total_price * (item.tax_rate || 18)) / 100;
+                row.innerHTML = `
+                    <td>
+                        <div class="product-name">${item.product_name}</div>
+                        <div class="product-details">SKU: ${item.product_id || 'N/A'}</div>
+                    </td>
+                    <td>${item.quantity}</td>
+                    <td>₹${item.unit_price.toFixed(2)}</td>
+                    <td>₹${taxAmount.toFixed(2)}</td>
+                    <td>₹${item.total_price.toFixed(2)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Totals
+            document.getElementById('subtotal').textContent = '₹' + invoice.subtotal.toFixed(2);
+            document.getElementById('taxAmount').textContent = '₹' + invoice.tax_amount.toFixed(2);
+            document.getElementById('discountAmount').textContent = '₹' + (invoice.discount_amount || 0).toFixed(2);
+            document.getElementById('grandTotal').textContent = '₹' + invoice.total_amount.toFixed(2);
+
+            // Payment method
+            document.getElementById('paymentMethod').textContent = invoice.payment_method ? invoice.payment_method.toUpperCase() : 'CASH';
+            document.getElementById('transactionId').textContent = invoice.id;
+
+            // Payments
+            if (payments && payments.length > 0) {
+                document.getElementById('paymentsSection').style.display = 'block';
+                const paymentDetails = document.getElementById('paymentDetails');
+                paymentDetails.innerHTML = '';
+                
+                payments.forEach(payment => {
+                    const paymentDiv = document.createElement('div');
+                    paymentDiv.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 10px;';
+                    paymentDiv.innerHTML = `
+                        <span>${payment.method.toUpperCase()}</span>
+                        <span>₹${payment.amount.toFixed(2)}</span>
+                    `;
+                    paymentDetails.appendChild(paymentDiv);
+                });
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric'
+            });
+        }
+
+        function downloadPDF() {
+            alert('PDF download feature coming soon!');
+        }
+
+        // Auto-print if ?print=true in URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('print') === 'true') {
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

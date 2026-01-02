@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Invoices - BizPulse</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --wine: #722F37;
+            --wine-dark: #5a2329;
+            --wine-light: #8B3A47;
+            --bg: #fafafa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--wine) 0%, var(--wine-light) 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(114, 47, 55, 0.15);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--wine);
+        }
+
+        .btn-white:hover {
+            background: #f9fafb;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(114, 47, 55, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: transparent;
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        /* Filters */
+        .filters-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .filter-input {
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--wine);
+            box-shadow: 0 0 0 3px rgba(114, 47, 55, 0.1);
+        }
+
+        /* Export Actions */
+        .export-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin: 1rem 0;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .export-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+        }
+
+        .excel-btn {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            color: white;
+        }
+
+        .csv-btn {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+            color: white;
+        }
+
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+        }
+
+        .export-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Table */
+        .table-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 0.875rem 1.5rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text);
+            border-top: 1px solid var(--border);
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-paid {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-overdue {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .action-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+        }
+
+        .action-btn:hover {
+            background: var(--wine);
+            color: white;
+            border-color: var(--wine);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--wine);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="/retail/dashboard" class="back-btn">
+                    ← Dashboard
+                </a>
+                <h1 class="page-title">📄 Invoices</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/retail/billing" class="btn btn-white">
+                    ➕ New Invoice
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">Total Invoices</div>
+                        <div class="stat-value" id="totalInvoices">0</div>
+                    </div>
+                    <div class="stat-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#4F46E5"/>
+                            <path d="M14 2v6h6" fill="none" stroke="white" stroke-width="1"/>
+                            <path d="M8 13h8M8 17h8M8 9h2" fill="none" stroke="white" stroke-width="1"/>
+                            <path d="M16 18.5c0 .28-.22.5-.5.5s-.5-.22-.5-.5.22-.5.5-.5.5.22.5.5z" fill="white"/>
+                            <path d="M18 16c-.55 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z" fill="white"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">Paid</div>
+                        <div class="stat-value" id="paidInvoices">0</div>
+                    </div>
+                    <div class="stat-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <!-- Wallet body -->
+                            <path d="M20 7H4c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z" fill="#2563eb"/>
+                            <!-- Wallet flap -->
+                            <path d="M20 7V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v2" fill="#1d4ed8"/>
+                            <!-- Money/cards -->
+                            <path d="M6 11h4v2H6v-2z" fill="#10b981"/>
+                            <path d="M6 14h6v1H6v-1z" fill="#10b981"/>
+                            <path d="M6 16h3v1H6v-1z" fill="#10b981"/>
+                            <!-- Wallet button -->
+                            <circle cx="17" cy="13" r="1.5" fill="#f59e0b"/>
+                            <circle cx="17" cy="13" r="0.8" fill="white"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="pendingInvoices">0</div>
+                    </div>
+                    <div class="stat-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <!-- Hourglass frame -->
+                            <path d="M6 2h12v2H6V2z" fill="#8B4513"/>
+                            <path d="M6 20h12v2H6v-2z" fill="#8B4513"/>
+                            <path d="M7 4v3l5 5-5 5v3h10v-3l-5-5 5-5V4H7z" fill="#D2691E"/>
+                            <!-- Sand -->
+                            <path d="M8 5v2l4 4-4 4v2h8v-2l-4-4 4-4V5H8z" fill="#F4A460"/>
+                            <!-- Flowing sand -->
+                            <path d="M11 11h2v2h-2v-2z" fill="#DAA520"/>
+                            <ellipse cx="12" cy="15" rx="3" ry="1.5" fill="#F4A460"/>
+                            <ellipse cx="12" cy="7" rx="2" ry="1" fill="#F4A460"/>
+                            <!-- Glass effect -->
+                            <path d="M8 5l1 1v1l3 3-3 3v1l-1 1v2l1-1v-1l3-3-3-3V7l-1-1V5z" fill="rgba(255,255,255,0.3)"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">Total Amount</div>
+                        <div class="stat-value" id="totalAmount">₹0</div>
+                    </div>
+                    <div class="stat-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                            <!-- Money bag -->
+                            <path d="M8 10c0-1 1-2 2-2h4c1 0 2 1 2 2v8c0 1-1 2-2 2h-4c-1 0-2-1-2-2v-8z" fill="#D4AF37"/>
+                            <path d="M8 10c0-1 1-2 2-2h4c1 0 2 1 2 2v1H8v-1z" fill="#B8860B"/>
+                            
+                            <!-- Bag opening/tie -->
+                            <path d="M10 8c0-1 1-2 2-2s2 1 2 2" stroke="#8B4513" stroke-width="1.5" fill="none"/>
+                            <circle cx="11" cy="8" r="0.5" fill="#8B4513"/>
+                            <circle cx="13" cy="8" r="0.5" fill="#8B4513"/>
+                            
+                            <!-- Dollar sign on bag -->
+                            <path d="M12 13v4M11 14h2c.5 0 1 .5 1 1s-.5 1-1 1h-2c-.5 0-1 .5-1 1s.5 1 1 1h2" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                            
+                            <!-- Cash notes coming out -->
+                            <rect x="14" y="6" width="6" height="4" rx="0.5" fill="#90EE90" transform="rotate(-15 17 8)"/>
+                            <rect x="15" y="5" width="6" height="4" rx="0.5" fill="#98FB98" transform="rotate(-10 18 7)"/>
+                            <rect x="16" y="4" width="6" height="4" rx="0.5" fill="#90EE90" transform="rotate(-5 19 6)"/>
+                            
+                            <!-- Details on cash notes -->
+                            <circle cx="17" cy="8" r="0.8" fill="#228B22" transform="rotate(-15 17 8)"/>
+                            <circle cx="18" cy="7" r="0.8" fill="#228B22" transform="rotate(-10 18 7)"/>
+                            <circle cx="19" cy="6" r="0.8" fill="#228B22" transform="rotate(-5 19 6)"/>
+                            
+                            <!-- Lines on notes -->
+                            <path d="M15 7h4M15 8h3" stroke="#228B22" stroke-width="0.5" transform="rotate(-15 17 8)"/>
+                            <path d="M16 6h4M16 7h3" stroke="#228B22" stroke-width="0.5" transform="rotate(-10 18 7)"/>
+                            <path d="M17 5h4M17 6h3" stroke="#228B22" stroke-width="0.5" transform="rotate(-5 19 6)"/>
+                            
+                            <!-- Bag shadow -->
+                            <ellipse cx="12" cy="19" rx="4" ry="1" fill="rgba(0,0,0,0.2)"/>
+                        </svg>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Payment Status</label>
+                    <select class="filter-input" id="statusFilter" onchange="filterInvoices()">
+                        <option value="all">All Status</option>
+                        <option value="paid">Paid</option>
+                        <option value="partial">Partial</option>
+                        <option value="unpaid">Unpaid</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date Filter</label>
+                    <select class="filter-input" id="dateRange" onchange="filterInvoices()">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Records Per Page</label>
+                    <select class="filter-input" id="limitFilter" onchange="changeLimit()">
+                        <option value="10">10 per page</option>
+                        <option value="20" selected>20 per page</option>
+                        <option value="50">50 per page</option>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="justify-content: flex-end;">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn btn-white" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Actions -->
+        <div class="export-actions">
+            <div class="export-buttons">
+                <button class="export-btn pdf-btn" onclick="exportToPDF()" title="Export to PDF">
+                    <svg width="20" height="20" viewBox="0 0 240 234" fill="white">
+                        <path d="M42.5 0h155C221 0 240 19 240 42.5v149c0 23.5-19 42.5-42.5 42.5h-155C19 234 0 215 0 191.5v-149C0 19 19 0 42.5 0z"/>
+                        <path d="M59.5 142.5c4.5 0 8.5-1.5 11.5-4.5s4.5-7 4.5-11.5-1.5-8.5-4.5-11.5-7-4.5-11.5-4.5h-7v32h7zm0-24c2.5 0 4.5.5 6 2s2.5 3.5 2.5 6-.5 4.5-2.5 6-3.5 2-6 2h-1v-16h1z" fill="#DC143C"/>
+                        <path d="M95.5 142.5c4.5 0 8.5-1.5 11.5-4.5s4.5-7 4.5-11.5-1.5-8.5-4.5-11.5-7-4.5-11.5-4.5h-7v32h7zm0-24c2.5 0 4.5.5 6 2s2.5 3.5 2.5 6-.5 4.5-2.5 6-3.5 2-6 2h-1v-16h1z" fill="#DC143C"/>
+                        <path d="M131.5 142.5h6v-16h8v-6h-8v-4h10v-6h-16v32z" fill="#DC143C"/>
+                    </svg>
+                </button>
+                <button class="export-btn excel-btn" onclick="exportToExcel()" title="Export to Excel">
+                    <svg width="20" height="20" viewBox="0 0 2080 2080" fill="white">
+                        <path d="M1920 0H160C72 0 0 72 0 160v1760c0 88 72 160 160 160h1760c88 0 160-72 160-160V160c0-88-72-160-160-160z"/>
+                        <path d="M1280 640h480v160h-480V640zm0 240h480v160h-480V880zm0 240h480v160h-480v-160zm0 240h480v160h-480v-160z" fill="#107C41"/>
+                        <path d="M320 640h800v800H320V640z" fill="#107C41"/>
+                        <path d="M480 800l160 160-160 160 80 80 160-160 160 160 80-80-160-160 160-160-80-80-160 160-160-160-80 80z" fill="white"/>
+                    </svg>
+                </button>
+                <button class="export-btn csv-btn" onclick="exportToCSV()" title="Export to CSV">
+                    <svg width="20" height="20" viewBox="0 0 384 512" fill="white">
+                        <path d="M224 136V0H24C10.7 0 0 10.7 0 24v464c0 13.3 10.7 24 24 24h336c13.3 0 24-10.7 24-24V160H248c-13.2 0-24-10.8-24-24zm-96 144c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm96-128c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm96-128c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zm0 64c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8 8 3.58 8 8zM377 105L279.1 7c-4.5-4.5-10.6-7-17-7H256v128h128v-6.1c0-6.3-2.5-12.4-7-16.9z"/>
+                    </svg>
+                </button>
+                <button class="export-btn whatsapp-btn" onclick="shareViaWhatsApp()" title="Share via WhatsApp">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.516"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2 class="table-title">All Invoices</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Invoice #</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTable">
+                    <tr>
+                        <td colspan="7">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <div>Loading invoices...</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentFilters = {
+            status: 'all',
+            date_filter: 'all',
+            limit: 20
+        };
+
+        // Load invoices with filters and pagination
+        async function loadInvoices(page = 1) {
+            try {
+                currentPage = page;
+                console.log('Fetching invoices from /api/invoices with filters:', currentFilters);
+                
+                // Build query parameters
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: currentFilters.limit,
+                    status: currentFilters.status,
+                    date_filter: currentFilters.date_filter
+                });
+                
+                const response = await fetch(`/api/invoices?${params.toString()}`);
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.invoices && data.invoices.length > 0) {
+                    renderInvoices(data.invoices);
+                    updateStats(data.invoices);
+                    renderPagination(data.pagination);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                showError();
+            }
+        }
+
+        function renderInvoices(invoices) {
+            const tbody = document.getElementById('invoicesTable');
+            tbody.innerHTML = invoices.map((inv, index) => {
+                const serialNo = ((currentPage - 1) * currentFilters.limit) + index + 1;
+                return `
+                <tr data-invoice-id="${inv.id}" onclick="viewInvoice('${inv.id}')">
+                    <td><strong>${serialNo}</strong></td>
+                    <td><strong>${inv.bill_number || inv.id}</strong></td>
+                    <td>
+                        ${inv.display_date || inv.formatted_date || formatDate(inv.invoice_date || inv.created_at)}<br>
+                        <small style="color: #6b7280;">${inv.formatted_time || ''}</small>
+                    </td>
+                    <td>${inv.customer_name || 'Walk-in Customer'}</td>
+                    <td>
+                        <div style="font-size: 0.9em;">
+                            <div><strong>₹${formatNumber(inv.total_amount || 0)}</strong></div>
+                            ${inv.payment_status === 'partial' || inv.payment_method === 'partial' ? 
+                                `<div style="color: #10b981; font-size: 0.8em;">Paid: ₹${formatNumber(inv.paid_amount || inv.credit_paid_amount || 0)}</div>
+                                 <div style="color: #ef4444; font-size: 0.8em;">Due: ₹${formatNumber(inv.balance_due || inv.credit_balance || 0)}</div>` :
+                                (inv.payment_status !== 'paid' && (inv.balance_due > 0 || inv.credit_balance > 0)) ? 
+                                `<div style="color: #ef4444; font-size: 0.8em;">Due: ₹${formatNumber(inv.balance_due || inv.credit_balance || 0)}</div>` : 
+                                ''
+                            }
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-${getStatusClass(inv.payment_status || inv.payment_method || inv.status)}">
+                            ${getStatusText(inv)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn view-btn" onclick="event.stopPropagation(); viewInvoice('${inv.id}')">View</button>
+                        <button class="action-btn print-btn" onclick="event.stopPropagation(); printInvoice('${inv.id}')">Print</button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function renderPagination(pagination) {
+            if (!pagination || pagination.total_pages <= 1) {
+                // Hide pagination if not needed
+                const existingPagination = document.querySelector('.pagination-section');
+                if (existingPagination) {
+                    existingPagination.remove();
+                }
+                return;
+            }
+            
+            // Remove existing pagination
+            const existingPagination = document.querySelector('.pagination-section');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+            
+            // Create pagination HTML
+            const paginationHTML = `
+                <div class="pagination-section" style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="color: #6b7280; font-size: 0.875rem;">
+                            Showing ${((pagination.current_page - 1) * pagination.per_page) + 1} to ${Math.min(pagination.current_page * pagination.per_page, pagination.total_records)} of ${pagination.total_records} invoices
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn" style="background: ${pagination.has_prev ? 'white' : '#f3f4f6'}; color: ${pagination.has_prev ? '#722F37' : '#9ca3af'}; border: 1px solid #e5e7eb;" 
+                                    onclick="loadInvoices(${pagination.current_page - 1})" 
+                                    ${!pagination.has_prev ? 'disabled' : ''}>
+                                ← Previous
+                            </button>
+                            <div style="display: flex; gap: 0.25rem; align-items: center;">
+                                ${generatePageNumbers(pagination)}
+                            </div>
+                            <button class="btn" style="background: ${pagination.has_next ? 'white' : '#f3f4f6'}; color: ${pagination.has_next ? '#722F37' : '#9ca3af'}; border: 1px solid #e5e7eb;" 
+                                    onclick="loadInvoices(${pagination.current_page + 1})" 
+                                    ${!pagination.has_next ? 'disabled' : ''}>
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after table section
+            const tableSection = document.querySelector('.table-section');
+            tableSection.insertAdjacentHTML('afterend', paginationHTML);
+        }
+
+        function generatePageNumbers(pagination) {
+            let html = '';
+            const maxPages = 5;
+            let startPage = Math.max(1, pagination.current_page - 2);
+            let endPage = Math.min(pagination.total_pages, startPage + maxPages - 1);
+            
+            if (endPage - startPage < maxPages - 1) {
+                startPage = Math.max(1, endPage - maxPages + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === pagination.current_page;
+                html += `
+                    <button class="btn" 
+                            style="background: ${isActive ? '#722F37' : 'white'}; 
+                                   color: ${isActive ? 'white' : '#722F37'}; 
+                                   border: 1px solid ${isActive ? '#722F37' : '#e5e7eb'}; 
+                                   min-width: 40px;" 
+                            onclick="loadInvoices(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            return html;
+        }
+
+        function updateStats(invoices) {
+            // Note: These stats are for current page only
+            // For accurate totals, you'd need a separate API endpoint
+            const total = invoices.length;
+            const paid = invoices.filter(i => (i.payment_status || i.status || 'paid').toLowerCase() === 'paid').length;
+            const unpaid = invoices.filter(i => (i.payment_status || i.status || '').toLowerCase() === 'unpaid').length;
+            const partial = invoices.filter(i => (i.payment_status || i.status || '').toLowerCase() === 'partial').length;
+            const totalAmount = invoices.reduce((sum, i) => sum + (i.total_amount || 0), 0);
+
+            document.getElementById('totalInvoices').textContent = total;
+            document.getElementById('paidInvoices').textContent = paid;
+            document.getElementById('pendingInvoices').textContent = unpaid + partial;
+            document.getElementById('totalAmount').textContent = '₹' + formatNumber(totalAmount);
+        }
+
+        function getStatusClass(status) {
+            const s = (status || 'paid').toLowerCase();
+            if (s === 'paid') return 'paid';
+            if (s === 'partial') return 'pending';
+            if (s === 'unpaid') return 'overdue';
+            if (s === 'pending') return 'pending';
+            return 'overdue';
+        }
+
+        function getStatusText(inv) {
+            const status = (inv.payment_status || inv.payment_method || inv.status || 'paid').toLowerCase();
+            const balanceDue = inv.balance_due || inv.credit_balance || 0;
+            const paidAmount = inv.paid_amount || inv.credit_paid_amount || 0;
+            
+            if (status === 'partial' || (paidAmount > 0 && balanceDue > 0)) {
+                return 'INCOMPLETE';
+            } else if (status === 'paid' || balanceDue <= 0) {
+                return 'PAID';
+            } else if (status === 'credit' || status === 'unpaid' || balanceDue > 0) {
+                return 'DUE';
+            }
+            return 'PAID';
+        }
+
+        function showEmptyState() {
+            document.getElementById('invoicesTable').innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <div class="empty-text">No invoices found</div>
+                    </div>
+                </td></tr>
+            `;
+            
+            // Remove pagination
+            const existingPagination = document.querySelector('.pagination-section');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+        }
+
+        function showError() {
+            document.getElementById('invoicesTable').innerHTML = `
+                <tr><td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">Failed to load invoices</div>
+                    </div>
+                </td></tr>
+            `;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function filterInvoices() {
+            // Update filters from UI
+            currentFilters.status = document.getElementById('statusFilter').value;
+            
+            const dateRange = document.getElementById('dateRange').value;
+            if (dateRange === 'today') {
+                currentFilters.date_filter = 'today';
+            } else if (dateRange === 'yesterday') {
+                currentFilters.date_filter = 'yesterday';
+            } else if (dateRange === 'week') {
+                currentFilters.date_filter = 'week';
+            } else if (dateRange === 'month') {
+                currentFilters.date_filter = 'month';
+            } else {
+                currentFilters.date_filter = 'all';
+            }
+            
+            // Reset to page 1 when filtering
+            loadInvoices(1);
+        }
+
+        function changeLimit() {
+            currentFilters.limit = parseInt(document.getElementById('limitFilter').value);
+            loadInvoices(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateRange').value = 'all';
+            document.getElementById('limitFilter').value = '20';
+            
+            currentFilters = {
+                status: 'all',
+                date_filter: 'all',
+                limit: 20
+            };
+            
+            loadInvoices(1);
+        }
+
+        function viewInvoice(id) {
+            console.log('Viewing invoice:', id);
+            window.location.href = `/retail/invoice/${id}`;
+        }
+
+        function printInvoice(id) {
+            console.log('Printing invoice:', id);
+            window.open(`/retail/invoice/${id}?print=true`, '_blank');
+        }
+
+        // Export Functions
+        function exportToPDF() {
+            console.log('Exporting to PDF...');
+            const params = new URLSearchParams({
+                format: 'pdf',
+                status: currentFilters.status,
+                date_filter: currentFilters.date_filter,
+                limit: 1000 // Export all matching records
+            });
+            
+            window.open(`/api/invoices/export?${params.toString()}`, '_blank');
+        }
+
+        function exportToExcel() {
+            console.log('Exporting to Excel...');
+            const params = new URLSearchParams({
+                format: 'excel',
+                status: currentFilters.status,
+                date_filter: currentFilters.date_filter,
+                limit: 1000
+            });
+            
+            window.open(`/api/invoices/export?${params.toString()}`, '_blank');
+        }
+
+        function exportToCSV() {
+            console.log('Exporting to CSV...');
+            const params = new URLSearchParams({
+                format: 'csv',
+                status: currentFilters.status,
+                date_filter: currentFilters.date_filter,
+                limit: 1000
+            });
+            
+            window.open(`/api/invoices/export?${params.toString()}`, '_blank');
+        }
+
+        function shareViaWhatsApp() {
+            console.log('Sharing via WhatsApp...');
+            const params = new URLSearchParams({
+                format: 'whatsapp',
+                status: currentFilters.status,
+                date_filter: currentFilters.date_filter,
+                limit: 100
+            });
+            
+            fetch(`/api/invoices/export?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('📱 WhatsApp report generated! Check your WhatsApp.');
+                    } else {
+                        alert('❌ Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('WhatsApp export error:', error);
+                    alert('❌ Failed to send WhatsApp report');
+                });
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Invoice page loaded - NEW VERSION with Pagination & Filters');
+            loadInvoices(1);
+        });
+    </script>
+</body>
+</html>

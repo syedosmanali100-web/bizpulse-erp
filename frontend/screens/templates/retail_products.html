@@ -1,0 +1,2613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management - Enhanced ERP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 50%, #A66B7A 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 15px rgba(115, 44, 63, 0.3);
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #F7E8EC;
+        }
+        
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Fixed Back Button */
+        .fixed-back-btn {
+            position: fixed;
+            left: 280px;
+            top: 2rem;
+            z-index: 999;
+            background: linear-gradient(135deg, #732C3F 0%, #5a2332 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(115, 44, 63, 0.3);
+            text-decoration: none;
+        }
+
+        .fixed-back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(115, 44, 63, 0.4);
+        }
+
+        .fixed-back-btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            padding-top: 90px;
+            min-height: 100vh;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        /* Controls */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1.2rem;
+        }
+        
+        .filter-select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-width: 150px;
+        }
+        
+        .add-btn {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(115, 44, 63, 0.3);
+        }
+        
+        .add-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+            box-shadow: 0 4px 12px rgba(115, 44, 63, 0.4);
+        }
+        
+        /* Stats Cards */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #732C3F;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+        
+        /* Products Table */
+        .products-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .product-image {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .product-details h4 {
+            margin: 0;
+            color: #333;
+            font-size: 0.95rem;
+        }
+        
+        .product-code {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .stock-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .stock-good {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .stock-low {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .stock-out {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-view {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #8B4A5C 0%, #A66B7A 100%);
+            color: white;
+        }
+        
+        .btn-stock {
+            background: linear-gradient(135deg, #A66B7A 0%, #732C3F 100%);
+            color: white;
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #732C3F 0%, #D4A5B0 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #A66B7A 0%, #732C3F 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover,
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Alert Styles */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .alert-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #732C3F;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .fixed-back-btn {
+                left: 1rem;
+                top: 1rem;
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+
+            .fixed-back-btn span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+                padding-top: 70px;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+        
+        /* Image Recommendation Styles */
+        .image-option-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .recommend-images-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .upload-custom-btn {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .recommend-images-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .upload-custom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+        
+        .recommend-images-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .image-selection-grid {
+            background: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .image-grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .image-grid-header h4 {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .close-grid-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .image-option {
+            position: relative;
+            border: 3px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .image-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .image-option.selected {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+        }
+        
+        .image-option img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .image-option-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .image-option:hover .image-option-overlay {
+            opacity: 1;
+        }
+        
+        .image-option.selected .image-option-overlay {
+            opacity: 1;
+            background: rgba(76, 175, 80, 0.8);
+        }
+        
+        .image-grid-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+        }
+        
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">📦</div>
+            <div class="sidebar-title">Product Management</div>
+        </div>
+        
+        <a href="/retail/dashboard" class="back-btn">← Back to Dashboard</a>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Product Management System</h1>
+        </div>
+        
+        <!-- Alert Messages -->
+        <div id="alertSuccess" class="alert alert-success"></div>
+        <div id="alertError" class="alert alert-error"></div>
+        
+        <!-- Main Controls -->
+        <div class="controls">
+            <div class="controls-row">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search products by name, code, or category..." oninput="filterProducts()">
+                </div>
+                
+                <select id="categoryFilter" class="filter-select" onchange="filterProducts()">
+                    <option value="">All Categories</option>
+                    <option value="Grains">Grains</option>
+                    <option value="Pulses">Pulses</option>
+                    <option value="Cooking">Cooking</option>
+                    <option value="Beverages">Beverages</option>
+                    <option value="Sweeteners">Sweeteners</option>
+                    <option value="Dairy">Dairy</option>
+                    <option value="Snacks">Snacks</option>
+                    <option value="Spices">Spices</option>
+                    <option value="Frozen">Frozen</option>
+                    <option value="Personal Care">Personal Care</option>
+                    <option value="Household">Household</option>
+                </select>
+                
+                <select id="stockFilter" class="filter-select" onchange="filterProducts()">
+                    <option value="">All Stock</option>
+                    <option value="good">Good Stock</option>
+                    <option value="low">Low Stock</option>
+                    <option value="out">Out of Stock</option>
+                </select>
+                
+                <select id="sortBy" class="filter-select" onchange="filterProducts()">
+                    <option value="name">Sort by Name</option>
+                    <option value="price">Sort by Price</option>
+                    <option value="stock">Sort by Stock</option>
+                    <option value="category">Sort by Category</option>
+                    <option value="created">Sort by Date Added</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="controls" style="margin-bottom: 15px;">
+            <div class="controls-row">
+                <button class="add-btn" onclick="openBulkImportModal()">
+                    📊 Bulk Import
+                </button>
+                <button class="add-btn" onclick="exportProducts()">
+                    📤 Export CSV
+                </button>
+                <button class="add-btn" onclick="openPriceUpdateModal()">
+                    💰 Bulk Price Update
+                </button>
+                <button class="add-btn" onclick="generateLowStockReport()">
+                    📋 Low Stock Report
+                </button>
+                <button class="add-btn" onclick="generateBarcode()">
+                    🏷️ Generate Barcodes
+                </button>
+                <button class="add-btn" onclick="openAddModal()">
+                    ➕ Add Product
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card" onclick="filterByStock('all')">
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+            <div class="stat-card" onclick="filterByStock('low')">
+                <div class="stat-value" id="lowStockCount">0</div>
+                <div class="stat-label">Low Stock Items</div>
+            </div>
+            <div class="stat-card" onclick="filterByStock('out')">
+                <div class="stat-value" id="outOfStockCount">0</div>
+                <div class="stat-label">Out of Stock</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalValue">₹0</div>
+                <div class="stat-label">Inventory Value</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgMargin">0%</div>
+                <div class="stat-label">Avg Profit Margin</div>
+            </div>
+        </div>
+        
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            Loading products...
+        </div>
+        
+        <!-- Products Table -->
+        <div class="products-table">
+            <div class="table-header">
+                <h3 class="table-title">Products Inventory</h3>
+                <div class="table-actions">
+                    <button class="btn btn-view" onclick="toggleTableView()">
+                        📋 Toggle View
+                    </button>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Cost</th>
+                        <th>Stock</th>
+                        <th>Total Value</th>
+                        <th>Margin</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- Products will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div> 
+   
+    <!-- Add/Edit Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Product</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCode">Product Code *</label>
+                            <input type="text" id="productCode" required placeholder="e.g., P001">
+                        </div>
+                        <div class="form-group">
+                            <label for="productName">Product Name *</label>
+                            <input type="text" id="productName" required placeholder="e.g., Rice 1kg">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory">Category</label>
+                            <select id="productCategory">
+                                <option value="Grains">Grains</option>
+                                <option value="Pulses">Pulses</option>
+                                <option value="Cooking">Cooking</option>
+                                <option value="Beverages">Beverages</option>
+                                <option value="Sweeteners">Sweeteners</option>
+                                <option value="Dairy">Dairy</option>
+                                <option value="Snacks">Snacks</option>
+                                <option value="Spices">Spices</option>
+                                <option value="Frozen">Frozen</option>
+                                <option value="Personal Care">Personal Care</option>
+                                <option value="Household">Household</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productUnit">Unit</label>
+                            <select id="productUnit">
+                                <option value="piece">Piece</option>
+                                <option value="kg">Kilogram</option>
+                                <option value="gram">Gram</option>
+                                <option value="liter">Liter</option>
+                                <option value="ml">Milliliter</option>
+                                <option value="pack">Pack</option>
+                                <option value="bottle">Bottle</option>
+                                <option value="box">Box</option>
+                                <option value="dozen">Dozen</option>
+                                <option value="meter">Meter</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCost">Cost Price *</label>
+                            <input type="number" id="productCost" required step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Selling Price *</label>
+                            <input type="number" id="productPrice" required step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productStock">Current Stock</label>
+                            <input type="number" id="productStock" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="productMinStock">Minimum Stock Level</label>
+                            <input type="number" id="productMinStock" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productDescription">Description (Optional)</label>
+                        <textarea id="productDescription" rows="3" placeholder="Product description..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productImage">Product Image (Optional)</label>
+                        
+                        <!-- Image Options -->
+                        <div class="image-options-section" style="margin-bottom: 15px;">
+                            <div class="image-option-buttons">
+                                <button type="button" id="recommendImagesBtn" class="recommend-images-btn" onclick="recommendImages()">
+                                    🔍 Recommend Images
+                                </button>
+                                <button type="button" class="upload-custom-btn" onclick="uploadCustomImage()">
+                                    📁 Upload Custom Image
+                                </button>
+                            </div>
+                            <small style="color: #666; display: block; margin-top: 8px;">
+                                Get AI-powered suggestions or upload your own image
+                            </small>
+                        </div>
+                        
+                        <!-- Image Selection Grid (Hidden by default) -->
+                        <div id="imageSelectionGrid" class="image-selection-grid" style="display: none;">
+                            <div class="image-grid-header">
+                                <h4>Select an image for your product:</h4>
+                                <button type="button" class="close-grid-btn" onclick="closeImageGrid()">×</button>
+                            </div>
+                            <div id="imageGrid" class="image-grid">
+                                <!-- Images will be loaded here -->
+                            </div>
+                            <div class="image-grid-footer">
+                                <button type="button" class="btn-secondary" onclick="closeImageGrid()">Cancel</button>
+                                <button type="button" class="btn-secondary" onclick="uploadCustomImage()">Upload Custom Image</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Traditional File Upload (Hidden) -->
+                        <input type="file" id="productImage" accept="image/*" onchange="previewProductImage()" style="display: none;">
+                        
+                        <!-- Selected Image Preview -->
+                        <div id="imagePreview" style="margin-top: 15px; display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <strong>Selected Image:</strong>
+                            </div>
+                            <img id="previewImg" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #e0e0e0; display: block;">
+                            <div style="margin-top: 10px;">
+                                <button type="button" onclick="removeImagePreview()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                    🗑️ Remove Image
+                                </button>
+                                <button type="button" onclick="changeImage()" style="background: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                                    🔄 Change Image
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <small style="color: #666; display: block; margin-top: 10px;">
+                            Supported formats: JPG, PNG, GIF, WebP (Max 5MB)
+                        </small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productBarcode">Barcode (Optional)</label>
+                            <input type="text" id="productBarcode" placeholder="Barcode number">
+                        </div>
+                        <div class="form-group">
+                            <label for="productSupplier">Supplier (Optional)</label>
+                            <input type="text" id="productSupplier" placeholder="Supplier name">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="saveProduct()">Save Product</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stock Update Modal -->
+    <div id="stockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Update Stock</h2>
+                <button class="close-btn" onclick="closeStockModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Product: <strong><span id="stockProductName"></span></strong></label>
+                </div>
+                <div class="form-group">
+                    <label>Current Stock: <strong><span id="currentStock"></span></strong></label>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stockOperation">Operation</label>
+                        <select id="stockOperation">
+                            <option value="add">Add Stock</option>
+                            <option value="remove">Remove Stock</option>
+                            <option value="set">Set Stock</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stockQuantity">Quantity</label>
+                        <input type="number" id="stockQuantity" required min="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="stockReason">Reason</label>
+                    <select id="stockReason">
+                        <option value="">Select reason...</option>
+                        <option value="purchase">New Purchase</option>
+                        <option value="return">Customer Return</option>
+                        <option value="adjustment">Stock Adjustment</option>
+                        <option value="damage">Damaged/Expired</option>
+                        <option value="sale">Manual Sale</option>
+                        <option value="transfer">Stock Transfer</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="stockNotes">Notes (Optional)</label>
+                    <textarea id="stockNotes" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+                <input type="hidden" id="stockProductId">
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeStockModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="updateStock()">Update Stock</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bulk Import Modal -->
+    <div id="bulkImportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Bulk Import Products</h2>
+                <button class="close-btn" onclick="closeBulkImportModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Import Method</label>
+                    <select id="importMethod" onchange="toggleImportMethod()">
+                        <option value="csv">CSV File Upload</option>
+                        <option value="manual">Manual JSON Entry</option>
+                    </select>
+                </div>
+                
+                <div id="csvImportSection">
+                    <div class="form-group">
+                        <label for="csvFile">Select CSV File</label>
+                        <input type="file" id="csvFile" accept=".csv" onchange="previewCSV()">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            CSV should have columns: code, name, category, price, cost, stock, min_stock, unit
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="button" class="btn-secondary" onclick="downloadTemplate()">
+                            📥 Download Template
+                        </button>
+                    </div>
+                    
+                    <div id="csvPreview" style="display: none;">
+                        <h4>Preview (First 5 rows):</h4>
+                        <div id="csvPreviewTable" style="overflow-x: auto;"></div>
+                    </div>
+                </div>
+                
+                <div id="manualImportSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="bulkProductData">Product Data (JSON Format)</label>
+                        <textarea id="bulkProductData" rows="15" placeholder='[
+  {
+    "code": "P001",
+    "name": "Rice 1kg",
+    "category": "Grains",
+    "price": 80,
+    "cost": 70,
+    "stock": 100,
+    "min_stock": 10,
+    "unit": "piece"
+  },
+  {
+    "code": "P002",
+    "name": "Dal 500g",
+    "category": "Pulses",
+    "price": 60,
+    "cost": 50,
+    "stock": 50,
+    "min_stock": 5,
+    "unit": "piece"
+  }
+]'></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeBulkImportModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="processBulkImport()">Import Products</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Details Modal -->
+    <div id="productDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Product Details</h2>
+                <button class="close-btn" onclick="closeProductDetailsModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="productDetailsContent">
+                    <!-- Product details will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeProductDetailsModal()">Close</button>
+                <button type="button" class="btn-primary" onclick="editProductFromDetails()">Edit Product</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Price Update Modal -->
+    <div id="priceUpdateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Bulk Price Update</h2>
+                <button class="close-btn" onclick="closePriceUpdateModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="priceUpdateCategory">Category (Optional)</label>
+                    <select id="priceUpdateCategory">
+                        <option value="">All Categories</option>
+                        <option value="Grains">Grains</option>
+                        <option value="Pulses">Pulses</option>
+                        <option value="Cooking">Cooking</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Sweeteners">Sweeteners</option>
+                        <option value="Dairy">Dairy</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Spices">Spices</option>
+                        <option value="Frozen">Frozen</option>
+                        <option value="Personal Care">Personal Care</option>
+                        <option value="Household">Household</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="priceUpdateType">Update Type</label>
+                        <select id="priceUpdateType" onchange="updatePriceHelp()">
+                            <option value="percentage">Percentage Change</option>
+                            <option value="fixed">Fixed Amount Change</option>
+                            <option value="margin">Set Margin on Cost</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priceUpdateValue">Value</label>
+                        <input type="number" id="priceUpdateValue" step="0.01" placeholder="Enter value">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <small id="priceUpdateHelp" style="color: #666;">
+                        Enter percentage (e.g., 10 for 10% increase, -5 for 5% decrease)
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="updateCostToo"> Also update cost prices
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="previewChanges" checked> Preview changes before applying
+                    </label>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closePriceUpdateModal()">Cancel</button>
+                <button type="button" class="btn-primary" onclick="processBulkPriceUpdate()">Update Prices</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let editingProductId = null;
+        let currentDetailProductId = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            setupEventListeners();
+        });
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', filterProducts);
+            document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+            document.getElementById('stockFilter').addEventListener('change', filterProducts);
+            document.getElementById('sortBy').addEventListener('change', filterProducts);
+            
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const modals = ['productModal', 'stockModal', 'bulkImportModal', 'productDetailsModal', 'priceUpdateModal'];
+                modals.forEach(modalId => {
+                    const modal = document.getElementById(modalId);
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // ============================================================================
+        // IMAGE RECOMMENDATION FUNCTIONS
+        // ============================================================================
+        
+        let selectedImageUrl = null;
+        
+        // Recommend images based on product name and category
+        async function recommendImages() {
+            const productName = document.getElementById('productName').value.trim();
+            const category = document.getElementById('productCategory').value;
+            
+            if (!productName) {
+                showError('Please enter a product name first');
+                return;
+            }
+            
+            const btn = document.getElementById('recommendImagesBtn');
+            const originalText = btn.innerHTML;
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Finding Images...';
+            
+            try {
+                const response = await fetch('/api/products/recommend-images', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_name: productName,
+                        category: category
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayImageOptions(result.images);
+                    showSuccess(`Found ${result.total_found} images for "${productName}"`);
+                } else {
+                    showError(result.error || 'Failed to find images');
+                }
+                
+            } catch (error) {
+                showError('Error fetching images: ' + error.message);
+            } finally {
+                // Restore button state
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+        
+        // Display image options in grid
+        function displayImageOptions(images) {
+            const grid = document.getElementById('imageGrid');
+            const selectionGrid = document.getElementById('imageSelectionGrid');
+            
+            // Clear previous results
+            grid.innerHTML = '';
+            selectedImageUrl = null;
+            
+            if (!images || images.length === 0) {
+                grid.innerHTML = '<div class="error-message">No images found. Try a different product name.</div>';
+                selectionGrid.style.display = 'block';
+                return;
+            }
+            
+            // Create image options with better error handling
+            images.forEach((image, index) => {
+                const imageOption = document.createElement('div');
+                imageOption.className = 'image-option';
+                imageOption.onclick = () => selectImage(image.url, imageOption);
+                
+                // Create image element with error handling
+                const imgElement = document.createElement('img');
+                imgElement.src = image.url;
+                imgElement.alt = image.title;
+                imgElement.loading = 'lazy';
+                
+                // Add error handling for failed image loads
+                imgElement.onerror = function() {
+                    console.log(`Failed to load image: ${image.url}`);
+                    // Try a guaranteed fallback image
+                    const fallbackId = 292 + (index % 8);
+                    this.src = `https://picsum.photos/300/300?random=${fallbackId}`;
+                    
+                    // If even that fails, use SVG placeholder
+                    this.onerror = function() {
+                        this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect width="300" height="300" fill="%23f0f0f0"/%3E%3Ctext x="150" y="150" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14" fill="%23999"%3EProduct Image%3C/text%3E%3C/svg%3E';
+                    };
+                };
+                
+                imgElement.onload = function() {
+                    console.log(`✅ Successfully loaded image: ${image.url}`);
+                    // Remove loading placeholder if it exists
+                    const loadingText = this.parentElement.querySelector('.loading-placeholder');
+                    if (loadingText) {
+                        loadingText.remove();
+                    }
+                };
+                
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'image-option-overlay';
+                overlay.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 5px;">✓</div>
+                        <div style="font-size: 12px;">Select</div>
+                    </div>
+                `;
+                
+                // Append elements
+                imageOption.appendChild(imgElement);
+                imageOption.appendChild(overlay);
+                grid.appendChild(imageOption);
+            });
+            
+            // Show the selection grid
+            selectionGrid.style.display = 'block';
+            
+            // Scroll to grid
+            selectionGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Select an image from the grid
+        function selectImage(imageUrl, element) {
+            // Remove previous selection
+            document.querySelectorAll('.image-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Mark current selection
+            element.classList.add('selected');
+            selectedImageUrl = imageUrl;
+            
+            // Update preview
+            const previewImg = document.getElementById('previewImg');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            previewImg.src = imageUrl;
+            previewImg.removeAttribute('data-remove-image');
+            imagePreview.style.display = 'block';
+            
+            // Close grid after selection
+            setTimeout(() => {
+                closeImageGrid();
+                showSuccess('Image selected! You can now save the product.');
+            }, 500);
+        }
+        
+        // Close image selection grid
+        function closeImageGrid() {
+            document.getElementById('imageSelectionGrid').style.display = 'none';
+        }
+        
+        // Upload custom image (traditional file upload)
+        function uploadCustomImage() {
+            closeImageGrid();
+            document.getElementById('productImage').click();
+        }
+        
+        // Change image (show options again)
+        function changeImage() {
+            const productName = document.getElementById('productName').value.trim();
+            if (productName) {
+                // Show image recommendation again
+                recommendImages();
+            } else {
+                // Just show file upload
+                uploadCustomImage();
+            }
+        }
+        
+        // Remove image preview
+        function removeImagePreview() {
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            imagePreview.style.display = 'none';
+            previewImg.src = '';
+            previewImg.removeAttribute('data-remove-image');
+            selectedImageUrl = null;
+            
+            // Clear file input
+            document.getElementById('productImage').value = '';
+        }
+        
+        // ============================================================================
+        
+        // Load products from API
+        async function loadProducts() {
+            showLoading(true);
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('/api/products', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    products = await response.json();
+                    displayProducts(products);
+                    updateStats();
+                } else {
+                    showError('Failed to load products');
+                }
+            } catch (error) {
+                showError('Error loading products: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Display products in table
+        function displayProducts(productsToShow) {
+            const tbody = document.getElementById('productsTableBody');
+            
+            if (productsToShow.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
+                            <div>No products found</div>
+                            <button class="btn-primary" onclick="openAddModal()" style="margin-top: 15px;">Add First Product</button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = productsToShow.map(product => {
+                const stockStatus = getStockStatus(product);
+                const margin = ((product.price - product.cost) / product.cost * 100).toFixed(1);
+                const totalValue = (product.cost * product.stock).toFixed(2);
+                return `
+                    <tr>
+                        <td>
+                            <div class="product-info">
+                                <div class="product-image">
+                                    ${product.image_url ? 
+                                        `<img src="${product.image_url}" alt="${product.name}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">` : 
+                                        '📦'
+                                    }
+                                </div>
+                                <div class="product-details">
+                                    <h4>${product.name}</h4>
+                                    <div class="product-code">${product.code}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${product.category}</td>
+                        <td>₹${product.price}</td>
+                        <td>₹${product.cost}</td>
+                        <td>${product.stock} ${product.unit}</td>
+                        <td><strong>₹${totalValue}</strong></td>
+                        <td>${margin}%</td>
+                        <td>
+                            <span class="stock-badge stock-${stockStatus.class}">
+                                ${stockStatus.label}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-view" onclick="viewProductDetails('${product.id}')" title="View Details">
+                                    👁️
+                                </button>
+                                <button class="btn btn-stock" onclick="openStockModal('${product.id}', '${product.name}', ${product.stock})" title="Update Stock">
+                                    📊
+                                </button>
+                                <button class="btn btn-edit" onclick="editProduct('${product.id}')" title="Edit">
+                                    ✏️
+                                </button>
+                                <button class="btn btn-delete" onclick="deleteProduct('${product.id}')" title="Delete">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Get stock status
+        function getStockStatus(product) {
+            if (product.stock === 0) {
+                return { class: 'out', label: 'Out of Stock' };
+            } else if (product.stock <= product.min_stock) {
+                return { class: 'low', label: 'Low Stock' };
+            } else {
+                return { class: 'good', label: 'In Stock' };
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const totalProducts = products.length;
+            const lowStockCount = products.filter(p => p.stock <= p.min_stock && p.stock > 0).length;
+            const outOfStockCount = products.filter(p => p.stock === 0).length;
+            const totalValue = products.reduce((sum, p) => sum + (p.stock * p.cost), 0);
+            
+            // Calculate average profit margin
+            const avgMargin = products.length > 0 ? 
+                products.reduce((sum, p) => sum + ((p.price - p.cost) / p.cost * 100), 0) / products.length : 0;
+            
+            document.getElementById('totalProducts').textContent = totalProducts;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            document.getElementById('outOfStockCount').textContent = outOfStockCount;
+            document.getElementById('totalValue').textContent = `₹${totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('avgMargin').textContent = `${avgMargin.toFixed(1)}%`;
+        }
+        
+        // Filter products
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const stockFilter = document.getElementById('stockFilter').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            let filteredProducts = products.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm) ||
+                                    product.code.toLowerCase().includes(searchTerm) ||
+                                    product.category.toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !categoryFilter || product.category === categoryFilter;
+                
+                let matchesStock = true;
+                if (stockFilter === 'good') {
+                    matchesStock = product.stock > product.min_stock;
+                } else if (stockFilter === 'low') {
+                    matchesStock = product.stock <= product.min_stock && product.stock > 0;
+                } else if (stockFilter === 'out') {
+                    matchesStock = product.stock === 0;
+                }
+                
+                return matchesSearch && matchesCategory && matchesStock;
+            });
+            
+            // Sort products
+            filteredProducts.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'price':
+                        return b.price - a.price;
+                    case 'stock':
+                        return b.stock - a.stock;
+                    case 'category':
+                        return a.category.localeCompare(b.category);
+                    case 'created':
+                        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            displayProducts(filteredProducts);
+            updateStats(); // Update stats after filtering
+        }
+        
+        // Filter by stock status (for clickable stat cards)
+        function filterByStock(status) {
+            const stockFilter = document.getElementById('stockFilter');
+            if (status === 'all') {
+                stockFilter.value = '';
+            } else {
+                stockFilter.value = status;
+            }
+            filterProducts();
+        }
+        
+        // Modal Functions
+        function openAddModal() {
+            editingProductId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Product';
+            document.getElementById('productForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
+            document.getElementById('previewImg').removeAttribute('data-remove-image');
+            document.getElementById('productModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('productModal').style.display = 'none';
+            // Reset image recommendation state
+            selectedImageUrl = null;
+            closeImageGrid();
+        }
+        
+        // Edit product
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            editingProductId = productId;
+            document.getElementById('modalTitle').textContent = 'Edit Product';
+            document.getElementById('productId').value = product.id;
+            document.getElementById('productCode').value = product.code;
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productUnit').value = product.unit;
+            document.getElementById('productCost').value = product.cost;
+            document.getElementById('productPrice').value = product.price;
+            document.getElementById('productStock').value = product.stock;
+            document.getElementById('productMinStock').value = product.min_stock;
+            document.getElementById('productDescription').value = product.description || '';
+            document.getElementById('productBarcode').value = product.barcode || '';
+            document.getElementById('productSupplier').value = product.supplier || '';
+            
+            // Handle existing image
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            previewImg.removeAttribute('data-remove-image'); // Clear remove flag
+            if (product.image_url) {
+                previewImg.src = product.image_url;
+                imagePreview.style.display = 'block';
+            } else {
+                imagePreview.style.display = 'none';
+            }
+            
+            document.getElementById('productModal').style.display = 'block';
+        }
+        
+        // Save product
+        async function saveProduct() {
+            const formData = {
+                code: document.getElementById('productCode').value,
+                name: document.getElementById('productName').value,
+                category: document.getElementById('productCategory').value,
+                unit: document.getElementById('productUnit').value,
+                cost: parseFloat(document.getElementById('productCost').value),
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value) || 0,
+                min_stock: parseInt(document.getElementById('productMinStock').value) || 0,
+                description: document.getElementById('productDescription').value,
+                barcode: document.getElementById('productBarcode').value,
+                supplier: document.getElementById('productSupplier').value
+            };
+            
+            if (!formData.code || !formData.name || !formData.cost || !formData.price) {
+                showError('Please fill all required fields');
+                return;
+            }
+            
+            if (formData.cost >= formData.price) {
+                if (!confirm('Cost price is equal to or higher than selling price. This will result in no profit or loss. Continue?')) {
+                    return;
+                }
+            }
+            
+            try {
+                // Handle image selection/upload
+                const imageFile = document.getElementById('productImage').files[0];
+                const removeImage = document.getElementById('previewImg').getAttribute('data-remove-image') === 'true';
+                
+                if (selectedImageUrl) {
+                    // User selected an image from recommendations
+                    formData.image_url = selectedImageUrl;
+                } else if (imageFile) {
+                    // User uploaded a custom image
+                    try {
+                        const imageUrl = await uploadProductImage(imageFile);
+                        formData.image_url = imageUrl;
+                    } catch (error) {
+                        showError('Failed to upload image: ' + error.message);
+                        return;
+                    }
+                } else if (removeImage) {
+                    // User explicitly removed the image
+                    formData.image_url = null;
+                } else if (editingProductId) {
+                    // If editing and no new image selected, preserve existing image
+                    const existingProduct = products.find(p => p.id === editingProductId);
+                    if (existingProduct && existingProduct.image_url) {
+                        formData.image_url = existingProduct.image_url;
+                    }
+                }
+                
+                const token = localStorage.getItem('authToken');
+                const url = editingProductId ? `/api/products/${editingProductId}` : '/api/products';
+                const method = editingProductId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    showSuccess(editingProductId ? 'Product updated successfully' : 'Product added successfully');
+                    closeModal();
+                    loadProducts();
+                } else {
+                    const error = await response.json();
+                    showError(error.message || 'Failed to save product');
+                }
+            } catch (error) {
+                showError('Error saving product: ' + error.message);
+            }
+        }
+        
+        // Delete product
+        async function deleteProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            if (!confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) return;
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    showSuccess('Product deleted successfully');
+                    loadProducts();
+                } else {
+                    showError('Failed to delete product');
+                }
+            } catch (error) {
+                showError('Error deleting product: ' + error.message);
+            }
+        }
+        
+        // Stock Management
+        function openStockModal(productId, productName, currentStock) {
+            document.getElementById('stockProductId').value = productId;
+            document.getElementById('stockProductName').textContent = productName;
+            document.getElementById('currentStock').textContent = currentStock;
+            document.getElementById('stockQuantity').value = '';
+            document.getElementById('stockReason').value = '';
+            document.getElementById('stockNotes').value = '';
+            document.getElementById('stockModal').style.display = 'block';
+        }
+        
+        function closeStockModal() {
+            document.getElementById('stockModal').style.display = 'none';
+        }
+        
+        async function updateStock() {
+            const productId = document.getElementById('stockProductId').value;
+            const operation = document.getElementById('stockOperation').value;
+            const quantity = parseInt(document.getElementById('stockQuantity').value);
+            const reason = document.getElementById('stockReason').value;
+            const notes = document.getElementById('stockNotes').value;
+            
+            if (!quantity || quantity < 0) {
+                showError('Please enter a valid quantity');
+                return;
+            }
+            
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            let newStock;
+            switch (operation) {
+                case 'add':
+                    newStock = product.stock + quantity;
+                    break;
+                case 'remove':
+                    newStock = Math.max(0, product.stock - quantity);
+                    break;
+                case 'set':
+                    newStock = quantity;
+                    break;
+            }
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        ...product,
+                        stock: newStock
+                    })
+                });
+                
+                if (response.ok) {
+                    showSuccess(`Stock updated successfully. ${operation === 'add' ? 'Added' : operation === 'remove' ? 'Removed' : 'Set'} ${quantity} units.`);
+                    closeStockModal();
+                    loadProducts();
+                } else {
+                    showError('Failed to update stock');
+                }
+            } catch (error) {
+                showError('Error updating stock: ' + error.message);
+            }
+        }
+        
+        // Product Details
+        function viewProductDetails(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            currentDetailProductId = productId;
+            const stockStatus = getStockStatus(product);
+            const profitMargin = ((product.price - product.cost) / product.cost * 100).toFixed(2);
+            const inventoryValue = (product.stock * product.cost).toFixed(2);
+            const potentialRevenue = (product.stock * product.price).toFixed(2);
+            const potentialProfit = (product.stock * (product.price - product.cost)).toFixed(2);
+            
+            const detailsHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <div>
+                        <h4 style="color: #732C3F; margin-bottom: 15px; border-bottom: 2px solid #732C3F; padding-bottom: 5px;">📋 Basic Information</h4>
+                        <p><strong>Code:</strong> ${product.code}</p>
+                        <p><strong>Name:</strong> ${product.name}</p>
+                        <p><strong>Category:</strong> ${product.category}</p>
+                        <p><strong>Unit:</strong> ${product.unit}</p>
+                        <p><strong>Barcode:</strong> ${product.barcode || 'Not set'}</p>
+                        <p><strong>Supplier:</strong> ${product.supplier || 'Not set'}</p>
+                        ${product.description ? `<p><strong>Description:</strong> ${product.description}</p>` : ''}
+                    </div>
+                    <div>
+                        <h4 style="color: #732C3F; margin-bottom: 15px; border-bottom: 2px solid #732C3F; padding-bottom: 5px;">💰 Pricing</h4>
+                        <p><strong>Cost Price:</strong> ₹${product.cost}</p>
+                        <p><strong>Selling Price:</strong> ₹${product.price}</p>
+                        <p><strong>Profit per Unit:</strong> ₹${(product.price - product.cost).toFixed(2)}</p>
+                        <p><strong>Profit Margin:</strong> ${profitMargin}%</p>
+                    </div>
+                    <div>
+                        <h4 style="color: #732C3F; margin-bottom: 15px; border-bottom: 2px solid #732C3F; padding-bottom: 5px;">📦 Stock Information</h4>
+                        <p><strong>Current Stock:</strong> ${product.stock} ${product.unit}</p>
+                        <p><strong>Minimum Stock:</strong> ${product.min_stock} ${product.unit}</p>
+                        <p><strong>Status:</strong> <span class="stock-badge stock-${stockStatus.class}">${stockStatus.label}</span></p>
+                        ${product.stock <= product.min_stock ? `<p style="color: #f57c00;"><strong>⚠️ Reorder Suggestion:</strong> ${product.min_stock * 2} ${product.unit}</p>` : ''}
+                    </div>
+                    <div>
+                        <h4 style="color: #732C3F; margin-bottom: 15px; border-bottom: 2px solid #732C3F; padding-bottom: 5px;">💼 Financial Summary</h4>
+                        <p><strong>Inventory Value:</strong> ₹${inventoryValue}</p>
+                        <p><strong>Potential Revenue:</strong> ₹${potentialRevenue}</p>
+                        <p><strong>Potential Profit:</strong> ₹${potentialProfit}</p>
+                        <p><strong>ROI:</strong> ${((potentialProfit / inventoryValue) * 100).toFixed(1)}%</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('productDetailsContent').innerHTML = detailsHTML;
+            document.getElementById('productDetailsModal').style.display = 'block';
+        }
+        
+        function closeProductDetailsModal() {
+            document.getElementById('productDetailsModal').style.display = 'none';
+            currentDetailProductId = null;
+        }
+        
+        function editProductFromDetails() {
+            if (currentDetailProductId) {
+                closeProductDetailsModal();
+                editProduct(currentDetailProductId);
+            }
+        }
+        
+        // Bulk Import Functions
+        function openBulkImportModal() {
+            document.getElementById('bulkImportModal').style.display = 'block';
+        }
+        
+        function closeBulkImportModal() {
+            document.getElementById('bulkImportModal').style.display = 'none';
+            document.getElementById('csvPreview').style.display = 'none';
+        }
+        
+        function toggleImportMethod() {
+            const method = document.getElementById('importMethod').value;
+            const csvSection = document.getElementById('csvImportSection');
+            const manualSection = document.getElementById('manualImportSection');
+            
+            if (method === 'csv') {
+                csvSection.style.display = 'block';
+                manualSection.style.display = 'none';
+            } else {
+                csvSection.style.display = 'none';
+                manualSection.style.display = 'block';
+            }
+        }
+        
+        function downloadTemplate() {
+            const csvContent = "code,name,category,price,cost,stock,min_stock,unit,description,barcode,supplier\n" +
+                             "P001,Rice 1kg,Grains,80,70,100,10,piece,Premium Basmati Rice,,Local Supplier\n" +
+                             "P002,Dal 500g,Pulses,60,50,50,5,piece,Toor Dal,,ABC Traders\n" +
+                             "P003,Oil 1L,Cooking,120,100,30,5,bottle,Sunflower Oil,1234567890123,XYZ Company";
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'product_import_template.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function previewCSV() {
+            const file = document.getElementById('csvFile').files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const lines = csv.split('\n');
+                const headers = lines[0].split(',');
+                
+                let previewHTML = '<table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">';
+                previewHTML += '<tr>';
+                headers.forEach(header => {
+                    previewHTML += `<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5; text-align: left;">${header.trim()}</th>`;
+                });
+                previewHTML += '</tr>';
+                
+                for (let i = 1; i < Math.min(6, lines.length); i++) {
+                    if (lines[i].trim()) {
+                        const cells = lines[i].split(',');
+                        previewHTML += '<tr>';
+                        cells.forEach(cell => {
+                            previewHTML += `<td style="border: 1px solid #ddd; padding: 8px;">${cell.trim()}</td>`;
+                        });
+                        previewHTML += '</tr>';
+                    }
+                }
+                previewHTML += '</table>';
+                
+                document.getElementById('csvPreviewTable').innerHTML = previewHTML;
+                document.getElementById('csvPreview').style.display = 'block';
+            };
+            reader.readAsText(file);
+        }
+        
+        async function processBulkImport() {
+            const method = document.getElementById('importMethod').value;
+            let productsData = [];
+            
+            if (method === 'csv') {
+                const file = document.getElementById('csvFile').files[0];
+                if (!file) {
+                    showError('Please select a CSV file');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim());
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        if (lines[i].trim()) {
+                            const cells = lines[i].split(',');
+                            const product = {};
+                            headers.forEach((header, index) => {
+                                product[header] = cells[index] ? cells[index].trim() : '';
+                            });
+                            
+                            // Convert numeric fields
+                            product.price = parseFloat(product.price) || 0;
+                            product.cost = parseFloat(product.cost) || 0;
+                            product.stock = parseInt(product.stock) || 0;
+                            product.min_stock = parseInt(product.min_stock) || 0;
+                            
+                            productsData.push(product);
+                        }
+                    }
+                    
+                    await importProducts(productsData);
+                };
+                reader.readAsText(file);
+            } else {
+                try {
+                    productsData = JSON.parse(document.getElementById('bulkProductData').value);
+                    await importProducts(productsData);
+                } catch (error) {
+                    showError('Invalid JSON format');
+                }
+            }
+        }
+        
+        async function importProducts(productsData) {
+            if (!productsData || productsData.length === 0) {
+                showError('No products to import');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('authToken');
+                let successCount = 0;
+                let errorCount = 0;
+                const errors = [];
+                
+                for (const productData of productsData) {
+                    try {
+                        const response = await fetch('/api/products', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(productData)
+                        });
+                        
+                        if (response.ok) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                            const error = await response.json();
+                            errors.push(`${productData.code || 'Unknown'}: ${error.message || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        errorCount++;
+                        errors.push(`${productData.code || 'Unknown'}: ${error.message}`);
+                    }
+                }
+                
+                let message = `Import completed: ${successCount} products added`;
+                if (errorCount > 0) {
+                    message += `, ${errorCount} errors`;
+                    if (errors.length > 0) {
+                        console.log('Import errors:', errors);
+                    }
+                }
+                
+                showSuccess(message);
+                closeBulkImportModal();
+                loadProducts();
+            } catch (error) {
+                showError('Error importing products: ' + error.message);
+            }
+        }
+        
+        // Export Functions
+        function exportProducts() {
+            if (products.length === 0) {
+                showError('No products to export');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8," + 
+                "Code,Name,Category,Price,Cost,Stock,Min Stock,Unit,Status,Margin,Inventory Value\n" +
+                products.map(product => {
+                    const status = getStockStatus(product).label;
+                    const margin = ((product.price - product.cost) / product.cost * 100).toFixed(1);
+                    const inventoryValue = (product.stock * product.cost).toFixed(2);
+                    return `${product.code},"${product.name}",${product.category},${product.price},${product.cost},${product.stock},${product.min_stock},${product.unit},"${status}",${margin}%,${inventoryValue}`;
+                }).join('\n');
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `products_export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess(`Exported ${products.length} products to CSV`);
+        }
+        
+        // Quick Action Functions
+        function generateLowStockReport() {
+            const lowStockProducts = products.filter(p => p.stock <= p.min_stock);
+            
+            if (lowStockProducts.length === 0) {
+                showSuccess('Great! No low stock items found.');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8," + 
+                "Product Code,Product Name,Category,Current Stock,Min Stock,Shortage,Unit,Reorder Suggestion,Cost per Unit,Reorder Value\n" +
+                lowStockProducts.map(product => {
+                    const shortage = Math.max(0, product.min_stock - product.stock);
+                    const reorderSuggestion = product.min_stock * 2;
+                    const reorderValue = (reorderSuggestion * product.cost).toFixed(2);
+                    return `${product.code},"${product.name}",${product.category},${product.stock},${product.min_stock},${shortage},${product.unit},${reorderSuggestion},${product.cost},${reorderValue}`;
+                }).join('\n');
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `low_stock_report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showSuccess(`Low stock report generated for ${lowStockProducts.length} products`);
+        }
+        
+        function generateBarcode() {
+            if (products.length === 0) {
+                showError('No products available for barcode generation');
+                return;
+            }
+            
+            const selectedProducts = products.slice(0, 20); // Limit to first 20 for demo
+            
+            let barcodeHTML = `
+                <html>
+                <head>
+                    <title>Product Barcodes - ${new Date().toLocaleDateString()}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            margin: 20px;
+                            background: #f5f5f5;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            padding: 20px;
+                            background: white;
+                            border-radius: 10px;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }
+                        .barcode-container {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                            gap: 20px;
+                            margin: 20px 0;
+                        }
+                        .barcode-item { 
+                            background: white;
+                            border: 2px solid #732C3F;
+                            border-radius: 10px;
+                            padding: 15px;
+                            text-align: center;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        }
+                        .barcode { 
+                            font-family: 'Courier New', monospace; 
+                            font-size: 18px; 
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                            background: linear-gradient(90deg, #000 50%, #fff 50%);
+                            background-size: 4px 100%;
+                            color: transparent;
+                            height: 40px;
+                            margin: 15px 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border: 1px solid #ccc;
+                        }
+                        .product-info { 
+                            font-size: 12px;
+                            line-height: 1.4;
+                        }
+                        .product-name {
+                            font-weight: bold;
+                            font-size: 14px;
+                            color: #732C3F;
+                            margin-bottom: 5px;
+                        }
+                        .print-btn {
+                            background: #732C3F;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            margin: 10px;
+                        }
+                        @media print {
+                            .header { page-break-after: avoid; }
+                            .barcode-item { page-break-inside: avoid; }
+                            .print-btn { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1 style="color: #732C3F; margin: 0;">Product Barcodes</h1>
+                        <p style="margin: 10px 0 0 0; color: #666;">Generated on ${new Date().toLocaleDateString()} | Total: ${selectedProducts.length} products</p>
+                        <button class="print-btn" onclick="window.print()">🖨️ Print Barcodes</button>
+                    </div>
+                    <div class="barcode-container">
+            `;
+            
+            selectedProducts.forEach(product => {
+                const barcode = product.barcode || product.code;
+                barcodeHTML += `
+                    <div class="barcode-item">
+                        <div class="product-name">${product.name}</div>
+                        <div class="barcode">${barcode}</div>
+                        <div class="product-info">
+                            <div>Code: ${product.code}</div>
+                            <div>Price: ₹${product.price}</div>
+                            <div>Category: ${product.category}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            barcodeHTML += `
+                    </div>
+                    <div style="text-align: center; margin-top: 30px; padding: 20px; background: white; border-radius: 10px;">
+                        <p style="color: #666; margin: 0;">Generated by BizPulse ERP System</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(barcodeHTML);
+            newWindow.document.close();
+            
+            showSuccess(`Barcode sheet generated for ${selectedProducts.length} products`);
+        }
+        
+        // Price Update Functions
+        function openPriceUpdateModal() {
+            document.getElementById('priceUpdateModal').style.display = 'block';
+        }
+        
+        function closePriceUpdateModal() {
+            document.getElementById('priceUpdateModal').style.display = 'none';
+        }
+        
+        function updatePriceHelp() {
+            const updateType = document.getElementById('priceUpdateType').value;
+            const helpElement = document.getElementById('priceUpdateHelp');
+            
+            switch (updateType) {
+                case 'percentage':
+                    helpElement.textContent = 'Enter percentage (e.g., 10 for 10% increase, -5 for 5% decrease)';
+                    break;
+                case 'fixed':
+                    helpElement.textContent = 'Enter fixed amount (e.g., 5 to add ₹5, -2 to subtract ₹2)';
+                    break;
+                case 'margin':
+                    helpElement.textContent = 'Enter desired profit margin percentage (e.g., 25 for 25% margin on cost)';
+                    break;
+            }
+        }
+        
+        async function processBulkPriceUpdate() {
+            const category = document.getElementById('priceUpdateCategory').value;
+            const updateType = document.getElementById('priceUpdateType').value;
+            const value = parseFloat(document.getElementById('priceUpdateValue').value);
+            const updateCost = document.getElementById('updateCostToo').checked;
+            const previewChanges = document.getElementById('previewChanges').checked;
+            
+            if (!value && value !== 0) {
+                showError('Please enter a valid value');
+                return;
+            }
+            
+            const productsToUpdate = category ? 
+                products.filter(p => p.category === category) : 
+                products;
+            
+            if (productsToUpdate.length === 0) {
+                showError('No products found for the selected criteria');
+                return;
+            }
+            
+            // Calculate changes
+            const changes = productsToUpdate.map(product => {
+                let newPrice = product.price;
+                let newCost = product.cost;
+                
+                switch (updateType) {
+                    case 'percentage':
+                        newPrice = product.price * (1 + value / 100);
+                        if (updateCost) newCost = product.cost * (1 + value / 100);
+                        break;
+                    case 'fixed':
+                        newPrice = product.price + value;
+                        if (updateCost) newCost = product.cost + value;
+                        break;
+                    case 'margin':
+                        newPrice = product.cost * (1 + value / 100);
+                        break;
+                }
+                
+                return {
+                    ...product,
+                    newPrice: Math.max(0, Math.round(newPrice * 100) / 100),
+                    newCost: Math.max(0, Math.round(newCost * 100) / 100),
+                    oldPrice: product.price,
+                    oldCost: product.cost
+                };
+            });
+            
+            // Show preview if requested
+            if (previewChanges) {
+                const previewHTML = `
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        <h4>Price Update Preview (${changes.length} products)</h4>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <tr style="background: #f5f5f5;">
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Product</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Old Price</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">New Price</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: right;">Change</th>
+                            </tr>
+                            ${changes.slice(0, 10).map(change => `
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">${change.name}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₹${change.oldPrice}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">₹${change.newPrice}</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; text-align: right; color: ${change.newPrice > change.oldPrice ? 'green' : 'red'};">
+                                        ${change.newPrice > change.oldPrice ? '+' : ''}₹${(change.newPrice - change.oldPrice).toFixed(2)}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                            ${changes.length > 10 ? `<tr><td colspan="4" style="text-align: center; padding: 8px; font-style: italic;">... and ${changes.length - 10} more products</td></tr>` : ''}
+                        </table>
+                    </div>
+                `;
+                
+                if (!confirm(`${previewHTML}\n\nDo you want to apply these changes?`)) {
+                    return;
+                }
+            }
+            
+            // Apply changes
+            try {
+                const token = localStorage.getItem('authToken');
+                let updateCount = 0;
+                
+                for (const change of changes) {
+                    const response = await fetch(`/api/products/${change.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            ...change,
+                            price: change.newPrice,
+                            cost: change.newCost
+                        })
+                    });
+                    
+                    if (response.ok) updateCount++;
+                }
+                
+                showSuccess(`Successfully updated prices for ${updateCount} products`);
+                closePriceUpdateModal();
+                loadProducts();
+            } catch (error) {
+                showError('Error updating prices: ' + error.message);
+            }
+        }
+        
+        // Image handling functions
+        function previewProductImage() {
+            const file = document.getElementById('productImage').files[0];
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            
+            if (file) {
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('Image size must be less than 5MB');
+                    document.getElementById('productImage').value = '';
+                    return;
+                }
+                
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                if (!validTypes.includes(file.type)) {
+                    showError('Please select a valid image file (JPG, PNG, GIF, WebP)');
+                    document.getElementById('productImage').value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+        
+        function removeImagePreview() {
+            document.getElementById('productImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
+            
+            // If editing a product, mark that image should be removed
+            if (editingProductId) {
+                // Set a flag to indicate image should be cleared
+                document.getElementById('previewImg').setAttribute('data-remove-image', 'true');
+            }
+        }
+        
+        // Upload image to server
+        async function uploadProductImage(file) {
+            if (!file) return null;
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/upload/product-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    return result.image_url;
+                } else {
+                    throw new Error('Failed to upload image');
+                }
+            } catch (error) {
+                console.error('Image upload error:', error);
+                throw error;
+            }
+        }
+        function toggleTableView() {
+            // This could toggle between different table views (compact, detailed, etc.)
+            showSuccess('Table view toggled (feature can be expanded)');
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function showSuccess(message) {
+            const alert = document.getElementById('alertSuccess');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+        
+        function showError(message) {
+            const alert = document.getElementById('alertError');
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice System Test - BizPulse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .status-badge {
+            font-size: 0.8em;
+            padding: 0.25rem 0.5rem;
+        }
+        .invoice-card {
+            transition: transform 0.2s;
+        }
+        .invoice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">📋 Invoice System Test</h2>
+                
+                <!-- Filters Section -->
+                <div class="filter-section">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="form-label">Date Filter</label>
+                            <select class="form-select" id="dateFilter">
+                                <option value="all">All Dates</option>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="custom">Custom Date</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Custom Date</label>
+                            <input type="date" class="form-control" id="customDate" disabled>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Payment Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="all">All Status</option>
+                                <option value="paid">Paid</option>
+                                <option value="partial">Partial</option>
+                                <option value="unpaid">Unpaid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Per Page</label>
+                            <select class="form-select" id="limitFilter">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary" onclick="loadInvoices()">🔍 Apply Filters</button>
+                            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loading" class="text-center d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading invoices...</p>
+                </div>
+                
+                <!-- Results Summary -->
+                <div id="resultsSummary" class="alert alert-info d-none"></div>
+                
+                <!-- Pagination Info -->
+                <div id="paginationInfo" class="d-none">
+                    <nav>
+                        <ul class="pagination justify-content-center" id="paginationControls">
+                        </ul>
+                    </nav>
+                </div>
+                
+                <!-- Invoices List -->
+                <div id="invoicesList" class="row">
+                    <!-- Invoices will be loaded here -->
+                </div>
+                
+                <!-- Error Display -->
+                <div id="errorDisplay" class="alert alert-danger d-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+        let currentFilters = {};
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInvoices();
+            
+            // Enable/disable custom date based on filter selection
+            document.getElementById('dateFilter').addEventListener('change', function() {
+                const customDateInput = document.getElementById('customDate');
+                if (this.value === 'custom') {
+                    customDateInput.disabled = false;
+                    customDateInput.required = true;
+                } else {
+                    customDateInput.disabled = true;
+                    customDateInput.required = false;
+                }
+            });
+        });
+
+        function resetFilters() {
+            document.getElementById('dateFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('limitFilter').value = '20';
+            document.getElementById('customDate').value = '';
+            document.getElementById('customDate').disabled = true;
+            currentPage = 1;
+            loadInvoices();
+        }
+
+        function loadInvoices(page = 1) {
+            currentPage = page;
+            
+            // Show loading
+            document.getElementById('loading').classList.remove('d-none');
+            document.getElementById('invoicesList').innerHTML = '';
+            document.getElementById('errorDisplay').classList.add('d-none');
+            document.getElementById('resultsSummary').classList.add('d-none');
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            params.append('page', page);
+            
+            const dateFilter = document.getElementById('dateFilter').value;
+            if (dateFilter !== 'all') {
+                params.append('date_filter', dateFilter);
+                
+                if (dateFilter === 'custom') {
+                    const customDate = document.getElementById('customDate').value;
+                    if (customDate) {
+                        params.append('custom_date', customDate);
+                    }
+                }
+            }
+            
+            const statusFilter = document.getElementById('statusFilter').value;
+            if (statusFilter !== 'all') {
+                params.append('status', statusFilter);
+            }
+            
+            const limit = document.getElementById('limitFilter').value;
+            params.append('limit', limit);
+            
+            currentFilters = Object.fromEntries(params);
+            
+            // Make API call
+            fetch(`/api/invoices?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').classList.add('d-none');
+                    
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+                    
+                    displayInvoices(data.invoices || []);
+                    displayPagination(data.pagination);
+                    displaySummary(data);
+                })
+                .catch(error => {
+                    document.getElementById('loading').classList.add('d-none');
+                    showError('Failed to load invoices: ' + error.message);
+                });
+        }
+
+        function displayInvoices(invoices) {
+            const container = document.getElementById('invoicesList');
+            
+            if (invoices.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-warning text-center">
+                            <h5>📭 No Invoices Found</h5>
+                            <p>No invoices match your current filters.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = invoices.map(invoice => `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card invoice-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">${invoice.bill_number || 'N/A'}</h6>
+                                <span class="badge bg-${getStatusColor(invoice.payment_status)} status-badge">
+                                    ${(invoice.payment_status || 'unknown').toUpperCase()}
+                                </span>
+                            </div>
+                            
+                            <p class="card-text text-muted mb-2">
+                                <small>👤 ${invoice.customer_name || 'Walk-in Customer'}</small>
+                            </p>
+                            
+                            <p class="card-text mb-2">
+                                <strong>📅 ${invoice.display_date || invoice.formatted_date || invoice.invoice_date}</strong><br>
+                                <small class="text-muted">🕐 ${invoice.formatted_time || 'N/A'}</small>
+                            </p>
+                            
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <small class="text-muted">Total</small><br>
+                                    <strong>₹${(invoice.total_amount || 0).toFixed(2)}</strong>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Paid</small><br>
+                                    <strong class="text-success">₹${(invoice.paid_amount || 0).toFixed(2)}</strong>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Balance</small><br>
+                                    <strong class="text-danger">₹${(invoice.balance_due || 0).toFixed(2)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewInvoiceDetails('${invoice.id}')">
+                                👁️ View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayPagination(pagination) {
+            if (!pagination) return;
+            
+            const container = document.getElementById('paginationControls');
+            const info = document.getElementById('paginationInfo');
+            
+            if (pagination.total_pages <= 1) {
+                info.classList.add('d-none');
+                return;
+            }
+            
+            info.classList.remove('d-none');
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            if (pagination.has_prev) {
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadInvoices(${pagination.current_page - 1})">Previous</a></li>`;
+            } else {
+                paginationHTML += `<li class="page-item disabled"><span class="page-link">Previous</span></li>`;
+            }
+            
+            // Page numbers
+            const startPage = Math.max(1, pagination.current_page - 2);
+            const endPage = Math.min(pagination.total_pages, pagination.current_page + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                if (i === pagination.current_page) {
+                    paginationHTML += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                } else {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadInvoices(${i})">${i}</a></li>`;
+                }
+            }
+            
+            // Next button
+            if (pagination.has_next) {
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadInvoices(${pagination.current_page + 1})">Next</a></li>`;
+            } else {
+                paginationHTML += `<li class="page-item disabled"><span class="page-link">Next</span></li>`;
+            }
+            
+            container.innerHTML = paginationHTML;
+        }
+
+        function displaySummary(data) {
+            const summary = document.getElementById('resultsSummary');
+            const pagination = data.pagination;
+            
+            if (pagination) {
+                summary.innerHTML = `
+                    📊 Showing ${data.invoices.length} of ${pagination.total_records} invoices 
+                    (Page ${pagination.current_page} of ${pagination.total_pages})
+                `;
+                summary.classList.remove('d-none');
+            }
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'paid': 'success',
+                'partial': 'warning',
+                'unpaid': 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function viewInvoiceDetails(invoiceId) {
+            // Simple alert for now - you can implement a modal later
+            alert(`View details for invoice: ${invoiceId}\n\nThis would open a detailed view with items, payments, etc.`);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDisplay');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('d-none');
+        }
+    </script>
+</body>
+</html>

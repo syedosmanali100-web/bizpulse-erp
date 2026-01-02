@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download BizPulse Desktop ERP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #722F37 0%, #8B3A47 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .download-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .download-card:hover {
+            border-color: #722F37;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(114, 47, 55, 0.2);
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #722F37 0%, #8B3A47 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(114, 47, 55, 0.3);
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .status.available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #722F37;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💻 BizPulse Desktop ERP</h1>
+            <p>Download your offline-ready retail management system</p>
+        </div>
+
+        <div class="content">
+            <a href="/retail/dashboard" class="back-link">← Back to Dashboard</a>
+
+            <div class="status available">
+                ✅ Desktop app is ready for download!
+            </div>
+
+            <div class="download-card">
+                <h3>📦 Portable Version (104 MB)</h3>
+                <p>Complete desktop application in a ZIP file. No installation required!</p>
+                <a href="/download/desktop" class="download-btn">📥 Download ZIP Package</a>
+            </div>
+
+            <div class="download-card">
+                <h3>⚡ Direct Executable</h3>
+                <p>Direct executable file for advanced users.</p>
+                <a href="/download/desktop/exe" class="download-btn">💻 Download EXE File</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
