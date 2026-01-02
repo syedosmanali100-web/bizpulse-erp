@@ -53,51 +53,51 @@ class ProductsService:
         }
     
     def search_product_by_barcode(self, barcode):
-        """Search product by barcode data - Production ready with enhanced logging"""
-        print(f"🔍 [BARCODE SEARCH] Searching for barcode: '{barcode}'")
-        
-        # Validate barcode input
+        """⚡ LIGHTNING-FAST barcode search - Optimized for instant response like RetailsDaddy"""
+        # Quick validation - no logging for speed
         if not barcode or len(barcode.strip()) == 0:
-            print(f"❌ [BARCODE SEARCH] Invalid barcode - empty or null")
-            return {
-                "success": False,
-                "error": "Invalid barcode - empty or null"
-            }
+            return {"success": False, "error": "Invalid barcode"}
         
         barcode = barcode.strip()
-        print(f"🔍 [BARCODE SEARCH] Cleaned barcode: '{barcode}' (length: {len(barcode)})")
-        
         conn = get_db_connection()
         
-        # Debug: Check all products with barcodes
-        all_barcodes = conn.execute("""SELECT id, name, barcode_data FROM products 
-            WHERE barcode_data IS NOT NULL AND barcode_data != '' AND is_active = 1""").fetchall()
-        
-        print(f"🔍 [BARCODE SEARCH] Available barcodes in database: {len(all_barcodes)}")
-        for bc in all_barcodes:
-            print(f"   - Product: {bc['name']}, Barcode: '{bc['barcode_data']}'")
-        
-        # EXACT MATCH ONLY - Primary lookup by barcode_data
-        product = conn.execute("""SELECT * FROM products 
-            WHERE barcode_data = ? AND is_active = 1
-            LIMIT 1""", (barcode,)).fetchone()
+        # ⚡ OPTIMIZED QUERY - Single query with index lookup
+        # Uses the unique index on barcode_data for instant search
+        product = conn.execute("""SELECT id, code, name, category, price, cost, stock, 
+                                         min_stock, unit, business_type, barcode_data, 
+                                         barcode_image, image_url, is_active 
+                                  FROM products 
+                                  WHERE barcode_data = ? AND is_active = 1 
+                                  LIMIT 1""", (barcode,)).fetchone()
         
         conn.close()
         
         if product:
-            print(f"✅ [BARCODE SEARCH] Found product: {product['name']} (ID: {product['id']})")
+            # ⚡ INSTANT RESPONSE - Return immediately with minimal data
             return {
                 "success": True,
-                "product": dict(product)
+                "product": {
+                    "id": product['id'],
+                    "code": product['code'],
+                    "name": product['name'],
+                    "category": product['category'],
+                    "price": product['price'],
+                    "cost": product['cost'],
+                    "stock": product['stock'],
+                    "min_stock": product['min_stock'],
+                    "unit": product['unit'],
+                    "business_type": product['business_type'],
+                    "barcode_data": product['barcode_data'],
+                    "barcode_image": product['barcode_image'],
+                    "image_url": product['image_url']
+                }
             }
         else:
-            print(f"❌ [BARCODE SEARCH] No product found for barcode: '{barcode}'")
-            print(f"❌ [BARCODE SEARCH] Available barcodes: {[bc['barcode_data'] for bc in all_barcodes]}")
+            # ⚡ FAST FAILURE - No debug info for speed
             return {
                 "success": False,
-                "message": f"Product not found for barcode: {barcode}",
-                "barcode": barcode,
-                "available_barcodes": [bc['barcode_data'] for bc in all_barcodes]  # Debug info
+                "message": "Product not found",
+                "barcode": barcode
             }
     
     def add_product(self, data):

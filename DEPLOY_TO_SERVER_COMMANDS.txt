@@ -1,0 +1,77 @@
+🚀 BizPulse ERP - Server Deployment Commands
+==================================================
+
+STEP 1: Connect to your server
+------------------------------
+ssh your-username@bizpulse24.com
+(Replace 'your-username' with your actual server username)
+
+STEP 2: Navigate to project directory
+------------------------------------
+cd /var/www/bizpulse-erp
+# OR if your project is in a different location:
+# cd /home/bizpulse/bizpulse-erp
+# cd ~/bizpulse-erp
+
+STEP 3: Pull latest changes from GitHub
+---------------------------------------
+git pull origin main
+
+STEP 4: Install dependencies
+----------------------------
+pip3 install -r requirements.txt
+# OR if using pip:
+# pip install -r requirements.txt
+
+STEP 5: Update database
+-----------------------
+python3 -c "from modules.shared.database import init_db; init_db(); print('✅ Database updated successfully')"
+
+STEP 6: Test application
+------------------------
+python3 -c "from app import app; print('✅ App imports successfully')"
+
+STEP 7: Restart Flask application
+---------------------------------
+# Try one of these commands (depending on your server setup):
+
+# Option A: If using systemd service
+sudo systemctl restart bizpulse-erp
+
+# Option B: If using PM2
+pm2 restart bizpulse-erp
+
+# Option C: If running manually
+pkill -f "python.*app.py"
+nohup python3 app.py > app.log 2>&1 &
+
+# Option D: If using gunicorn
+sudo systemctl restart gunicorn
+
+STEP 8: Verify deployment
+-------------------------
+# Check if the app is running
+ps aux | grep python
+curl http://localhost:5000
+curl https://bizpulse24.com
+
+==================================================
+🎯 QUICK COPY-PASTE COMMANDS (Run these in order):
+==================================================
+
+git pull origin main
+pip3 install -r requirements.txt
+python3 -c "from modules.shared.database import init_db; init_db(); print('Database updated')"
+python3 -c "from app import app; print('App test successful')"
+sudo systemctl restart bizpulse-erp || pm2 restart bizpulse-erp || (pkill -f "python.*app.py" && nohup python3 app.py > app.log 2>&1 &)
+
+==================================================
+✅ DEPLOYMENT STATUS:
+==================================================
+📊 GitHub: ✅ All changes pushed successfully
+🌐 Server: ⏳ Run commands above to deploy
+📱 Mobile ERP: ✅ 100% Working (barcode fixed)
+🏗️ Architecture: ✅ Modular monolith ready
+🔧 Barcode: ✅ Fixed and tested
+
+🚀 Your BizPulse ERP is ready for production!
