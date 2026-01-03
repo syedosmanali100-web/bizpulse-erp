@@ -14,7 +14,9 @@ class SalesService:
         
         if from_date and to_date:
             sales = conn.execute("""
-                SELECT s.*, p.name as product_name, c.name as customer_name
+                SELECT s.*,
+                       COALESCE(s.product_name, p.name) as product_name,
+                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
                 FROM sales s
                 LEFT JOIN products p ON s.product_id = p.id
                 LEFT JOIN customers c ON s.customer_id = c.id
@@ -24,7 +26,9 @@ class SalesService:
             """, (from_date, to_date, limit)).fetchall()
         elif from_date:
             sales = conn.execute("""
-                SELECT s.*, p.name as product_name, c.name as customer_name
+                SELECT s.*,
+                       COALESCE(s.product_name, p.name) as product_name,
+                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
                 FROM sales s
                 LEFT JOIN products p ON s.product_id = p.id
                 LEFT JOIN customers c ON s.customer_id = c.id
@@ -34,7 +38,9 @@ class SalesService:
             """, (from_date, limit)).fetchall()
         else:
             sales = conn.execute("""
-                SELECT s.*, p.name as product_name, c.name as customer_name
+                SELECT s.*,
+                       COALESCE(s.product_name, p.name) as product_name,
+                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
                 FROM sales s
                 LEFT JOIN products p ON s.product_id = p.id
                 LEFT JOIN customers c ON s.customer_id = c.id
@@ -49,66 +55,51 @@ class SalesService:
         """Get all sales with optional date filtering"""
         conn = get_db_connection()
         
+        base_query = """
+            SELECT s.*,
+                   COALESCE(s.product_name, p.name) as product_name,
+                   COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
+            FROM sales s
+            LEFT JOIN products p ON s.product_id = p.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+        """
+        
         if date_filter:
             if date_filter == 'today':
                 today = datetime.now().strftime('%Y-%m-%d')
-                sales = conn.execute("""
-                    SELECT s.*, p.name as product_name, c.name as customer_name
-                    FROM sales s
-                    LEFT JOIN products p ON s.product_id = p.id
-                    LEFT JOIN customers c ON s.customer_id = c.id
+                sales = conn.execute(base_query + """
                     WHERE DATE(s.sale_date) = ?
                     ORDER BY s.created_at DESC
                 """, (today,)).fetchall()
             elif date_filter == 'yesterday':
                 yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-                sales = conn.execute("""
-                    SELECT s.*, p.name as product_name, c.name as customer_name
-                    FROM sales s
-                    LEFT JOIN products p ON s.product_id = p.id
-                    LEFT JOIN customers c ON s.customer_id = c.id
+                sales = conn.execute(base_query + """
                     WHERE DATE(s.sale_date) = ?
                     ORDER BY s.created_at DESC
                 """, (yesterday,)).fetchall()
             elif date_filter == 'week':
                 week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
-                sales = conn.execute("""
-                    SELECT s.*, p.name as product_name, c.name as customer_name
-                    FROM sales s
-                    LEFT JOIN products p ON s.product_id = p.id
-                    LEFT JOIN customers c ON s.customer_id = c.id
+                sales = conn.execute(base_query + """
                     WHERE DATE(s.sale_date) >= ?
                     ORDER BY s.created_at DESC
                 """, (week_ago,)).fetchall()
             elif date_filter == 'month':
                 month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-                sales = conn.execute("""
-                    SELECT s.*, p.name as product_name, c.name as customer_name
-                    FROM sales s
-                    LEFT JOIN products p ON s.product_id = p.id
-                    LEFT JOIN customers c ON s.customer_id = c.id
+                sales = conn.execute(base_query + """
                     WHERE DATE(s.sale_date) >= ?
                     ORDER BY s.created_at DESC
                 """, (month_ago,)).fetchall()
             else:
                 # Custom date
-                sales = conn.execute("""
-                    SELECT s.*, p.name as product_name, c.name as customer_name
-                    FROM sales s
-                    LEFT JOIN products p ON s.product_id = p.id
-                    LEFT JOIN customers c ON s.customer_id = c.id
+                sales = conn.execute(base_query + """
                     WHERE DATE(s.sale_date) = ?
                     ORDER BY s.created_at DESC
                 """, (date_filter,)).fetchall()
         else:
-            # All sales
-            sales = conn.execute("""
-                SELECT s.*, p.name as product_name, c.name as customer_name
-                FROM sales s
-                LEFT JOIN products p ON s.product_id = p.id
-                LEFT JOIN customers c ON s.customer_id = c.id
+            # All sales - no limit for full data
+            sales = conn.execute(base_query + """
                 ORDER BY s.created_at DESC
-                LIMIT 100
+                LIMIT 500
             """).fetchall()
         
         conn.close()
