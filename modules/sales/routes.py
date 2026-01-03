@@ -73,12 +73,14 @@ def get_all_sales():
             "sales": sales,
             "bills": sales,  # Frontend expects 'bills'
             "summary": {
-                "total_sales": summary.get('total_sales', 0),
+                "total_sales": summary.get('total_revenue', 0),  # Frontend expects this for revenue
+                "total_bills": summary.get('total_sales', 0),    # Frontend expects this for count
                 "total_revenue": summary.get('total_revenue', 0),
                 "total_items": summary.get('total_items', 0),
                 "avg_sale_value": summary.get('avg_sale_value', 0),
                 "net_profit": summary.get('total_revenue', 0) * 0.2,  # Estimated 20% profit
-                "receivable": 0
+                "receivable": 0,
+                "receivable_profit": 0
             },
             "pagination": {
                 "current_page": page,
