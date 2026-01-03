@@ -26,11 +26,16 @@ class InvoiceService:
                        c.email as customer_email,
                        DATE(b.created_at) as invoice_date,
                        TIME(b.created_at) as invoice_time,
-                       COALESCE(SUM(p.amount), 0) as paid_amount,
+                       CASE 
+                           WHEN b.is_credit = 1 THEN COALESCE(b.credit_paid_amount, 0)
+                           ELSE COALESCE(SUM(p.amount), b.total_amount)
+                       END as paid_amount,
                        CASE 
                            WHEN b.payment_status = 'paid' THEN 'paid'
                            WHEN b.payment_status = 'partial' THEN 'partial'
                            WHEN b.payment_status = 'unpaid' THEN 'unpaid'
+                           WHEN b.is_credit = 1 AND b.credit_balance > 0 THEN 'partial'
+                           WHEN b.is_credit = 1 AND b.credit_balance <= 0 THEN 'paid'
                            WHEN COALESCE(SUM(p.amount), 0) = 0 THEN 'unpaid'
                            WHEN COALESCE(SUM(p.amount), 0) < b.total_amount THEN 'partial'
                            WHEN COALESCE(SUM(p.amount), 0) >= b.total_amount THEN 'paid'
@@ -122,10 +127,15 @@ class InvoiceService:
                         invoice['formatted_date'] = invoice['invoice_date']
                         invoice['display_date'] = invoice['invoice_date']
                 
-                # Calculate balance due
+                # Calculate balance due - use credit_balance if available, otherwise calculate
                 paid_amount = invoice.get('paid_amount', 0) or 0
                 total_amount = invoice.get('total_amount', 0) or 0
-                invoice['balance_due'] = max(0, total_amount - paid_amount)
+                
+                # For credit bills, use credit_balance if it exists and is accurate
+                if invoice.get('is_credit') and invoice.get('credit_balance') is not None:
+                    invoice['balance_due'] = max(0, float(invoice.get('credit_balance', 0)))
+                else:
+                    invoice['balance_due'] = max(0, total_amount - paid_amount)
                 
                 # Add status badge color
                 status_colors = {
