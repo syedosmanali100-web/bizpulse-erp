@@ -16,18 +16,24 @@ def get_sales():
         date_filter = request.args.get('date_filter')  # today, yesterday, week, month, or specific date
         
         sales = sales_service.get_all_sales(date_filter)
+        summary = sales_service.get_sales_summary(date_filter)
         
         return jsonify({
             "success": True,
             "sales": sales,
+            "summary": summary,
             "total_count": len(sales),
+            "total_records": len(sales),
             "date_filter": date_filter
         })
         
     except Exception as e:
+        print(f"❌ [SALES API] Error: {str(e)}")
         return jsonify({
             "success": False,
-            "error": f"Failed to get sales: {str(e)}"
+            "error": f"Failed to get sales: {str(e)}",
+            "sales": [],
+            "summary": {}
         }), 500
 
 @sales_bp.route('/api/sales/all', methods=['GET'])
@@ -36,20 +42,36 @@ def get_all_sales():
     try:
         from_date = request.args.get('from')
         to_date = request.args.get('to')
-        limit = request.args.get('limit', 100, type=int)
+        date_filter = request.args.get('filter')  # today, yesterday, week, month
+        limit = request.args.get('limit', 500, type=int)
         
-        sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
+        # Use date_filter if provided, otherwise use date range
+        if date_filter and date_filter in ['today', 'yesterday', 'week', 'month']:
+            sales = sales_service.get_all_sales(date_filter)
+            summary = sales_service.get_sales_summary(date_filter)
+        elif from_date or to_date:
+            sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
+            summary = sales_service.get_sales_summary()
+        else:
+            # Default to all sales
+            sales = sales_service.get_all_sales()
+            summary = sales_service.get_sales_summary()
         
         return jsonify({
             "success": True,
             "sales": sales,
-            "total_count": len(sales)
+            "summary": summary,
+            "total_count": len(sales),
+            "total_records": len(sales)
         })
         
     except Exception as e:
+        print(f"❌ [SALES API] Error: {str(e)}")
         return jsonify({
             "success": False,
-            "error": f"Failed to get sales: {str(e)}"
+            "error": f"Failed to get sales: {str(e)}",
+            "sales": [],
+            "summary": {}
         }), 500
 
 @sales_bp.route('/api/sales/refresh', methods=['POST'])
