@@ -48,16 +48,16 @@ def get_all_sales():
         limit = request.args.get('limit', 500, type=int)
         
         # Use date_filter if provided, otherwise use date range
-        if date_filter and date_filter in ['today', 'yesterday', 'week', 'month']:
+        if date_filter and date_filter in ['today', 'yesterday', 'week', 'month', 'all']:
             sales = sales_service.get_all_sales(date_filter)
             summary = sales_service.get_sales_summary(date_filter)
         elif from_date or to_date:
             sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
             summary = sales_service.get_sales_summary()
         else:
-            # Default to today's sales
-            sales = sales_service.get_all_sales('today')
-            summary = sales_service.get_sales_summary('today')
+            # Default to all sales
+            sales = sales_service.get_all_sales('all')
+            summary = sales_service.get_sales_summary('all')
         
         # Filter by payment method if specified
         if payment_method and payment_method != 'all':

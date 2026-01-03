@@ -119,6 +119,12 @@ class SalesService:
                     WHERE DATE(b.created_at) >= ?
                     ORDER BY b.created_at DESC
                 """, (month_ago,)).fetchall()
+            elif date_filter == 'all':
+                # All sales - no date filter
+                sales = conn.execute(base_query + """
+                    ORDER BY b.created_at DESC
+                    LIMIT 500
+                """).fetchall()
             else:
                 # Custom date
                 sales = conn.execute(base_query + """
@@ -126,7 +132,7 @@ class SalesService:
                     ORDER BY b.created_at DESC
                 """, (date_filter,)).fetchall()
         else:
-            # All sales
+            # Default - All sales
             sales = conn.execute(base_query + """
                 ORDER BY b.created_at DESC
                 LIMIT 500
@@ -217,6 +223,10 @@ class SalesService:
                 month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
                 date_condition = "WHERE DATE(created_at) >= ?"
                 params = [month_ago]
+            elif date_filter == 'all':
+                # All data - no date filter
+                date_condition = ""
+                params = []
             else:
                 # Custom date
                 date_condition = "WHERE DATE(created_at) = ?"
