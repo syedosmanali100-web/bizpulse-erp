@@ -40,9 +40,11 @@ def get_sales():
 def get_all_sales():
     """Get all sales with date range filtering - for frontend compatibility"""
     try:
-        from_date = request.args.get('from')
-        to_date = request.args.get('to')
+        from_date = request.args.get('from') or request.args.get('startDate')
+        to_date = request.args.get('to') or request.args.get('endDate')
         date_filter = request.args.get('filter')  # today, yesterday, week, month
+        payment_method = request.args.get('payment_method')
+        page = request.args.get('page', 1, type=int)
         limit = request.args.get('limit', 500, type=int)
         
         # Use date_filter if provided, otherwise use date range
@@ -53,25 +55,58 @@ def get_all_sales():
             sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
             summary = sales_service.get_sales_summary()
         else:
-            # Default to all sales
-            sales = sales_service.get_all_sales()
-            summary = sales_service.get_sales_summary()
+            # Default to today's sales
+            sales = sales_service.get_all_sales('today')
+            summary = sales_service.get_sales_summary('today')
         
+        # Filter by payment method if specified
+        if payment_method and payment_method != 'all':
+            sales = [s for s in sales if s.get('payment_method') == payment_method]
+        
+        # Calculate pagination
+        total_records = len(sales)
+        total_pages = max(1, (total_records + limit - 1) // limit)
+        
+        # Return both 'bills' and 'sales' for frontend compatibility
         return jsonify({
             "success": True,
             "sales": sales,
-            "summary": summary,
-            "total_count": len(sales),
-            "total_records": len(sales)
+            "bills": sales,  # Frontend expects 'bills'
+            "summary": {
+                "total_sales": summary.get('total_sales', 0),
+                "total_revenue": summary.get('total_revenue', 0),
+                "total_items": summary.get('total_items', 0),
+                "avg_sale_value": summary.get('avg_sale_value', 0),
+                "net_profit": summary.get('total_revenue', 0) * 0.2,  # Estimated 20% profit
+                "receivable": 0
+            },
+            "pagination": {
+                "current_page": page,
+                "total_pages": total_pages,
+                "total_records": total_records,
+                "per_page": limit
+            },
+            "filters": {
+                "date_filter": date_filter,
+                "from_date": from_date,
+                "to_date": to_date,
+                "payment_method": payment_method
+            },
+            "total_count": total_records,
+            "total_records": total_records
         })
         
     except Exception as e:
         print(f"❌ [SALES API] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
             "error": f"Failed to get sales: {str(e)}",
             "sales": [],
-            "summary": {}
+            "bills": [],
+            "summary": {},
+            "pagination": {"current_page": 1, "total_pages": 1, "total_records": 0}
         }), 500
 
 @sales_bp.route('/api/sales/refresh', methods=['POST'])
