@@ -8,6 +8,43 @@ import sqlite3
 
 class SalesService:
     
+    def get_sales_by_date_range(self, from_date=None, to_date=None, limit=100):
+        """Get sales within a date range"""
+        conn = get_db_connection()
+        
+        if from_date and to_date:
+            sales = conn.execute("""
+                SELECT s.*, p.name as product_name, c.name as customer_name
+                FROM sales s
+                LEFT JOIN products p ON s.product_id = p.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                WHERE DATE(s.sale_date) >= ? AND DATE(s.sale_date) <= ?
+                ORDER BY s.created_at DESC
+                LIMIT ?
+            """, (from_date, to_date, limit)).fetchall()
+        elif from_date:
+            sales = conn.execute("""
+                SELECT s.*, p.name as product_name, c.name as customer_name
+                FROM sales s
+                LEFT JOIN products p ON s.product_id = p.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                WHERE DATE(s.sale_date) >= ?
+                ORDER BY s.created_at DESC
+                LIMIT ?
+            """, (from_date, limit)).fetchall()
+        else:
+            sales = conn.execute("""
+                SELECT s.*, p.name as product_name, c.name as customer_name
+                FROM sales s
+                LEFT JOIN products p ON s.product_id = p.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                ORDER BY s.created_at DESC
+                LIMIT ?
+            """, (limit,)).fetchall()
+        
+        conn.close()
+        return [dict(row) for row in sales]
+    
     def get_all_sales(self, date_filter=None):
         """Get all sales with optional date filtering"""
         conn = get_db_connection()

@@ -30,6 +30,82 @@ def get_sales():
             "error": f"Failed to get sales: {str(e)}"
         }), 500
 
+@sales_bp.route('/api/sales/all', methods=['GET'])
+def get_all_sales():
+    """Get all sales with date range filtering - for frontend compatibility"""
+    try:
+        from_date = request.args.get('from')
+        to_date = request.args.get('to')
+        limit = request.args.get('limit', 100, type=int)
+        
+        sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
+        
+        return jsonify({
+            "success": True,
+            "sales": sales,
+            "total_count": len(sales)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to get sales: {str(e)}"
+        }), 500
+
+@sales_bp.route('/api/sales/refresh', methods=['POST'])
+def refresh_sales():
+    """Refresh sales data - for frontend compatibility"""
+    try:
+        data = request.json or {}
+        from_date = data.get('from_date')
+        to_date = data.get('to_date')
+        
+        sales = sales_service.get_sales_by_date_range(from_date, to_date, 500)
+        summary = sales_service.get_sales_summary()
+        
+        return jsonify({
+            "success": True,
+            "sales": sales,
+            "summary": summary,
+            "total_count": len(sales)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to refresh sales: {str(e)}"
+        }), 500
+
+@sales_bp.route('/api/sales/export', methods=['GET'])
+def export_sales():
+    """Export sales data - for frontend compatibility"""
+    try:
+        date_range = request.args.get('date_range', 'today')
+        payment_method = request.args.get('payment_method', 'all')
+        format_type = request.args.get('format', 'json')
+        
+        # Map date_range to date_filter
+        date_filter = date_range if date_range in ['today', 'yesterday', 'week', 'month'] else None
+        
+        sales = sales_service.get_all_sales(date_filter)
+        
+        # Filter by payment method if specified
+        if payment_method and payment_method != 'all':
+            sales = [s for s in sales if s.get('payment_method') == payment_method]
+        
+        return jsonify({
+            "success": True,
+            "sales": sales,
+            "total_count": len(sales),
+            "export_format": format_type
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Failed to export sales: {str(e)}"
+        }), 500
+
 @sales_bp.route('/api/sales/summary', methods=['GET'])
 def get_sales_summary():
     """Get sales summary with totals"""

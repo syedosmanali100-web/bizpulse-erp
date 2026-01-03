@@ -161,3 +161,48 @@ class RetailService:
             'recent_sales': [dict(row) for row in recent_sales],
             'top_products': [dict(row) for row in top_products]
         }
+    
+    def get_recent_activity(self):
+        """Get recent activity for dashboard"""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Recent bills/transactions
+        recent_bills = cursor.execute('''
+            SELECT 
+                b.id,
+                b.bill_number,
+                b.total_amount,
+                b.created_at,
+                b.payment_method,
+                COALESCE(b.customer_name, c.name, 'Walk-in Customer') as customer_name
+            FROM bills b
+            LEFT JOIN customers c ON b.customer_id = c.id
+            ORDER BY b.created_at DESC
+            LIMIT 20
+        ''').fetchall()
+        
+        # Recent products added
+        recent_products = cursor.execute('''
+            SELECT id, name, price, stock, created_at
+            FROM products
+            ORDER BY created_at DESC
+            LIMIT 10
+        ''').fetchall()
+        
+        # Recent customers
+        recent_customers = cursor.execute('''
+            SELECT id, name, phone, created_at
+            FROM customers
+            ORDER BY created_at DESC
+            LIMIT 10
+        ''').fetchall()
+        
+        conn.close()
+        
+        return {
+            'success': True,
+            'recent_bills': [dict(row) for row in recent_bills],
+            'recent_products': [dict(row) for row in recent_products],
+            'recent_customers': [dict(row) for row in recent_customers]
+        }

@@ -29,20 +29,29 @@ def retail_billing_test():
     return "<h1>✅ Billing Route Working!</h1><p>This is a test route to verify billing is accessible.</p>"
 
 @retail_bp.route('/retail/dashboard')
-@require_auth
 def retail_dashboard():
     return render_template('retail_dashboard.html')
 
 @retail_bp.route('/api/dashboard/stats', methods=['GET'])
-@require_auth
 def get_dashboard_stats():
-    """Get comprehensive dashboard statistics with real-time data"""
+    """Get comprehensive dashboard statistics with real-time data - NO AUTH for mobile"""
     try:
         result = retail_service.get_dashboard_stats()
         return jsonify(result)
         
     except Exception as e:
         print(f"Error getting dashboard stats: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@retail_bp.route('/api/dashboard/activity', methods=['GET'])
+def get_dashboard_activity():
+    """Get recent activity for dashboard - NO AUTH for mobile"""
+    try:
+        result = retail_service.get_recent_activity()
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"Error getting dashboard activity: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @retail_bp.route('/retail/profile')
