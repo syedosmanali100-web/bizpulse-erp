@@ -78,13 +78,17 @@ class SalesService:
                 b.created_at,
                 b.business_type,
                 b.status,
-                (SELECT GROUP_CONCAT(bi.product_name, ', ') FROM bill_items bi WHERE bi.bill_id = b.id) as products,
+                COALESCE(
+                    (SELECT GROUP_CONCAT(bi.product_name, ', ') FROM bill_items bi WHERE bi.bill_id = b.id),
+                    'Multiple Items'
+                ) as products,
                 (SELECT SUM(bi.quantity) FROM bill_items bi WHERE bi.bill_id = b.id) as quantity,
                 (SELECT COUNT(*) FROM bill_items bi WHERE bi.bill_id = b.id) as items_count,
                 CASE 
-                    WHEN b.is_credit = 1 AND b.credit_balance > 0 THEN 'credit'
+                    WHEN b.is_credit = 1 AND b.credit_balance > 0 THEN 'due'
                     WHEN b.payment_method = 'partial' THEN 'partial'
-                    ELSE 'paid'
+                    WHEN b.payment_method = 'credit' THEN 'due'
+                    ELSE 'completed'
                 END as transaction_status
             FROM bills b
             LEFT JOIN customers c ON b.customer_id = c.id
@@ -132,18 +136,46 @@ class SalesService:
         
         # Convert to list of dicts with proper field names
         result = []
-        for row in sales:
+        for index, row in enumerate(sales, 1):
             sale = dict(row)
-            # Add product_name field for compatibility
-            sale['product_name'] = sale.get('products', 'Multiple Items')
             
-            # Add CSS class for credit transactions (red color)
-            if sale.get('transaction_status') == 'credit':
+            # Fix S.NO - add serial number
+            sale['sno'] = index
+            sale['serial_number'] = index
+            
+            # Fix product names - ensure we have proper product names
+            products_list = sale.get('products', '')
+            if products_list and products_list != 'None':
+                sale['product_name'] = products_list
+                sale['products_display'] = products_list
+            else:
+                # Fallback to get product names from bill_items
+                sale['product_name'] = 'Multiple Items'
+                sale['products_display'] = 'Multiple Items'
+            
+            # Fix status for credit bills
+            if sale.get('is_credit') == 1 and sale.get('credit_balance', 0) > 0:
+                sale['status'] = 'DUE'
+                sale['status_class'] = 'due'
+                sale['transaction_status'] = 'due'
+            elif sale.get('payment_method') == 'partial':
+                sale['status'] = 'PARTIAL'
+                sale['status_class'] = 'partial'
+                sale['transaction_status'] = 'partial'
+            else:
+                sale['status'] = 'COMPLETED'
+                sale['status_class'] = 'completed'
+                sale['transaction_status'] = 'completed'
+            
+            # Add CSS class for credit transactions (red color for amounts)
+            if sale.get('is_credit') == 1 or sale.get('payment_method') in ['credit', 'partial']:
                 sale['css_class'] = 'credit-transaction'
                 sale['is_credit_transaction'] = True
+                sale['amount_class'] = 'text-danger'  # Red color for amounts
             else:
                 sale['css_class'] = ''
                 sale['is_credit_transaction'] = False
+                sale['amount_class'] = 'text-success'  # Green color for completed
                 
             result.append(sale)
         
