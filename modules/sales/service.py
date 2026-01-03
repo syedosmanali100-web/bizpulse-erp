@@ -134,38 +134,49 @@ class SalesService:
         
         conn.close()
         
-        # Convert to list of dicts with proper field names
+        # Convert to list of dicts with proper field names matching frontend expectations
         result = []
         for index, row in enumerate(sales, 1):
             sale = dict(row)
             
-            # Fix S.NO - add serial number
+            # Fix S.NO - frontend expects 'serial_no'
+            sale['serial_no'] = index
             sale['sno'] = index
             sale['serial_number'] = index
             
-            # Fix product names - ensure we have proper product names
+            # Fix product names - frontend expects 'product_list'
             products_list = sale.get('products', '')
-            if products_list and products_list != 'None':
+            if products_list and products_list != 'None' and products_list != 'Multiple Items':
+                sale['product_list'] = products_list
                 sale['product_name'] = products_list
                 sale['products_display'] = products_list
             else:
                 # Fallback to get product names from bill_items
+                sale['product_list'] = 'Multiple Items'
                 sale['product_name'] = 'Multiple Items'
                 sale['products_display'] = 'Multiple Items'
             
-            # Fix status for credit bills
+            # Fix status for credit bills - frontend expects proper status
             if sale.get('is_credit') == 1 and sale.get('credit_balance', 0) > 0:
                 sale['status'] = 'DUE'
+                sale['status_display'] = 'DUE'
                 sale['status_class'] = 'due'
                 sale['transaction_status'] = 'due'
             elif sale.get('payment_method') == 'partial':
                 sale['status'] = 'PARTIAL'
+                sale['status_display'] = 'PARTIAL'
                 sale['status_class'] = 'partial'
                 sale['transaction_status'] = 'partial'
             else:
                 sale['status'] = 'COMPLETED'
+                sale['status_display'] = 'COMPLETED'
                 sale['status_class'] = 'completed'
                 sale['transaction_status'] = 'completed'
+            
+            # Add fields for frontend compatibility
+            sale['date'] = sale.get('sale_date', sale.get('created_at', ''))
+            sale['total_items'] = sale.get('items_count', 1)
+            sale['total_quantity'] = sale.get('quantity', 1)
             
             # Add CSS class for credit transactions (red color for amounts)
             if sale.get('is_credit') == 1 or sale.get('payment_method') in ['credit', 'partial']:

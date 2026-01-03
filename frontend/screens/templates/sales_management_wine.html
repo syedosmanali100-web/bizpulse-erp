@@ -764,23 +764,43 @@
             }
             
             const tbody = document.getElementById('salesTable');
-            tbody.innerHTML = bills.map(bill => `
-                <tr>
-                    <td><strong>${bill.serial_no}</strong></td>
-                    <td><strong>#${bill.bill_number || bill.bill_id || 'N/A'}</strong></td>
-                    <td>${formatDate(bill.date || bill.created_at)}</td>
-                    <td>${bill.customer_name || 'Walk-in Customer'}</td>
-                    <td>
-                        <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${bill.product_list || 'N/A'}">
-                            ${bill.product_list || 'N/A'}
-                        </div>
-                    </td>
-                    <td>${bill.total_items || 1} items (${bill.total_quantity || 1}x)</td>
-                    <td><strong>₹${formatNumber(bill.total_amount || 0)}</strong></td>
-                    <td><span class="badge badge-info">${getPaymentBadge(bill.payment_method || 'cash')}</span></td>
-                    <td><span class="badge badge-success">Completed</span></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = bills.map(bill => {
+                // Determine status badge and color
+                let statusBadge = '';
+                let amountClass = '';
+                
+                if (bill.is_credit_transaction || bill.css_class === 'credit-transaction') {
+                    amountClass = 'style="color: #dc3545; font-weight: bold;"'; // Red color for credit
+                    if (bill.status === 'DUE' || bill.status_display === 'DUE') {
+                        statusBadge = '<span class="badge" style="background: #fee2e2; color: #dc2626;">DUE</span>';
+                    } else if (bill.status === 'PARTIAL' || bill.status_display === 'PARTIAL') {
+                        statusBadge = '<span class="badge" style="background: #fef3c7; color: #d97706;">PARTIAL</span>';
+                    } else {
+                        statusBadge = '<span class="badge badge-success">COMPLETED</span>';
+                    }
+                } else {
+                    amountClass = 'style="color: #059669; font-weight: bold;"'; // Green color for completed
+                    statusBadge = '<span class="badge badge-success">COMPLETED</span>';
+                }
+                
+                return `
+                    <tr>
+                        <td><strong>${bill.serial_no || bill.sno || 'N/A'}</strong></td>
+                        <td><strong>#${bill.bill_number || bill.bill_id || 'N/A'}</strong></td>
+                        <td>${formatDate(bill.date || bill.created_at)}</td>
+                        <td>${bill.customer_name || 'Walk-in Customer'}</td>
+                        <td>
+                            <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${bill.product_list || bill.products || 'N/A'}">
+                                ${bill.product_list || bill.products || 'N/A'}
+                            </div>
+                        </td>
+                        <td>${bill.total_items || bill.items_count || 1} items (${bill.total_quantity || bill.quantity || 1}x)</td>
+                        <td ${amountClass}><strong>₹${formatNumber(bill.total_amount || 0)}</strong></td>
+                        <td><span class="badge badge-info">${getPaymentBadge(bill.payment_method || 'cash')}</span></td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
         }
         
         function getPaymentBadge(paymentMethod) {
