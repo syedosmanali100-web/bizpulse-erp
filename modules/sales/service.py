@@ -8,51 +8,50 @@ import sqlite3
 
 class SalesService:
     
-    def get_sales_by_date_range(self, from_date=None, to_date=None, limit=100):
-        """Get sales within a date range"""
+    def get_sales_by_date_range(self, from_date=None, to_date=None, limit=100, user_id=None):
+        """Get sales within a date range filtered by user_id"""
         conn = get_db_connection()
         
+        # Build base query with user filtering
+        base_query = """
+            SELECT s.*,
+                   COALESCE(s.product_name, p.name) as product_name,
+                   COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
+            FROM sales s
+            LEFT JOIN products p ON s.product_id = p.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+        """
+        
+        where_clauses = []
+        params = []
+        
+        # Add user_id filter
+        if user_id:
+            where_clauses.append("(s.business_owner_id = ? OR s.business_owner_id IS NULL)")
+            params.append(user_id)
+        
+        # Add date filters
         if from_date and to_date:
-            sales = conn.execute("""
-                SELECT s.*,
-                       COALESCE(s.product_name, p.name) as product_name,
-                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
-                FROM sales s
-                LEFT JOIN products p ON s.product_id = p.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                WHERE DATE(s.sale_date) >= ? AND DATE(s.sale_date) <= ?
-                ORDER BY s.created_at DESC
-                LIMIT ?
-            """, (from_date, to_date, limit)).fetchall()
+            where_clauses.append("DATE(s.sale_date) >= ? AND DATE(s.sale_date) <= ?")
+            params.extend([from_date, to_date])
         elif from_date:
-            sales = conn.execute("""
-                SELECT s.*,
-                       COALESCE(s.product_name, p.name) as product_name,
-                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
-                FROM sales s
-                LEFT JOIN products p ON s.product_id = p.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                WHERE DATE(s.sale_date) >= ?
-                ORDER BY s.created_at DESC
-                LIMIT ?
-            """, (from_date, limit)).fetchall()
-        else:
-            sales = conn.execute("""
-                SELECT s.*,
-                       COALESCE(s.product_name, p.name) as product_name,
-                       COALESCE(s.customer_name, c.name, 'Walk-in Customer') as customer_name
-                FROM sales s
-                LEFT JOIN products p ON s.product_id = p.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                ORDER BY s.created_at DESC
-                LIMIT ?
-            """, (limit,)).fetchall()
+            where_clauses.append("DATE(s.sale_date) >= ?")
+            params.append(from_date)
+        
+        # Combine where clauses
+        if where_clauses:
+            base_query += " WHERE " + " AND ".join(where_clauses)
+        
+        base_query += " ORDER BY s.created_at DESC LIMIT ?"
+        params.append(limit)
+        
+        sales = conn.execute(base_query, params).fetchall()
         
         conn.close()
         return [dict(row) for row in sales]
     
-    def get_all_sales(self, date_filter=None):
-        """Get all sales/bills with optional date filtering - returns bill-level data"""
+    def get_all_sales(self, date_filter=None, user_id=None):
+        """Get all sales/bills with optional date filtering - returns bill-level data - Filtered by user"""
         conn = get_db_connection()
         
         # Query bills table for accurate bill-level data
@@ -94,49 +93,51 @@ class SalesService:
             LEFT JOIN customers c ON b.customer_id = c.id
         """
         
+        # Build WHERE clause
+        where_clauses = []
+        params = []
+        
+        # Add user_id filter
+        if user_id:
+            where_clauses.append("(b.business_owner_id = ? OR b.business_owner_id IS NULL)")
+            params.append(user_id)
+        
         if date_filter:
             if date_filter == 'today':
                 today = datetime.now().strftime('%Y-%m-%d')
-                sales = conn.execute(base_query + """
-                    WHERE DATE(b.created_at) = ?
-                    ORDER BY b.created_at DESC
-                """, (today,)).fetchall()
+                where_clauses.append("DATE(b.created_at) = ?")
+                params.append(today)
             elif date_filter == 'yesterday':
                 yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-                sales = conn.execute(base_query + """
-                    WHERE DATE(b.created_at) = ?
-                    ORDER BY b.created_at DESC
-                """, (yesterday,)).fetchall()
+                where_clauses.append("DATE(b.created_at) = ?")
+                params.append(yesterday)
             elif date_filter == 'week':
                 week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
-                sales = conn.execute(base_query + """
-                    WHERE DATE(b.created_at) >= ?
-                    ORDER BY b.created_at DESC
-                """, (week_ago,)).fetchall()
+                where_clauses.append("DATE(b.created_at) >= ?")
+                params.append(week_ago)
             elif date_filter == 'month':
                 month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-                sales = conn.execute(base_query + """
-                    WHERE DATE(b.created_at) >= ?
-                    ORDER BY b.created_at DESC
-                """, (month_ago,)).fetchall()
+                where_clauses.append("DATE(b.created_at) >= ?")
+                params.append(month_ago)
             elif date_filter == 'all':
-                # All sales - no date filter
-                sales = conn.execute(base_query + """
-                    ORDER BY b.created_at DESC
-                    LIMIT 500
-                """).fetchall()
+                # All sales - no date filter, but limit results
+                pass
             else:
                 # Custom date
-                sales = conn.execute(base_query + """
-                    WHERE DATE(b.created_at) = ?
-                    ORDER BY b.created_at DESC
-                """, (date_filter,)).fetchall()
-        else:
-            # Default - All sales
-            sales = conn.execute(base_query + """
-                ORDER BY b.created_at DESC
-                LIMIT 500
-            """).fetchall()
+                where_clauses.append("DATE(b.created_at) = ?")
+                params.append(date_filter)
+        
+        # Add WHERE clause if we have conditions
+        if where_clauses:
+            base_query += " WHERE " + " AND ".join(where_clauses)
+        
+        base_query += " ORDER BY b.created_at DESC"
+        
+        # Add limit for 'all' filter
+        if not date_filter or date_filter == 'all':
+            base_query += " LIMIT 500"
+        
+        sales = conn.execute(base_query, params).fetchall()
         
         conn.close()
         
@@ -198,39 +199,48 @@ class SalesService:
         
         return result
     
-    def get_sales_summary(self, date_filter=None):
-        """Get sales summary with totals - counts unique bills, not individual items"""
+    def get_sales_summary(self, date_filter=None, user_id=None):
+        """Get sales summary with totals - counts unique bills, not individual items - Filtered by user"""
         conn = get_db_connection()
         
         # Build date condition
-        date_condition = ""
+        where_clauses = []
         params = []
+        
+        # Add user_id filter
+        if user_id:
+            where_clauses.append("(business_owner_id = ? OR business_owner_id IS NULL)")
+            params.append(user_id)
         
         if date_filter:
             if date_filter == 'today':
                 today = datetime.now().strftime('%Y-%m-%d')
-                date_condition = "WHERE DATE(created_at) = ?"
-                params = [today]
+                where_clauses.append("DATE(created_at) = ?")
+                params.append(today)
             elif date_filter == 'yesterday':
                 yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-                date_condition = "WHERE DATE(created_at) = ?"
-                params = [yesterday]
+                where_clauses.append("DATE(created_at) = ?")
+                params.append(yesterday)
             elif date_filter == 'week':
                 week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
-                date_condition = "WHERE DATE(created_at) >= ?"
-                params = [week_ago]
+                where_clauses.append("DATE(created_at) >= ?")
+                params.append(week_ago)
             elif date_filter == 'month':
                 month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-                date_condition = "WHERE DATE(created_at) >= ?"
-                params = [month_ago]
+                where_clauses.append("DATE(created_at) >= ?")
+                params.append(month_ago)
             elif date_filter == 'all':
                 # All data - no date filter
-                date_condition = ""
-                params = []
+                pass
             else:
                 # Custom date
-                date_condition = "WHERE DATE(created_at) = ?"
-                params = [date_filter]
+                where_clauses.append("DATE(created_at) = ?")
+                params.append(date_filter)
+        
+        # Build WHERE clause
+        date_condition = ""
+        if where_clauses:
+            date_condition = "WHERE " + " AND ".join(where_clauses)
         
         # Get summary from BILLS table for accurate totals
         query = f"""

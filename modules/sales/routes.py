@@ -2,21 +2,30 @@
 Sales routes - Handle all sales API endpoints
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from .service import SalesService
 from datetime import datetime, timedelta
 
 sales_bp = Blueprint('sales', __name__)
 sales_service = SalesService()
 
+def get_user_id_from_session():
+    """Get user_id from session for filtering data"""
+    user_type = session.get('user_type')
+    if user_type == 'employee':
+        return session.get('client_id')
+    else:
+        return session.get('user_id')
+
 @sales_bp.route('/api/sales', methods=['GET'])
 def get_sales():
-    """Get all sales with optional date filtering"""
+    """Get all sales with optional date filtering - Filtered by user"""
     try:
         date_filter = request.args.get('date_filter')  # today, yesterday, week, month, or specific date
+        user_id = get_user_id_from_session()
         
-        sales = sales_service.get_all_sales(date_filter)
-        summary = sales_service.get_sales_summary(date_filter)
+        sales = sales_service.get_all_sales(date_filter, user_id)
+        summary = sales_service.get_sales_summary(date_filter, user_id)
         
         return jsonify({
             "success": True,
@@ -38,26 +47,27 @@ def get_sales():
 
 @sales_bp.route('/api/sales/all', methods=['GET'])
 def get_all_sales():
-    """Get all sales with date range filtering - for frontend compatibility"""
+    """Get all sales with date range filtering - for frontend compatibility - Filtered by user"""
     try:
         from_date = request.args.get('from') or request.args.get('startDate')
         to_date = request.args.get('to') or request.args.get('endDate')
         date_filter = request.args.get('filter')  # today, yesterday, week, month
         payment_method = request.args.get('payment_method')
         page = request.args.get('page', 1, type=int)
-        limit = request.args.get('limit', 500, type=int)
+        per_page = request.args.get('per_page', 15, type=int)  # Default 15 per page
+        user_id = get_user_id_from_session()
         
         # Use date_filter if provided, otherwise use date range
         if date_filter and date_filter in ['today', 'yesterday', 'week', 'month', 'all']:
-            sales = sales_service.get_all_sales(date_filter)
-            summary = sales_service.get_sales_summary(date_filter)
+            sales = sales_service.get_all_sales(date_filter, user_id)
+            summary = sales_service.get_sales_summary(date_filter, user_id)
         elif from_date or to_date:
-            sales = sales_service.get_sales_by_date_range(from_date, to_date, limit)
-            summary = sales_service.get_sales_summary()
+            sales = sales_service.get_sales_by_date_range(from_date, to_date, 10000, user_id)  # Get all, paginate later
+            summary = sales_service.get_sales_summary(None, user_id)
         else:
             # Default to all sales
-            sales = sales_service.get_all_sales('all')
-            summary = sales_service.get_sales_summary('all')
+            sales = sales_service.get_all_sales('all', user_id)
+            summary = sales_service.get_sales_summary('all', user_id)
         
         # Filter by payment method if specified
         if payment_method and payment_method != 'all':
@@ -65,13 +75,21 @@ def get_all_sales():
         
         # Calculate pagination
         total_records = len(sales)
-        total_pages = max(1, (total_records + limit - 1) // limit)
+        total_pages = max(1, (total_records + per_page - 1) // per_page)
+        
+        # Ensure page is within valid range
+        page = max(1, min(page, total_pages))
+        
+        # Slice data for current page
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        paginated_sales = sales[start_idx:end_idx]
         
         # Return both 'bills' and 'sales' for frontend compatibility
         return jsonify({
             "success": True,
-            "sales": sales,
-            "bills": sales,  # Frontend expects 'bills'
+            "sales": paginated_sales,
+            "bills": paginated_sales,  # Frontend expects 'bills'
             "summary": {
                 "total_sales": summary.get('total_revenue', 0),  # Frontend expects this for revenue
                 "total_bills": summary.get('total_sales', 0),    # Frontend expects this for count
@@ -86,7 +104,9 @@ def get_all_sales():
                 "current_page": page,
                 "total_pages": total_pages,
                 "total_records": total_records,
-                "per_page": limit
+                "per_page": per_page,
+                "has_prev": page > 1,
+                "has_next": page < total_pages
             },
             "filters": {
                 "date_filter": date_filter,
