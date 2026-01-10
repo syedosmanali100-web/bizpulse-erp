@@ -103,17 +103,82 @@
             transition: all 0.3s ease;
         }
 
+        /* Clean Logo Styling - No borders, larger size */
         .logo img {
-            height: 40px;
+            height: 60px;
             width: auto;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 0, 0, 0.2); /* Debug border */
+            max-width: 180px;
+            margin-right: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Clean logo treatment */
+            object-fit: contain;
+            object-position: center;
+            
+            /* No background - transparent */
+            background: transparent;
+            
+            /* No borders or padding */
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            
+            /* No shadows */
+            box-shadow: none;
+            
+            /* No backdrop filter */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            
+            /* Clean image - no filters */
+            filter: none;
         }
 
+        /* Simple hover effects */
         .logo:hover img {
             transform: scale(1.05);
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+            opacity: 0.8;
+        }
+
+
+
+        /* Special handling for dark logos */
+        .logo img.dark-logo {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(255, 255, 255, 0.98) 0%, 
+                    rgba(250, 250, 250, 0.95) 100%);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* Fallback text styling */
+        .logo span {
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #732C3F;
+            font-size: 1.5rem;
+        }
+
+        .logo:hover span {
+            transform: scale(1.05);
+            color: #8B4A5C;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .logo img {
+                height: 35px;
+                max-width: 100px;
+                padding: 4px 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo img {
+                height: 30px;
+                max-width: 80px;
+                padding: 3px 6px;
+            }
         }
 
         /* Professional Logo Styling for Different Contexts */
@@ -2992,9 +3057,9 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <a href="/" class="logo">
-                <span style="font-weight: bold; color: #732C3F; font-size: 1.5rem;">BizPulse</span>
-                <span style="display: none; font-size: 1.5rem; font-weight: 700; color: var(--primary);">BizPulse</span>
+            <a href="/" class="logo" id="mainLogo">
+                <img id="companyLogoImg" src="" alt="Company Logo" style="display: none;">
+                <span id="defaultLogoText" style="font-weight: bold; color: #732C3F; font-size: 1.5rem;">BizPulse</span>
             </a>
             <div class="nav-links">
                 <a href="#products">Products</a>
@@ -5387,6 +5452,118 @@
                 element.style.transform += ` translate(${x}px, ${y}px)`;
             });
         });
+
+        // Smart Logo Loading System - Makes any image look professional
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSmartLogo();
+        });
+
+        async function loadSmartLogo() {
+            console.log('🎨 Loading smart logo system...');
+            try {
+                const response = await fetch('/api/get-company-logo');
+                const data = await response.json();
+                
+                const logoImg = document.getElementById('companyLogoImg');
+                const defaultText = document.getElementById('defaultLogoText');
+                
+                if (data.logo_url) {
+                    console.log('✅ Logo found:', data.logo_url);
+                    
+                    // Smart logo processing
+                    const img = new Image();
+                    img.onload = function() {
+                        // Apply smart logo styling based on image characteristics
+                        applySmartLogoStyling(logoImg, img);
+                        
+                        // Display the logo
+                        logoImg.src = data.logo_url;
+                        logoImg.style.display = 'inline-block';
+                        defaultText.style.display = 'none';
+                        
+                        console.log('🖼️ Smart logo displayed successfully');
+                    };
+                    
+                    img.onerror = function() {
+                        console.log('❌ Logo failed to load');
+                        logoImg.style.display = 'none';
+                        defaultText.style.display = 'inline-block';
+                    };
+                    
+                    img.src = data.logo_url;
+                } else {
+                    console.log('ℹ️ No logo uploaded, showing default text');
+                    logoImg.style.display = 'none';
+                    defaultText.style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('❌ Smart logo system error:', error);
+                document.getElementById('defaultLogoText').style.display = 'inline-block';
+            }
+        }
+
+        function applySmartLogoStyling(logoElement, imageElement) {
+            // Create a canvas to analyze the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = imageElement.width;
+            canvas.height = imageElement.height;
+            
+            try {
+                ctx.drawImage(imageElement, 0, 0);
+                
+                // Analyze image characteristics
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                let totalBrightness = 0;
+                let transparentPixels = 0;
+                
+                // Analyze pixels
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    // Calculate brightness
+                    const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+                    totalBrightness += brightness;
+                    
+                    // Count transparent pixels
+                    if (a < 128) transparentPixels++;
+                }
+                
+                const avgBrightness = totalBrightness / (data.length / 4);
+                const transparencyRatio = transparentPixels / (data.length / 4);
+                
+                console.log(`📊 Image analysis: Brightness=${avgBrightness.toFixed(1)}, Transparency=${(transparencyRatio*100).toFixed(1)}%`);
+                
+                // Apply smart styling based on analysis
+                if (transparencyRatio > 0.3) {
+                    // High transparency - minimal background
+                    logoElement.style.background = 'rgba(255, 255, 255, 0.1)';
+                    logoElement.style.backdropFilter = 'blur(5px)';
+                    console.log('🎨 Applied transparent logo styling');
+                } else if (avgBrightness < 100) {
+                    // Dark image - light background
+                    logoElement.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%)';
+                    logoElement.classList.add('dark-logo');
+                    console.log('🎨 Applied dark logo styling');
+                } else {
+                    // Light/normal image - standard styling
+                    console.log('🎨 Applied standard logo styling');
+                }
+                
+            } catch (e) {
+                console.log('⚠️ Could not analyze image, using default styling');
+            }
+        }
+
+        // Function to refresh logo (for testing)
+        function refreshLogo() {
+            loadSmartLogo();
+        }
 
     </script>
 

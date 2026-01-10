@@ -47,6 +47,10 @@ class AuthService:
                 
                 conn.close()
                 
+                # Trigger sync on login
+                from modules.sync.utils import sync_on_login
+                sync_data = sync_on_login(user['id'])
+                
                 return {
                     'success': True,
                     'token': 'user-jwt-token',
@@ -162,6 +166,88 @@ class AuthService:
                         "is_super_admin": False
                     }
                 }
+            
+            # Check RBAC tenants (clients created by super admin)
+            tenant = conn.execute("""
+                SELECT id, tenant_id, business_name, owner_name, email_encrypted, 
+                       username, password_hash, temp_password, status, is_active,
+                       plan_type, plan_expiry_date, subscription_status
+                FROM tenants 
+                WHERE username = ? AND is_active = 1
+            """, (login_id,)).fetchone()
+            
+            if tenant:
+                # Check if account is suspended or expired
+                if tenant['status'] == 'suspended':
+                    conn.close()
+                    return {'success': False, 'message': 'Account is suspended. Please contact administrator.'}
+                
+                if tenant['status'] == 'expired' or tenant['subscription_status'] == 'expired':
+                    conn.close()
+                    return {'success': False, 'message': 'Subscription has expired. Please renew your plan.'}
+                
+                # Verify password
+                if hash_password(password) == tenant['password_hash']:
+                    # Decrypt email
+                    import base64
+                    try:
+                        email = base64.b64decode(tenant['email_encrypted'].encode('utf-8')).decode('utf-8')
+                    except:
+                        email = None
+                    
+                    session_data = {
+                        'user_id': tenant['id'],
+                        'tenant_id': tenant['tenant_id'],
+                        'user_type': "tenant",
+                        'user_name': tenant['owner_name'],
+                        'email': email,
+                        'username': tenant['username'],
+                        'business_name': tenant['business_name'],
+                        'business_type': 'retail',  # Default to retail for tenants
+                        'plan_type': tenant['plan_type'],
+                        'is_super_admin': False
+                    }
+                    
+                    # Update last login
+                    conn.execute("""
+                        UPDATE tenants 
+                        SET last_login = CURRENT_TIMESTAMP, 
+                            login_count = login_count + 1,
+                            failed_login_attempts = 0
+                        WHERE id = ?
+                    """, (tenant['id'],))
+                    conn.commit()
+                    
+                    conn.close()
+                    
+                    logger.info(f"✅ Tenant login successful: {tenant['username']} ({tenant['business_name']})")
+                    
+                    return {
+                        'success': True,
+                        'token': 'tenant-jwt-token',
+                        'session_data': session_data,
+                        'user': {
+                            "id": tenant['id'],
+                            "tenant_id": tenant['tenant_id'],
+                            "name": tenant['owner_name'],
+                            "email": email,
+                            "username": tenant['username'],
+                            "type": "tenant",
+                            "business_name": tenant['business_name'],
+                            "business_type": "retail",
+                            "plan_type": tenant['plan_type'],
+                            "plan_expiry": tenant['plan_expiry_date'],
+                            "is_super_admin": False
+                        }
+                    }
+                else:
+                    # Increment failed login attempts
+                    conn.execute("""
+                        UPDATE tenants 
+                        SET failed_login_attempts = failed_login_attempts + 1
+                        WHERE id = ?
+                    """, (tenant['id'],))
+                    conn.commit()
             
             conn.close()
             return {'success': False, 'message': 'Invalid credentials'}

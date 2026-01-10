@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 
 class InvoiceService:
     
-    def get_invoices(self, filters=None):
-        """Get invoices with comprehensive filtering and pagination"""
+    def get_invoices(self, filters=None, user_id=None):
+        """Get invoices with comprehensive filtering and pagination - Filtered by user"""
         conn = get_db_connection()
         
         try:
@@ -49,6 +49,11 @@ class InvoiceService:
             # Build WHERE conditions
             conditions = []
             params = []
+            
+            # 🔥 Add user filtering first
+            if user_id:
+                conditions.append("(b.business_owner_id = ? OR b.business_owner_id IS NULL)")
+                params.append(user_id)
             
             if filters:
                 # Date filtering
@@ -175,13 +180,13 @@ class InvoiceService:
             conn.close()
 
     
-    def get_invoice_by_id(self, invoice_id):
-        """Get invoice details by ID"""
+    def get_invoice_by_id(self, invoice_id, user_id=None):
+        """Get invoice details by ID - Filtered by user"""
         conn = get_db_connection()
         
         try:
-            # Get bill details
-            bill = conn.execute('''
+            # Get bill details with user filtering
+            query = '''
                 SELECT b.*, 
                        COALESCE(b.customer_name, c.name, 'Walk-in Customer') as customer_name, 
                        c.phone as customer_phone, 
@@ -189,7 +194,16 @@ class InvoiceService:
                 FROM bills b
                 LEFT JOIN customers c ON b.customer_id = c.id
                 WHERE b.id = ?
-            ''', (invoice_id,)).fetchone()
+            '''
+            
+            params = [invoice_id]
+            
+            # 🔥 Add user filtering
+            if user_id:
+                query += " AND (b.business_owner_id = ? OR b.business_owner_id IS NULL)"
+                params.append(user_id)
+            
+            bill = conn.execute(query, params).fetchone()
             
             if not bill:
                 return {"success": False, "error": "Invoice not found"}

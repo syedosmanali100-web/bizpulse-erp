@@ -168,9 +168,9 @@
             border-radius: 2px;
         }
         
-        /* Hide modules by default until permissions are loaded */
+        /* Modules will be shown/hidden by JavaScript based on permissions */
         .nav-item[class*="module-"] {
-            display: none !important;
+            display: flex !important;
         }
         
         .nav-icon {
@@ -185,6 +185,30 @@
             font-weight: 500;
             font-size: 0.95rem;
             letter-spacing: -0.01em;
+        }
+        
+        /* Special Nav Items - Subtle Wine Accent */
+        .nav-item-special {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+            margin-left: 16px;
+            padding-left: 21px !important;
+        }
+        
+        .nav-item-special:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-left-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .nav-item-special::after {
+            content: '✨';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            opacity: 0.6;
         }
         
         /* Logout Separator and Button */
@@ -286,6 +310,94 @@
         
         .search-box input::placeholder {
             color: var(--text-secondary);
+        }
+        
+        /* Search Results Dropdown */
+        .search-box {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .search-category {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .search-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .search-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-item-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .search-item-content {
+            flex: 1;
+        }
+        
+        .search-item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+        
+        .search-item-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        
+        .search-item-description {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .search-no-results {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .search-loading {
+            padding: 20px;
+            text-align: center;
+            color: #666;
         }
         
         .search-icon {
@@ -832,10 +944,6 @@
                 display: none !important;
             }
             
-            .profile-info {
-                display: none !important;
-            }
-            
             .page-title {
                 font-size: 1.1rem !important;
             }
@@ -909,41 +1017,14 @@
             margin: 0;
         }
 
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .profile-card {
-                padding: 6px 12px;
-                gap: 8px;
-            }
-            
-            .profile-avatar {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-            
-            .profile-info {
-                min-width: 80px;
-            }
-            
-            .profile-name {
-                font-size: 12px !important;
-            }
-            
-            .profile-role {
-                font-size: 10px !important;
-            }
-        }
-
-        /* PROFILE DROPDOWN FIX - Force visibility */
+        /* PROFILE CARD - ALWAYS VISIBLE */
         .profile-info {
             display: flex !important;
             flex-direction: column !important;
             align-items: flex-start !important;
             visibility: visible !important;
             opacity: 1 !important;
-            width: auto !important;
-            height: auto !important;
+            min-width: 120px !important;
         }
 
         .profile-name {
@@ -954,6 +1035,7 @@
             color: white !important;
             visibility: visible !important;
             opacity: 1 !important;
+            margin: 0 !important;
         }
 
         .profile-role {
@@ -963,18 +1045,7 @@
             line-height: 1.2 !important;
             color: white !important;
             visibility: visible !important;
-        }
-
-        .profile-trigger {
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            cursor: pointer !important;
-        }
-
-        .profile-dropdown-container {
-            display: inline-block !important;
-            position: relative !important;
+            margin: 0 !important;
         }
 
         /* Mobile responsive - still show profile info */
@@ -982,6 +1053,7 @@
             .profile-info {
                 display: flex !important;
                 visibility: visible !important;
+                min-width: 80px !important;
             }
             
             .profile-name {
@@ -992,6 +1064,10 @@
             .profile-role {
                 font-size: 11px !important;
                 display: block !important;
+            }
+            
+            .search-box {
+                display: none !important;
             }
         }
     </style>
@@ -1010,75 +1086,74 @@
                 <span class="nav-icon">📊</span>
                 <span class="nav-text">{{ t('dashboard') }}</span>
             </div>
-            <div class="nav-item module-sales" onclick="showModule('sales')" style="display: none;">
+            <div class="nav-item module-sales" onclick="showModule('sales')">
                 <span class="nav-icon">💰</span>
                 <span class="nav-text">{{ t('sales') }}</span>
             </div>
-            <div class="nav-item module-credit" onclick="showModule('credit')" style="display: none;">
+            <div class="nav-item module-credit" onclick="showModule('credit')">
                 <span class="nav-icon">💳</span>
                 <span class="nav-text">Credit Management</span>
             </div>
-            <div class="nav-item module-billing" onclick="showModule('billing')" style="display: none;">
+            <div class="nav-item module-billing" onclick="showModule('billing')">
                 <span class="nav-icon">🧾</span>
                 <span class="nav-text">{{ t('billing') }}</span>
             </div>
-            <div class="nav-item module-invoices" onclick="showModule('invoices')" style="display: none;">
+            <div class="nav-item module-invoices" onclick="showModule('invoices')">
                 <span class="nav-icon">📄</span>
                 <span class="nav-text">{{ t('invoices') }}</span>
             </div>
-            <div class="nav-item module-products" onclick="showModule('products')" style="display: none;">
+            <div class="nav-item module-eway" onclick="window.open('/api/eway/manage', '_blank')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">E-Way Bills</span>
+            </div>
+            <div class="nav-item module-products" onclick="showModule('products')">
                 <span class="nav-icon">📦</span>
                 <span class="nav-text">{{ t('products') }}</span>
             </div>
-            <div class="nav-item module-inventory" onclick="showModule('inventory')" style="display: none;">
+            <div class="nav-item module-inventory" onclick="showModule('inventory')">
                 <span class="nav-icon">📋</span>
                 <span class="nav-text">{{ t('inventory') }}</span>
             </div>
-            <div class="nav-item module-customers" onclick="showModule('customers')" style="display: none;">
+            <div class="nav-item module-customers" onclick="showModule('customers')">
                 <span class="nav-icon">👥</span>
                 <span class="nav-text">{{ t('customers') }}</span>
             </div>
-            <div class="nav-item" onclick="openStaffManagement()" style="display: none;">
+            <div class="nav-item" onclick="openStaffManagement()">
                 <span class="nav-icon">👥</span>
                 <span class="nav-text">Staff</span>
             </div>
-            <div class="nav-item module-reports" onclick="showModule('reports')" style="display: none;">
+            <div class="nav-item module-reports" onclick="showModule('reports')">
                 <span class="nav-icon">📈</span>
                 <span class="nav-text">{{ t('reports') }}</span>
             </div>
             <!-- Advanced modules - only for super admin -->
-            <div id="users-nav" class="nav-item" onclick="openUsers()" style="background: rgba(156, 39, 176, 0.2); border-left: 3px solid #9c27b0; display: none;">
+            <div id="users-nav" class="nav-item nav-item-special" onclick="openUsers()" style="display: none;">
                 <span class="nav-icon">👥</span>
                 <span class="nav-text">Client Users</span>
-                <span style="margin-left: auto; background: #9c27b0; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">NEW</span>
             </div>
-            <div id="whatsapp-reports-nav" class="nav-item" onclick="openWhatsAppReports()" style="background: rgba(37, 211, 102, 0.2); border-left: 3px solid #25D366; display: none;">
+            <div id="whatsapp-reports-nav" class="nav-item nav-item-special" onclick="openWhatsAppReports()" style="display: none;">
                 <span class="nav-icon">📱</span>
                 <span class="nav-text">WhatsApp Reports</span>
-                <span style="margin-left: auto; background: #25D366; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">NEW</span>
             </div>
-            <div id="client-management-nav" class="nav-item" onclick="openClientManagement()" style="background: rgba(52, 152, 219, 0.2); border-left: 3px solid #3498db; display: none;">
-                <span class="nav-icon">👥</span>
+            <div id="client-management-nav" class="nav-item nav-item-special" onclick="openClientManagement()" style="display: none;">
+                <span class="nav-icon">🏢</span>
                 <span class="nav-text">Client Management</span>
-                <span style="margin-left: auto; background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">NEW</span>
             </div>
-            <div class="nav-item module-settings" onclick="showModule('settings')" style="display: none;">
+            <div class="nav-item module-settings" onclick="showModule('settings')">
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">{{ t('settings') }}</span>
             </div>
             
             <!-- Desktop App Download -->
-            <div class="nav-item" onclick="window.location.href='/desktop'" style="background: rgba(52, 152, 219, 0.2); border-left: 3px solid #3498db;">
+            <div class="nav-item nav-item-special" onclick="window.location.href='/desktop'">
                 <span class="nav-icon">💻</span>
                 <span class="nav-text">Desktop App</span>
-                <span style="margin-left: auto; background: #3498db; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px;">NEW</span>
             </div>
             
             <!-- User Management for clients -->
-            <div class="nav-item" onclick="openUserManagement()" style="background: rgba(255, 193, 7, 0.2); border-left: 3px solid #ffc107; display: none;">
-                <span class="nav-icon">👥</span>
+            <div class="nav-item nav-item-special" onclick="openUserManagement()">
+                <span class="nav-icon">👤</span>
                 <span class="nav-text">User Management</span>
-                <span style="margin-left: auto; background: #ffc107; color: #212529; padding: 2px 6px; border-radius: 10px; font-size: 10px;">NEW</span>
             </div>
             
             <!-- Logout Button inside nav-menu for scrolling -->
@@ -1100,13 +1175,10 @@
         <div class="header-right">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search products, customers...">
+                <input type="text" id="universalSearch" placeholder="Search products, customers, sales, modules..." 
+                       onkeyup="handleSearch(event)" autocomplete="off">
+                <div id="searchResults" class="search-results" style="display: none;"></div>
             </div>
-            
-            <button class="notification-btn">
-                🔔
-                <span class="notification-badge">3</span>
-            </button>
             
             <!-- Clickable Profile Card -->
             <div class="profile-card" id="profileCard" style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border-radius: 25px; color: white;">
@@ -1196,7 +1268,7 @@
                             <div class="stat-icon revenue">💰</div>
                         </div>
                         <div class="stat-value" id="todaySales">₹0</div>
-                        <div class="stat-change positive">+12.5% from yesterday</div>
+                        <div class="stat-change positive" id="salesChange">+0% from yesterday</div>
                     </div>
                     
                     <div class="stat-card">
@@ -1205,7 +1277,8 @@
                             <div class="stat-icon orders">💰</div>
                         </div>
                         <div class="stat-value" id="todayRevenue">₹0</div>
-                        <div class="stat-change positive">Today's earnings</div>
+                        <div class="stat-change positive" id="revenueChange">Today's earnings</div>
+                        <div style="font-size: 0.75rem; color: #ef4444; margin-top: 4px; font-weight: 500;" id="revenueReceivable"></div>
                     </div>
                     
                     <div class="stat-card">
@@ -1214,7 +1287,7 @@
                             <div class="stat-icon products">🛍️</div>
                         </div>
                         <div class="stat-value" id="totalOrders">0</div>
-                        <div class="stat-change positive">+15.3% this week</div>
+                        <div class="stat-change positive" id="ordersChange">+0% this week</div>
                     </div>
                     
                     <div class="stat-card">
@@ -1223,7 +1296,8 @@
                             <div class="stat-icon customers">💎</div>
                         </div>
                         <div class="stat-value" id="netProfit">₹0</div>
-                        <div class="stat-change positive">+22.1% margin</div>
+                        <div class="stat-change positive" id="profitMargin">+0% margin</div>
+                        <div style="font-size: 0.75rem; color: #ef4444; margin-top: 4px; font-weight: 500;" id="profitReceivable"></div>
                     </div>
                 </div>
                 
@@ -1260,7 +1334,12 @@
                 
                 <!-- Premium Recent Activity -->
                 <div class="recent-activity">
-                    <h2 class="section-title">Recent Activity</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2 class="section-title" style="margin: 0;">Recent Activity</h2>
+                        <button onclick="refreshActivityData(event)" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                            🔄 Refresh
+                        </button>
+                    </div>
                     
                     <div class="activity-item">
                         <div class="activity-icon sale">💰</div>
@@ -1655,7 +1734,7 @@
                         .mobile-device .content-area { padding: 15px 10px !important; }
                         .mobile-device .stats-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
                         .mobile-device .actions-grid { grid-template-columns: 1fr !important; }
-                        .mobile-device .search-box, .mobile-device .profile-info { display: none !important; }
+                        .mobile-device .search-box { display: none !important; }
                         @media (hover: none) { .stat-card:hover, .action-btn:hover, .nav-item:hover { transform: none !important; box-shadow: inherit !important; } }
                     `;
                     const style = document.createElement('style'); style.setAttribute('id','mobile-inline-styles'); style.textContent = mobileCSS; document.head.appendChild(style);
@@ -1670,23 +1749,125 @@
                 try {
                     const token = localStorage.getItem('authToken');
                     
-                    // Load stats and activity in parallel for faster loading
-                    const [statsResp, actResp] = await Promise.all([
-                        fetch('/api/dashboard/stats?type=retail', { headers: { 'Authorization': `Bearer ${token}` } }),
-                        fetch('/api/dashboard/activity?type=retail', { headers: { 'Authorization': `Bearer ${token}` } })
-                    ]);
+                    // Load premium sections instead of old activity data
+                    const sectionsResp = await fetch('/api/dashboard/premium-sections', { 
+                        headers: { 'Authorization': `Bearer ${token}` } 
+                    });
+                    
+                    if (sectionsResp.ok) { 
+                        const sections = await sectionsResp.json(); 
+                        updatePremiumSections(sections.sections); 
+                    }
+                    
+                    // Load stats
+                    const statsResp = await fetch('/api/dashboard/stats?type=retail', { 
+                        headers: { 'Authorization': `Bearer ${token}` } 
+                    });
                     
                     if (statsResp.ok) { 
                         const stats = await statsResp.json(); 
                         updateStatsCards(stats); 
                     }
-                    if (actResp.ok) { 
-                        const acts = await actResp.json(); 
-                        updateRecentActivity(acts); 
-                    }
                 } catch (e){ 
                     console.error('Error loading dashboard data', e); 
-                    // Show error state or keep showing 0 values
+                }
+            }
+
+            function updatePremiumSections(sections) {
+                try {
+                    // Update Recent Activity section with premium data
+                    const container = document.querySelector('.recent-activity');
+                    if (!container) return;
+                    
+                    let activitiesHtml = '';
+                    
+                    // Recent Sales
+                    if (sections.recent_sales && sections.recent_sales.data && sections.recent_sales.data.length > 0) {
+                        sections.recent_sales.data.slice(0, 2).forEach(sale => {
+                            activitiesHtml += `
+                                <div class="activity-item">
+                                    <div class="activity-icon sale">💰</div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">${sale.sale_type} completed</div>
+                                        <div class="activity-desc">₹${sale.amount.toLocaleString()} - ${sale.customer_name}</div>
+                                        <div class="activity-time">${sale.time_ago}</div>
+                                    </div>
+                                    <div class="activity-amount">₹${sale.amount.toLocaleString()}</div>
+                                </div>
+                            `;
+                        });
+                    }
+                    
+                    // Last Product
+                    if (sections.last_product && sections.last_product.data) {
+                        const product = sections.last_product.data;
+                        activitiesHtml += `
+                            <div class="activity-item">
+                                <div class="activity-icon product">📦</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">New product added: ${product.name}</div>
+                                    <div class="activity-desc">${product.category} - ₹${product.price.toLocaleString()}</div>
+                                    <div class="activity-time">${product.time_ago}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Last Customer
+                    if (sections.last_customer && sections.last_customer.data) {
+                        const customer = sections.last_customer.data;
+                        activitiesHtml += `
+                            <div class="activity-item">
+                                <div class="activity-icon customer">👤</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">${customer.customer_type} registered</div>
+                                    <div class="activity-desc">${customer.name} - ${customer.phone || 'No phone'}</div>
+                                    <div class="activity-time">${customer.time_ago}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Last Bulk Order
+                    if (sections.last_bulk_order && sections.last_bulk_order.data) {
+                        const order = sections.last_bulk_order.data;
+                        activitiesHtml += `
+                            <div class="activity-item">
+                                <div class="activity-icon order">🛒</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">${order.order_type} processed</div>
+                                    <div class="activity-desc">₹${order.amount.toLocaleString()} - ${order.customer_name}</div>
+                                    <div class="activity-time">${order.time_ago}</div>
+                                </div>
+                                <div class="activity-amount">₹${order.amount.toLocaleString()}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (activitiesHtml) {
+                        container.innerHTML = `
+                            <div style="margin-bottom: 15px;">
+                                <h2 class="section-title" style="margin: 0;">Recent Activity</h2>
+                            </div>
+                            ${activitiesHtml}
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div style="margin-bottom: 15px;">
+                                <h2 class="section-title" style="margin: 0;">Recent Activity</h2>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">📊</div>
+                                <div class="activity-content">
+                                    <div class="activity-title">No recent activity</div>
+                                    <div class="activity-desc">Start making sales to see activity here</div>
+                                    <div class="activity-time">Just now</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    console.error('Error updating premium sections:', e);
                 }
             }
 
@@ -1712,12 +1893,439 @@
                 } 
             }
 
-            function updateRecentActivity(activities){ try{ if (!activities || !activities.length) return; const container = document.querySelector('.recent-activity'); if (!container) return; const items = activities.slice(0,4).map(a => `<div class="activity-item"><div class="activity-icon sale">💰</div><div class="activity-content"><div class="activity-title">${a.title}</div><div class="activity-time">${new Date(a.timestamp).toLocaleString()}</div></div>${a.amount?`<div class="activity-amount">₹${a.amount}</div>`:''}</div>`).join(''); container.innerHTML = `<h2 class="section-title">Recent Activity</h2>${items}`; }catch(e){}
+            function updateRecentActivity(response){ 
+                try{ 
+                    // Handle both direct activities array and API response format
+                    let activities = response;
+                    if (response && response.activities) {
+                        activities = response.activities;
+                    }
+                    
+                    if (!activities || !activities.length) return; 
+                    
+                    const container = document.querySelector('.recent-activity'); 
+                    if (!container) return; 
+                    
+                    const items = activities.slice(0,4).map(a => {
+                        // Use created_at or timestamp, whichever is available
+                        const timestamp = a.created_at || a.timestamp;
+                        const timeAgo = a.time_ago || 'Recently';
+                        const amount = a.amount || 0;
+                        const activityType = a.activity_type || 'unknown';
+                        const hasDropdown = a.metadata && a.metadata.has_dropdown;
+                        const dropdownType = a.metadata && a.metadata.dropdown_type;
+                        
+                        // Different icons for different activity types
+                        let icon = '📋';
+                        let iconClass = 'activity-icon';
+                        
+                        switch(activityType) {
+                            case 'sale':
+                                icon = '💰';
+                                iconClass = 'activity-icon sale';
+                                break;
+                            case 'product':
+                                icon = '📦';
+                                iconClass = 'activity-icon product';
+                                break;
+                            case 'customer':
+                                icon = '👤';
+                                iconClass = 'activity-icon customer';
+                                break;
+                            case 'order':
+                                icon = '🛒';
+                                iconClass = 'activity-icon order';
+                                break;
+                            case 'inventory':
+                                icon = '⚠️';
+                                iconClass = 'activity-icon warning';
+                                break;
+                            default:
+                                icon = '📋';
+                                iconClass = 'activity-icon';
+                        }
+                        
+                        // Add dropdown arrow if has dropdown
+                        const dropdownArrow = hasDropdown ? `<span class="dropdown-arrow" onclick="console.log('Dropdown clicked:', '${dropdownType}', '${a.id}'); toggleActivityDropdown('${dropdownType}', '${a.id}')" style="cursor: pointer; margin-left: 10px; color: #007bff; font-weight: bold;">▼</span>` : '';
+                        
+                        return `<div class="activity-item" id="activity-${a.id}">
+                            <div class="${iconClass}">${icon}</div>
+                            <div class="activity-content">
+                                <div class="activity-title">${a.title || 'Activity'} ${dropdownArrow}</div>
+                                <div class="activity-desc">${a.description || ''}</div>
+                                <div class="activity-time">${timeAgo}</div>
+                            </div>
+                            ${amount > 0 ? `<div class="activity-amount">₹${amount.toLocaleString()}</div>` : ''}
+                            ${hasDropdown ? `<div class="activity-dropdown" id="dropdown-${a.id}" style="display: none; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;"></div>` : ''}
+                        </div>`;
+                    }).join(''); 
+                    
+                    container.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h2 class="section-title" style="margin: 0;">Recent Activity</h2>
+                            <button onclick="refreshActivityData(event)" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                        ${items}
+                    `; 
+                } catch(e) {
+                    console.error('Error updating recent activity:', e);
+                }
             }
+            
+            // Manual refresh function for Recent Activity - Make it globally accessible
+            window.refreshActivityData = async function(event) {
+                try {
+                    // Prevent default button behavior
+                    if (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    
+                    const button = event ? event.target : document.querySelector('.recent-activity button');
+                    if (button) {
+                        button.textContent = '🔄 Refreshing...';
+                        button.disabled = true;
+                    }
+                    
+                    const token = localStorage.getItem('authToken');
+                    const response = await fetch('/api/dashboard/activity?type=retail', { 
+                        headers: { 'Authorization': `Bearer ${token}` } 
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateRecentActivity(data);
+                        showNotification('✅ Activity data refreshed!', 'success');
+                        console.log('✅ Activity data refreshed successfully');
+                    } else {
+                        // showNotification('❌ Failed to refresh activity data', 'error');
+                        console.error('❌ Failed to refresh activity data');
+                    }
+                } catch (error) {
+                    // showNotification('❌ Error refreshing activity data', 'error');
+                    console.error('❌ Error refreshing activity data:', error);
+                } finally {
+                    const button = event ? event.target : document.querySelector('.recent-activity button');
+                    if (button) {
+                        button.textContent = '🔄 Refresh';
+                        button.disabled = false;
+                    }
+                }
+            };
+            
+            // Simple notification system - DISABLED
+            /*
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 10000;
+                    transition: all 0.3s ease;
+                    background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+            */
+            
+            // Toggle activity dropdown - Make it globally accessible
+            window.toggleActivityDropdown = async function(type, activityId) {
+                const dropdown = document.getElementById(`dropdown-${activityId}`);
+                const arrow = document.querySelector(`#activity-${activityId} .dropdown-arrow`);
+                
+                if (!dropdown) {
+                    console.error('Dropdown not found:', `dropdown-${activityId}`);
+                    return;
+                }
+                
+                // Toggle dropdown visibility
+                if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                    // Show dropdown and load data
+                    dropdown.style.display = 'block';
+                    if (arrow) arrow.textContent = '▲';
+                    dropdown.innerHTML = '<div style="text-align: center; color: #666; padding: 10px;">🔄 Loading...</div>';
+                    
+                    try {
+                        const token = localStorage.getItem('authToken');
+                        const response = await fetch(`/api/dashboard/activities/${type}?limit=5`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                displayDropdownData(dropdown, type, data);
+                            } else {
+                                dropdown.innerHTML = '<div style="color: red; padding: 10px;">❌ Failed to load data</div>';
+                            }
+                        } else {
+                            dropdown.innerHTML = '<div style="color: red; padding: 10px;">❌ Failed to load data</div>';
+                        }
+                    } catch (error) {
+                        dropdown.innerHTML = '<div style="color: red; padding: 10px;">❌ Error loading data</div>';
+                        console.error('Error loading dropdown data:', error);
+                    }
+                } else {
+                    // Hide dropdown
+                    dropdown.style.display = 'none';
+                    if (arrow) arrow.textContent = '▼';
+                }
+            };
+            
+            // Display dropdown data based on type
+            function displayDropdownData(dropdown, type, data) {
+                let html = '';
+                
+                switch(type) {
+                    case 'sales':
+                        if (data.sales && data.sales.length > 0) {
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #28a745;">💰 Recent Sales</div>';
+                            data.sales.forEach((sale, index) => {
+                                html += `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                                        <div style="font-weight: bold;">${sale.bill_number}</div>
+                                        <div>₹${sale.amount.toLocaleString()} - ${sale.customer_name}</div>
+                                        <div style="color: #666; font-size: 0.8em;">${sale.time_ago} • ${sale.payment_method}</div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color: #666;">No recent sales found</div>';
+                        }
+                        break;
+                        
+                    case 'products':
+                        if (data.products && data.products.length > 0) {
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #007bff;">📦 Recent Products</div>';
+                            data.products.forEach((product, index) => {
+                                html += `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                                        <div style="font-weight: bold;">${product.name}</div>
+                                        <div>${product.category} - ₹${product.price.toLocaleString()}</div>
+                                        <div style="color: #666; font-size: 0.8em;">${product.time_ago} • Stock: ${product.stock}</div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color: #666;">No recent products found</div>';
+                        }
+                        break;
+                        
+                    case 'customers':
+                        if (data.customers && data.customers.length > 0) {
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #6f42c1;">👤 Recent Customers</div>';
+                            data.customers.forEach((customer, index) => {
+                                const phone = customer.phone ? ` - ${customer.phone}` : '';
+                                html += `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                                        <div style="font-weight: bold;">${customer.name}</div>
+                                        <div>${customer.phone || 'No phone'}${customer.address ? ` • ${customer.address}` : ''}</div>
+                                        <div style="color: #666; font-size: 0.8em;">${customer.time_ago}</div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color: #666;">No recent customers found</div>';
+                        }
+                        break;
+                        
+                    case 'orders':
+                        if (data.orders && data.orders.length > 0) {
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #fd7e14;">🛒 Recent Bulk Orders</div>';
+                            data.orders.forEach((order, index) => {
+                                html += `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                                        <div style="font-weight: bold;">${order.bill_number}</div>
+                                        <div>₹${order.amount.toLocaleString()} - ${order.customer_name}</div>
+                                        <div style="color: #666; font-size: 0.8em;">${order.time_ago} • ${order.item_count} items</div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color: #666;">No recent bulk orders found</div>';
+                        }
+                        break;
+                        
+                    case 'inventory':
+                        if (data.inventory && data.inventory.length > 0) {
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #dc3545;">⚠️ Inventory Alerts</div>';
+                            data.inventory.forEach((item, index) => {
+                                const stockColor = item.stock === 0 ? '#dc3545' : '#f39c12';
+                                html += `
+                                    <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                                        <div style="font-weight: bold;">${item.name}</div>
+                                        <div>${item.category} - ₹${item.price.toLocaleString()}</div>
+                                        <div style="color: ${stockColor}; font-size: 0.8em; font-weight: bold;">${item.stock_status}</div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            html = '<div style="color: #666;">No inventory alerts found</div>';
+                        }
+                        break;
+                        
+                    default:
+                        html = '<div style="color: #666;">No data available</div>';
+                }
+                
+                dropdown.innerHTML = html;
+            }
+            
+            // Universal Search Functionality
+            let searchTimeout;
+            
+            window.handleSearch = function(event) {
+                const query = event.target.value.trim();
+                const resultsContainer = document.getElementById('searchResults');
+                
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // Hide results if query is too short
+                if (query.length < 2) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Show loading state
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = '<div class="search-loading">🔍 Searching...</div>';
+                
+                // Debounce search requests
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const token = localStorage.getItem('authToken');
+                        const response = await fetch(`/api/dashboard/search?q=${encodeURIComponent(query)}&limit=8`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                displaySearchResults(data.results, query);
+                            } else {
+                                resultsContainer.innerHTML = '<div class="search-no-results">❌ Search failed</div>';
+                            }
+                        } else {
+                            resultsContainer.innerHTML = '<div class="search-no-results">❌ Search error</div>';
+                        }
+                    } catch (error) {
+                        console.error('Search error:', error);
+                        resultsContainer.innerHTML = '<div class="search-no-results">❌ Search error</div>';
+                    }
+                }, 300); // 300ms debounce
+            };
+            
+            function displaySearchResults(results, query) {
+                const resultsContainer = document.getElementById('searchResults');
+                let html = '';
+                
+                // Check if we have any results
+                if (results.total_results === 0) {
+                    html = `<div class="search-no-results">No results found for "${query}"</div>`;
+                } else {
+                    // Display Modules first (if any)
+                    if (results.modules && results.modules.length > 0) {
+                        html += '<div class="search-category">📱 Modules</div>';
+                        results.modules.forEach(item => {
+                            html += createSearchItem(item);
+                        });
+                    }
+                    
+                    // Display Sales (if any)
+                    if (results.sales && results.sales.length > 0) {
+                        html += '<div class="search-category">💰 Sales</div>';
+                        results.sales.forEach(item => {
+                            html += createSearchItem(item);
+                        });
+                    }
+                    
+                    // Display Customers (if any)
+                    if (results.customers && results.customers.length > 0) {
+                        html += '<div class="search-category">👤 Customers</div>';
+                        results.customers.forEach(item => {
+                            html += createSearchItem(item);
+                        });
+                    }
+                    
+                    // Display Products (if any)
+                    if (results.products && results.products.length > 0) {
+                        html += '<div class="search-category">📦 Products</div>';
+                        results.products.forEach(item => {
+                            html += createSearchItem(item);
+                        });
+                    }
+                }
+                
+                resultsContainer.innerHTML = html;
+            }
+            
+            function createSearchItem(item) {
+                return `
+                    <div class="search-item" onclick="handleSearchItemClick('${item.url}', '${item.type}')">
+                        <div class="search-item-icon">${item.icon}</div>
+                        <div class="search-item-content">
+                            <div class="search-item-title">${item.title}</div>
+                            <div class="search-item-subtitle">${item.subtitle}</div>
+                            <div class="search-item-description">${item.description}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            window.handleSearchItemClick = function(url, type) {
+                // Hide search results
+                document.getElementById('searchResults').style.display = 'none';
+                document.getElementById('universalSearch').value = '';
+                
+                // Navigate to the URL
+                if (type === 'module') {
+                    // For modules, navigate directly
+                    window.location.href = url;
+                } else {
+                    // For data items, you might want to show details or navigate
+                    console.log('Clicked item:', url, type);
+                    // You can add specific handling for different types here
+                    // showNotification(`Opening ${type}: ${url}`, 'info');
+                }
+            };
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(event) {
+                const searchBox = document.querySelector('.search-box');
+                const resultsContainer = document.getElementById('searchResults');
+                
+                if (!searchBox.contains(event.target)) {
+                    resultsContainer.style.display = 'none';
+                }
+            });
+            
+            // Show search results when focusing on search input (if there are results)
+            document.getElementById('universalSearch').addEventListener('focus', function() {
+                const resultsContainer = document.getElementById('searchResults');
+                if (resultsContainer.innerHTML.trim() && this.value.length >= 2) {
+                    resultsContainer.style.display = 'block';
+                }
+            });
 
-            async function loadNotifications(){ try{ const token = localStorage.getItem('authToken'); const res = await fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok){ const notes = await res.json(); updateNotificationBadge(notes.length); } }catch(e){ console.error(e); } }
+            // async function loadNotifications(){ try{ const token = localStorage.getItem('authToken'); const res = await fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok){ const notes = await res.json(); updateNotificationBadge(notes.length); } }catch(e){ console.error(e); } }
 
-            function updateNotificationBadge(count){ const badge = document.querySelector('.notification-badge'); if (badge){ badge.textContent = count; badge.style.display = count>0 ? 'flex' : 'none'; } }
+            // function updateNotificationBadge(count){ const badge = document.querySelector('.notification-badge'); if (badge){ badge.textContent = count; badge.style.display = count>0 ? 'flex' : 'none'; } }
 
             // Initialization
             checkAuth();
@@ -1726,12 +2334,13 @@
             
             // Load data immediately for faster display
             loadDashboardData();
-            loadNotifications();
+            // loadNotifications();
             
             // Check user role in parallel (for UI permissions)
             checkUserRole();
             
-            setInterval(()=>{ loadDashboardData(); loadNotifications(); }, 30000);
+            // Auto-refresh every 30 seconds instead of 10 seconds to reduce lag
+            setInterval(()=>{ loadDashboardData(); /* loadNotifications(); */ }, 30000);
 
             // Check user role and show/hide advanced modules
             async function checkUserRole() {
@@ -1787,24 +2396,33 @@
                         // Hide staff management for super admin
                         document.querySelector('.nav-item[onclick="openStaffManagement()"]').style.display = 'none';
                     } else if (userInfo.user_type === 'client') {
-                        // Business owners see all ERP modules + management modules
+                        // 🔥 CLIENTS - SHOW ALL MODULES EXCEPT CLIENT MANAGEMENT
+                        console.log('🏢 Client detected - showing all modules');
+                        console.log('📋 Calling showAllModules()...');
                         showAllModules();
+                        
+                        // Hide management modules for clients
                         document.getElementById('users-nav').style.display = 'none';
                         document.getElementById('whatsapp-reports-nav').style.display = 'none';
                         document.getElementById('client-management-nav').style.display = 'none';
-                        // Show staff and user management for business owners only
-                        document.querySelector('.nav-item[onclick="openStaffManagement()"]').style.display = 'flex';
-                        document.querySelector('.nav-item[onclick="openUserManagement()"]').style.display = 'flex';
-                    } else if (userInfo.user_type === 'staff' || userInfo.user_type === 'client_user' || userInfo.user_type === 'employee') {
-                        // Staff/Employee members - check their permissions
-                        await checkStaffPermissions(userInfo.user_id);
-                        // Hide management modules for staff
-                        document.getElementById('users-nav').style.display = 'none';
-                        document.getElementById('whatsapp-reports-nav').style.display = 'none';
-                        document.getElementById('client-management-nav').style.display = 'none';
-                        // WhatsApp banner removed
                         document.querySelector('.nav-item[onclick="openStaffManagement()"]').style.display = 'none';
                         document.querySelector('.nav-item[onclick="openUserManagement()"]').style.display = 'none';
+                        
+                        console.log('✅ Client modules should now be visible');
+                    } else if (userInfo.user_type === 'staff' || userInfo.user_type === 'client_user' || userInfo.user_type === 'employee') {
+                        // 🔥 EMPLOYEES/CLIENTS - SHOW ALL MODULES EXCEPT CLIENT MANAGEMENT
+                        console.log('👤 Employee/Client detected - showing all modules');
+                        console.log('📋 Calling showAllModules()...');
+                        showAllModules();
+                        
+                        // Hide management modules for employees/clients
+                        document.getElementById('users-nav').style.display = 'none';
+                        document.getElementById('whatsapp-reports-nav').style.display = 'none';
+                        document.getElementById('client-management-nav').style.display = 'none';
+                        document.querySelector('.nav-item[onclick="openStaffManagement()"]').style.display = 'none';
+                        document.querySelector('.nav-item[onclick="openUserManagement()"]').style.display = 'none';
+                        
+                        console.log('✅ Employee modules should now be visible');
                     } else {
                         // Default - hide all management modules
                         document.getElementById('users-nav').style.display = 'none';
@@ -1942,23 +2560,43 @@
                     'reports': '.module-reports',
                     'billing': '.module-billing',
                     'invoices': '.module-invoices',
-                    'settings': '.module-settings'
+                    'settings': '.module-settings',
+                    'eway': '.module-eway'
                 };
                 
                 const selector = moduleSelectors[moduleName];
-                return selector ? document.querySelector(selector) : null;
+                console.log(`🔍 Looking for module ${moduleName} with selector: ${selector}`);
+                const element = selector ? document.querySelector(selector) : null;
+                console.log(`🔍 Element found:`, element);
+                return element;
             }
 
             function showAllModules() {
-                // Show all ERP modules for super admin and business owners
-                const modules = ['sales', 'credit', 'products', 'inventory', 'customers', 'reports', 'billing', 'invoices', 'settings'];
+                console.log('🔥 showAllModules() called');
+                // Show all ERP modules for super admin, business owners, and employees/clients
+                const modules = ['sales', 'credit', 'products', 'inventory', 'customers', 'reports', 'billing', 'invoices', 'eway', 'settings'];
                 modules.forEach(module => {
                     const moduleElement = getModuleElement(module);
+                    console.log(`📋 Module ${module}:`, moduleElement ? 'found' : 'NOT FOUND');
                     if (moduleElement) {
                         moduleElement.style.display = 'flex';
                         moduleElement.style.setProperty('display', 'flex', 'important');
+                        console.log(`✅ ${module} module shown`);
+                    } else {
+                        console.log(`❌ ${module} module element not found`);
                     }
                 });
+                
+                // Also show E-Way Bills module (it doesn't have module- class)
+                const ewayElement = document.querySelector('.nav-item[onclick*="eway"]');
+                console.log('📋 E-Way Bills element:', ewayElement ? 'found' : 'NOT FOUND');
+                if (ewayElement) {
+                    ewayElement.style.display = 'flex';
+                    ewayElement.style.setProperty('display', 'flex', 'important');
+                    console.log('✅ E-Way Bills module shown');
+                }
+                
+                console.log('🔥 showAllModules() completed');
             }
 
             // Expose functions for inline handlers
@@ -1972,6 +2610,14 @@
             window.openUsers = openUsers;
             window.openWhatsAppReports = openWhatsAppReports;
             window.openClientManagement = openClientManagement;
+            
+            // 🔥 DEBUG FUNCTIONS - EXPOSE FOR TESTING
+            window.showAllModules = showAllModules;
+            window.checkUserRole = checkUserRole;
+            window.testModuleDisplay = function() {
+                console.log('🧪 Testing module display...');
+                showAllModules();
+            };
             
             // Premium Dashboard Enhancements
             initPremiumDashboard();
@@ -1990,12 +2636,12 @@
                     
                     // Easing function for smooth animation
                     const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-                    const current = Math.floor(start + (end - start) * easeOutQuart);
+                    const current = start + (end - start) * easeOutQuart;
                     
                     if (element.textContent.includes('₹')) {
-                        element.textContent = `₹${current.toLocaleString()}`;
+                        element.textContent = `₹${current.toFixed(2)}`;
                     } else {
-                        element.textContent = current.toLocaleString();
+                        element.textContent = Math.round(current).toLocaleString();
                     }
                     
                     if (progress < 1) {
@@ -2016,10 +2662,46 @@
                         animateValue(todaySales, 0, stats.today_sales || 0, 1500);
                     }
                     
+                    // Update sales change percentage
+                    const salesChange = document.getElementById('salesChange');
+                    if (salesChange && stats.sales_change_percent !== undefined) {
+                        const changePercent = stats.sales_change_percent;
+                        const changeText = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+                        salesChange.textContent = `${changeText} from yesterday`;
+                        salesChange.className = changePercent >= 0 ? 'stat-change positive' : 'stat-change negative';
+                    }
+                    
                     // Animate today's revenue
                     const todayRevenue = document.getElementById('todayRevenue');
                     if (todayRevenue) {
                         animateValue(todayRevenue, 0, (stats.today_revenue || 0), 1800);
+                    }
+                    
+                    // Show receivable amount in red below revenue
+                    const revenueReceivable = document.getElementById('revenueReceivable');
+                    console.log('📊 Receivable Debug:', {
+                        today_receivable: stats.today_receivable,
+                        today_receivable_profit: stats.today_receivable_profit,
+                        element_exists: !!revenueReceivable
+                    });
+                    if (revenueReceivable) {
+                        const receivableAmount = stats.today_receivable || 0;
+                        if (receivableAmount > 0) {
+                            revenueReceivable.textContent = `Receivable: ₹${receivableAmount.toFixed(2)}`;
+                            revenueReceivable.style.display = 'block';
+                        } else {
+                            revenueReceivable.textContent = '';
+                            revenueReceivable.style.display = 'none';
+                        }
+                    }
+                    
+                    // Update revenue change percentage (show change from yesterday, not "Today's earnings")
+                    const revenueChange = document.getElementById('revenueChange');
+                    if (revenueChange && stats.revenue_change_percent !== undefined) {
+                        const changePercent = stats.revenue_change_percent;
+                        const changeText = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+                        revenueChange.textContent = `${changeText} from yesterday`;
+                        revenueChange.className = changePercent >= 0 ? 'stat-change positive' : 'stat-change negative';
                     }
                     
                     // Animate total orders
@@ -2028,10 +2710,41 @@
                         animateValue(totalOrders, 0, stats.today_orders || 0, 1200);
                     }
                     
-                    // Animate net profit
+                    // Update orders change percentage
+                    const ordersChange = document.getElementById('ordersChange');
+                    if (ordersChange && stats.orders_change_percent !== undefined) {
+                        const changePercent = stats.orders_change_percent;
+                        const changeText = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+                        ordersChange.textContent = `${changeText} from yesterday`;
+                        ordersChange.className = changePercent >= 0 ? 'stat-change positive' : 'stat-change negative';
+                    }
+                    
+                    // Animate net profit (use actual profit from stats)
                     const netProfit = document.getElementById('netProfit');
                     if (netProfit) {
-                        animateValue(netProfit, 0, Math.floor((stats.today_revenue || 0) * 0.35), 2000);
+                        animateValue(netProfit, 0, stats.today_profit || 0, 2000);
+                    }
+                    
+                    // Show receivable profit in red below net profit
+                    const profitReceivable = document.getElementById('profitReceivable');
+                    if (profitReceivable) {
+                        const receivableProfit = stats.today_receivable_profit || 0;
+                        if (receivableProfit > 0) {
+                            profitReceivable.textContent = `Receivable: ₹${receivableProfit.toFixed(2)}`;
+                            profitReceivable.style.display = 'block';
+                        } else {
+                            profitReceivable.textContent = '';
+                            profitReceivable.style.display = 'none';
+                        }
+                    }
+                    
+                    // Update profit change percentage (show change from yesterday, not margin)
+                    const profitMargin = document.getElementById('profitMargin');
+                    if (profitMargin && stats.profit_change_percent !== undefined) {
+                        const changePercent = stats.profit_change_percent;
+                        const changeText = changePercent >= 0 ? `+${changePercent}%` : `${changePercent}%`;
+                        profitMargin.textContent = `${changeText} from yesterday`;
+                        profitMargin.className = changePercent >= 0 ? 'stat-change positive' : 'stat-change negative';
                     }
                     
                 } catch (e) {
@@ -2296,5 +3009,9 @@
     // Also load after 2 seconds
     setTimeout(loadProfilePicture, 2000);
     </script>
+
+    <!-- Real-time Sync Integration -->
+    {% include 'sync_integration.html' %}
+
 </body>
 </html>

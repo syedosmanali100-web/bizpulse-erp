@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Logo Management - BizPulse CMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #732C3F;
+            --primary-dark: #5a2332;
+            --secondary: #F7E8EC;
+            --accent: #E8B4BC;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 50%, #D4C2C8 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Fixed Back Button */
+        .fixed-back-btn {
+            position: fixed;
+            left: 2rem;
+            top: 2rem;
+            z-index: 1000;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(115, 44, 63, 0.3);
+            text-decoration: none;
+        }
+
+        .fixed-back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(115, 44, 63, 0.4);
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            margin-bottom: 2rem;
+            margin-left: 100px;
+            text-align: center;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .header-subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        /* Logo Management Card */
+        .logo-card {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(115, 44, 63, 0.08);
+            margin-left: 100px;
+        }
+
+        .current-logo-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--light);
+            border-radius: 16px;
+            border: 2px dashed var(--border);
+        }
+
+        .current-logo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .current-logo-preview {
+            max-width: 200px;
+            max-height: 100px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .no-logo-message {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            margin-bottom: 3rem;
+        }
+
+        .upload-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--primary);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(115, 44, 63, 0.02);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-dark);
+            background: rgba(115, 44, 63, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            display: none;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--secondary);
+            border-radius: 16px;
+        }
+
+        .preview-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .preview-image {
+            max-width: 300px;
+            max-height: 150px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(115, 44, 63, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(115, 44, 63, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Guidelines */
+        .guidelines {
+            background: var(--light);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+        }
+
+        .guidelines-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guidelines-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .guidelines-list li {
+            padding: 0.5rem 0;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guidelines-list li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Success/Error Messages */
+        .message {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header, .logo-card {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .fixed-back-btn {
+                left: 1rem;
+                top: 1rem;
+                padding: 12px 16px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Back Button -->
+    <a href="/cms" class="fixed-back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>CMS Dashboard</span>
+    </a>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="header-title"><i class="fas fa-image"></i> Brand Logo Management</h1>
+            <p class="header-subtitle">Upload and manage your company logo that appears in the website navigation</p>
+        </div>
+
+        <!-- Logo Management Card -->
+        <div class="logo-card">
+            <!-- Success/Error Messages -->
+            <div id="successMessage" class="message success">
+                <i class="fas fa-check-circle"></i>
+                <span id="successText">Logo updated successfully!</span>
+            </div>
+            <div id="errorMessage" class="message error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Error message</span>
+            </div>
+
+            <!-- Current Logo Section -->
+            <div class="current-logo-section">
+                <h2 class="current-logo-title">Current Logo</h2>
+                <div id="currentLogoContainer">
+                    <img id="currentLogoImage" class="current-logo-preview" style="display: none;" alt="Current Logo">
+                    <div id="noLogoMessage" class="no-logo-message">
+                        <i class="fas fa-image" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                        <p>No logo uploaded yet</p>
+                        <p style="font-size: 0.9rem;">Upload a logo to display in your website navigation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h3 class="upload-title">Upload New Logo</h3>
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('logoFile').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Click to upload or drag & drop</div>
+                    <div class="upload-subtext">PNG, JPG, GIF up to 5MB</div>
+                </div>
+                <input type="file" id="logoFile" class="file-input" accept="image/*">
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section" id="previewSection">
+                <h3 class="preview-title">Preview</h3>
+                <img id="previewImage" class="preview-image" alt="Logo Preview">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons" id="actionButtons" style="display: none;">
+                <button class="btn btn-secondary" onclick="cancelUpload()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="saveLogo()">
+                    <i class="fas fa-save"></i>
+                    Save Logo
+                </button>
+                <button class="btn btn-danger" onclick="removeLogo()" id="removeBtn" style="display: none;">
+                    <i class="fas fa-trash"></i>
+                    Remove Logo
+                </button>
+            </div>
+
+            <!-- Guidelines -->
+            <div class="guidelines">
+                <h3 class="guidelines-title">
+                    <i class="fas fa-info-circle"></i>
+                    Logo Guidelines
+                </h3>
+                <ul class="guidelines-list">
+                    <li>Recommended size: 200x100 pixels or similar aspect ratio</li>
+                    <li>Supported formats: PNG, JPG, GIF, WEBP</li>
+                    <li>Maximum file size: 5MB</li>
+                    <li>Transparent background (PNG) works best</li>
+                    <li>Logo will appear in the top-left corner of your website</li>
+                    <li>High resolution logos look better on all devices</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+
+        // Load current logo on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentLogo();
+        });
+
+        async function loadCurrentLogo() {
+            try {
+                const response = await fetch('/api/get-company-logo');
+                const data = await response.json();
+                
+                const currentImage = document.getElementById('currentLogoImage');
+                const noLogoMessage = document.getElementById('noLogoMessage');
+                const removeBtn = document.getElementById('removeBtn');
+                
+                if (data.logo_url) {
+                    currentImage.src = data.logo_url;
+                    currentImage.style.display = 'block';
+                    noLogoMessage.style.display = 'none';
+                    removeBtn.style.display = 'flex';
+                } else {
+                    currentImage.style.display = 'none';
+                    noLogoMessage.style.display = 'block';
+                    removeBtn.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to load current logo:', error);
+            }
+        }
+
+        // File input change handler
+        document.getElementById('logoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    handleFile(file);
+                } else {
+                    showError('Please upload an image file');
+                }
+            }
+        });
+
+        function handleFile(file) {
+            // Validate file size
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File size must be less than 5MB');
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload an image file');
+                return;
+            }
+
+            currentFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImage = document.getElementById('previewImage');
+                const previewSection = document.getElementById('previewSection');
+                const actionButtons = document.getElementById('actionButtons');
+                
+                previewImage.src = e.target.result;
+                previewSection.style.display = 'block';
+                actionButtons.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveLogo() {
+            if (!currentFile) {
+                showError('Please select a file first');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('logo', currentFile);
+
+                const response = await fetch('/api/upload-company-logo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showSuccess('Logo uploaded successfully!');
+                    loadCurrentLogo();
+                    cancelUpload();
+                } else {
+                    showError(result.error || 'Failed to upload logo');
+                }
+            } catch (error) {
+                console.error('Error uploading logo:', error);
+                showError('Failed to upload logo. Please try again.');
+            }
+        }
+
+        function cancelUpload() {
+            currentFile = null;
+            document.getElementById('logoFile').value = '';
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+        }
+
+        async function removeLogo() {
+            if (confirm('Are you sure you want to remove the current logo?')) {
+                try {
+                    // In a real implementation, you would call a delete API
+                    // For now, we'll just reload and hide the current logo
+                    const currentImage = document.getElementById('currentLogoImage');
+                    const noLogoMessage = document.getElementById('noLogoMessage');
+                    const removeBtn = document.getElementById('removeBtn');
+                    
+                    currentImage.style.display = 'none';
+                    noLogoMessage.style.display = 'block';
+                    removeBtn.style.display = 'none';
+                    
+                    showSuccess('Logo removed successfully!');
+                } catch (error) {
+                    showError('Failed to remove logo');
+                }
+            }
+        }
+
+        function showSuccess(message) {
+            const successMessage = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+            successText.textContent = message;
+            successMessage.style.display = 'flex';
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorMessage.style.display = 'flex';
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

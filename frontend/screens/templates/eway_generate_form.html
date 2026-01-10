@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate E-Way Bill - BizPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #732C3F;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            color: #732C3F;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-group label.required::after {
+            content: ' *';
+            color: #dc3545;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn {
+            background: #732C3F;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #8B4A5C;
+            transform: translateY(-2px);
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn.success {
+            background: #28a745;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .requirement-check {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .requirement-check.required {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .requirement-check.not-required {
+            background: #f3e5f5;
+            border-color: #9c27b0;
+        }
+        
+        .invoice-info {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .info-value {
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Generate E-Way Bill</h1>
+            <p>Create E-Way Bill for goods transportation</p>
+        </div>
+        
+        <!-- Messages -->
+        <div id="messageArea"></div>
+        
+        <!-- Invoice Selection -->
+        <div class="form-section">
+            <div class="section-title">📄 Invoice Selection</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="invoiceSelect" class="required">Select Invoice</label>
+                    <select id="invoiceSelect" onchange="loadInvoiceDetails()">
+                        <option value="">Select an invoice...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Invoice Information -->
+        <div id="invoiceInfo" class="invoice-info" style="display: none;">
+            <div class="section-title">📊 Invoice Information</div>
+            <div class="info-grid" id="invoiceDetails"></div>
+        </div>
+        
+        <!-- E-Way Bill Requirement Check -->
+        <div id="requirementCheck" class="requirement-check" style="display: none;">
+            <h3 id="requirementTitle">Checking E-Way Bill requirement...</h3>
+            <p id="requirementMessage"></p>
+        </div>
+        
+        <!-- E-Way Bill Form -->
+        <form id="ewayForm" style="display: none;">
+            <!-- Document Details -->
+            <div class="form-section">
+                <div class="section-title">📋 Document Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="supplyType" class="required">Supply Type</label>
+                        <select id="supplyType" required>
+                            <option value="">Select supply type...</option>
+                            <option value="Outward">Outward</option>
+                            <option value="Inward">Inward</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subSupplyType">Sub Supply Type</label>
+                        <select id="subSupplyType">
+                            <option value="">Select sub supply type...</option>
+                            <option value="Supply">Supply</option>
+                            <option value="Import">Import</option>
+                            <option value="Export">Export</option>
+                            <option value="Job Work">Job Work</option>
+                            <option value="For Own Use">For Own Use</option>
+                            <option value="Job work Returns">Job work Returns</option>
+                            <option value="Sales Return">Sales Return</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentType" class="required">Document Type</label>
+                        <select id="documentType" required>
+                            <option value="">Select document type...</option>
+                            <option value="Tax Invoice">Tax Invoice</option>
+                            <option value="Bill of Supply">Bill of Supply</option>
+                            <option value="Delivery Challan">Delivery Challan</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transport Details -->
+            <div class="form-section">
+                <div class="section-title">🚛 Transport Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="transportMode" class="required">Transport Mode</label>
+                        <select id="transportMode" required onchange="toggleTransportFields()">
+                            <option value="">Select transport mode...</option>
+                            <option value="Road">Road</option>
+                            <option value="Rail">Rail</option>
+                            <option value="Air">Air</option>
+                            <option value="Ship">Ship</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="vehicleNumberGroup">
+                        <label for="vehicleNumber">Vehicle Number</label>
+                        <input type="text" id="vehicleNumber" placeholder="e.g., MH12AB1234">
+                    </div>
+                    <div class="form-group">
+                        <label for="transporterName">Transporter Name</label>
+                        <input type="text" id="transporterName" placeholder="Enter transporter name">
+                    </div>
+                    <div class="form-group">
+                        <label for="transporterId">Transporter ID/GSTIN</label>
+                        <input type="text" id="transporterId" placeholder="Enter transporter GSTIN">
+                    </div>
+                    <div class="form-group">
+                        <label for="distance">Approximate Distance (KM)</label>
+                        <input type="number" id="distance" min="0" placeholder="Enter distance in KM">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Location Details -->
+            <div class="form-section">
+                <div class="section-title">📍 Location Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fromPlace" class="required">From Place</label>
+                        <input type="text" id="fromPlace" required placeholder="Enter origin place">
+                    </div>
+                    <div class="form-group">
+                        <label for="fromState" class="required">From State</label>
+                        <select id="fromState" required>
+                            <option value="">Select state...</option>
+                            <!-- Indian states will be populated -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="fromPincode" class="required">From Pincode</label>
+                        <input type="text" id="fromPincode" required placeholder="Enter pincode" maxlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="toPlace" class="required">To Place</label>
+                        <input type="text" id="toPlace" required placeholder="Enter destination place">
+                    </div>
+                    <div class="form-group">
+                        <label for="toState" class="required">To State</label>
+                        <select id="toState" required>
+                            <option value="">Select state...</option>
+                            <!-- Indian states will be populated -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="toPincode" class="required">To Pincode</label>
+                        <input type="text" id="toPincode" required placeholder="Enter pincode" maxlength="6">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Details -->
+            <div class="form-section">
+                <div class="section-title">📦 Product Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="hsnCode">HSN Code</label>
+                        <input type="text" id="hsnCode" placeholder="Enter HSN code">
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Product Description</label>
+                        <textarea id="productDescription" placeholder="Enter product description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" min="0" step="0.01" placeholder="Enter quantity">
+                    </div>
+                    <div class="form-group">
+                        <label for="unit">Unit</label>
+                        <select id="unit">
+                            <option value="NOS">NOS</option>
+                            <option value="KGS">KGS</option>
+                            <option value="LTR">LTR</option>
+                            <option value="MTR">MTR</option>
+                            <option value="BOX">BOX</option>
+                            <option value="PCS">PCS</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tax Details -->
+            <div class="form-section">
+                <div class="section-title">💰 Tax Details</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cgstRate">CGST Rate (%)</label>
+                        <input type="number" id="cgstRate" min="0" max="100" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="sgstRate">SGST Rate (%)</label>
+                        <input type="number" id="sgstRate" min="0" max="100" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="igstRate">IGST Rate (%)</label>
+                        <input type="number" id="igstRate" min="0" max="100" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="cessRate">Cess Rate (%)</label>
+                        <input type="number" id="cessRate" min="0" max="100" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="/api/eway/manage" class="btn secondary">← Back to List</a>
+            <button type="button" class="btn" onclick="generateEwayBill()" id="generateBtn" disabled>
+                📋 Generate E-Way Bill
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedInvoice = null;
+        let isEwayRequired = false;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInvoices();
+            populateStates();
+            
+            // Get invoice ID from URL if provided
+            const urlParams = new URLSearchParams(window.location.search);
+            const invoiceId = urlParams.get('invoice_id');
+            if (invoiceId) {
+                document.getElementById('invoiceSelect').value = invoiceId;
+                loadInvoiceDetails();
+            }
+        });
+        
+        async function loadInvoices() {
+            try {
+                const response = await fetch('/api/invoices');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const select = document.getElementById('invoiceSelect');
+                    select.innerHTML = '<option value="">Select an invoice...</option>';
+                    
+                    result.data.forEach(invoice => {
+                        const option = document.createElement('option');
+                        option.value = invoice.id;
+                        option.textContent = `${invoice.bill_number} - ${invoice.customer_name} - ₹${formatNumber(invoice.total_amount)}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Failed to load invoices:', error);
+                showError('Failed to load invoices');
+            }
+        }
+        
+        async function loadInvoiceDetails() {
+            const invoiceId = document.getElementById('invoiceSelect').value;
+            if (!invoiceId) {
+                hideInvoiceInfo();
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/invoices/${invoiceId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    selectedInvoice = result.data;
+                    showInvoiceInfo();
+                    checkEwayRequirement();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('❌ Failed to load invoice details:', error);
+                showError('Failed to load invoice details');
+            }
+        }
+        
+        function showInvoiceInfo() {
+            if (!selectedInvoice) return;
+            
+            const infoDiv = document.getElementById('invoiceInfo');
+            const detailsDiv = document.getElementById('invoiceDetails');
+            
+            detailsDiv.innerHTML = `
+                <div class="info-item">
+                    <span class="info-label">Invoice Number:</span>
+                    <span class="info-value">${selectedInvoice.bill_number}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Customer:</span>
+                    <span class="info-value">${selectedInvoice.customer_name}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Invoice Value:</span>
+                    <span class="info-value">₹${formatNumber(selectedInvoice.total_amount)}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value">${formatDate(selectedInvoice.created_at)}</span>
+                </div>
+            `;
+            
+            infoDiv.style.display = 'block';
+        }
+        
+        function hideInvoiceInfo() {
+            document.getElementById('invoiceInfo').style.display = 'none';
+            document.getElementById('requirementCheck').style.display = 'none';
+            document.getElementById('ewayForm').style.display = 'none';
+            document.getElementById('generateBtn').disabled = true;
+        }
+        
+        async function checkEwayRequirement() {
+            if (!selectedInvoice) return;
+            
+            try {
+                const response = await fetch('/api/eway/check-requirement', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        invoice_value: selectedInvoice.total_amount,
+                        from_state: 'Maharashtra', // Default - should be from settings
+                        to_state: 'Maharashtra'    // Default - should be from customer
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    isEwayRequired = result.is_required;
+                    showRequirementCheck(result);
+                    
+                    if (isEwayRequired) {
+                        showEwayForm();
+                        prefillFormData();
+                    }
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('❌ Failed to check E-Way Bill requirement:', error);
+                showError('Failed to check E-Way Bill requirement');
+            }
+        }
+        
+        function showRequirementCheck(result) {
+            const checkDiv = document.getElementById('requirementCheck');
+            const titleDiv = document.getElementById('requirementTitle');
+            const messageDiv = document.getElementById('requirementMessage');
+            
+            if (result.is_required) {
+                checkDiv.className = 'requirement-check required';
+                titleDiv.textContent = '✅ E-Way Bill Required';
+                messageDiv.textContent = `Invoice value ₹${formatNumber(selectedInvoice.total_amount)} exceeds threshold of ₹${formatNumber(result.threshold)}. E-Way Bill generation is mandatory.`;
+            } else {
+                checkDiv.className = 'requirement-check not-required';
+                titleDiv.textContent = '❌ E-Way Bill Not Required';
+                messageDiv.textContent = `Invoice value ₹${formatNumber(selectedInvoice.total_amount)} is below threshold of ₹${formatNumber(result.threshold)}. E-Way Bill generation is optional.`;
+            }
+            
+            checkDiv.style.display = 'block';
+        }
+        
+        function showEwayForm() {
+            document.getElementById('ewayForm').style.display = 'block';
+            document.getElementById('generateBtn').disabled = false;
+        }
+        
+        function prefillFormData() {
+            if (!selectedInvoice) return;
+            
+            // Prefill document details
+            document.getElementById('supplyType').value = 'Outward';
+            document.getElementById('documentType').value = 'Tax Invoice';
+            
+            // Prefill transport details
+            document.getElementById('transportMode').value = 'Road';
+            
+            // Prefill product details from invoice
+            if (selectedInvoice.items && selectedInvoice.items.length > 0) {
+                const firstItem = selectedInvoice.items[0];
+                document.getElementById('productDescription').value = firstItem.product_name || '';
+                document.getElementById('quantity').value = firstItem.quantity || '';
+                document.getElementById('hsnCode').value = firstItem.hsn_code || '';
+            }
+        }
+        
+        function populateStates() {
+            const states = [
+                'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+                'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+                'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+                'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+                'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+                'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Jammu and Kashmir',
+                'Ladakh', 'Puducherry', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+                'Lakshadweep', 'Andaman and Nicobar Islands'
+            ];
+            
+            const fromStateSelect = document.getElementById('fromState');
+            const toStateSelect = document.getElementById('toState');
+            
+            states.forEach(state => {
+                const option1 = document.createElement('option');
+                option1.value = state;
+                option1.textContent = state;
+                fromStateSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = state;
+                option2.textContent = state;
+                toStateSelect.appendChild(option2);
+            });
+        }
+        
+        function toggleTransportFields() {
+            const transportMode = document.getElementById('transportMode').value;
+            const vehicleGroup = document.getElementById('vehicleNumberGroup');
+            
+            if (transportMode === 'Road') {
+                vehicleGroup.style.display = 'flex';
+            } else {
+                vehicleGroup.style.display = 'none';
+            }
+        }
+        
+        async function generateEwayBill() {
+            if (!selectedInvoice) {
+                showError('Please select an invoice first');
+                return;
+            }
+            
+            try {
+                const formData = collectFormData();
+                
+                // Validate required fields
+                if (!validateForm(formData)) {
+                    return;
+                }
+                
+                const generateBtn = document.getElementById('generateBtn');
+                generateBtn.disabled = true;
+                generateBtn.textContent = '⏳ Generating...';
+                
+                const response = await fetch('/api/eway/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(`E-Way Bill generated successfully! Number: ${result.data.eway_bill_number}`);
+                    setTimeout(() => {
+                        window.location.href = '/api/eway/manage';
+                    }, 2000);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to generate E-Way Bill:', error);
+                showError('Failed to generate E-Way Bill: ' + error.message);
+            } finally {
+                const generateBtn = document.getElementById('generateBtn');
+                generateBtn.disabled = false;
+                generateBtn.textContent = '📋 Generate E-Way Bill';
+            }
+        }
+        
+        function collectFormData() {
+            return {
+                invoice_id: selectedInvoice.id,
+                bill_id: selectedInvoice.bill_id,
+                invoice_value: selectedInvoice.total_amount,
+                supply_type: document.getElementById('supplyType').value,
+                sub_supply_type: document.getElementById('subSupplyType').value,
+                document_type: document.getElementById('documentType').value,
+                document_number: selectedInvoice.bill_number,
+                document_date: selectedInvoice.created_at.split('T')[0],
+                transport_mode: document.getElementById('transportMode').value,
+                vehicle_number: document.getElementById('vehicleNumber').value,
+                transporter_name: document.getElementById('transporterName').value,
+                transporter_id: document.getElementById('transporterId').value,
+                distance: parseInt(document.getElementById('distance').value) || 0,
+                from_place: document.getElementById('fromPlace').value,
+                from_state: document.getElementById('fromState').value,
+                from_pincode: document.getElementById('fromPincode').value,
+                to_place: document.getElementById('toPlace').value,
+                to_state: document.getElementById('toState').value,
+                to_pincode: document.getElementById('toPincode').value,
+                hsn_code: document.getElementById('hsnCode').value,
+                product_description: document.getElementById('productDescription').value,
+                quantity: parseFloat(document.getElementById('quantity').value) || 0,
+                unit: document.getElementById('unit').value,
+                cgst_rate: parseFloat(document.getElementById('cgstRate').value) || 0,
+                sgst_rate: parseFloat(document.getElementById('sgstRate').value) || 0,
+                igst_rate: parseFloat(document.getElementById('igstRate').value) || 0,
+                cess_rate: parseFloat(document.getElementById('cessRate').value) || 0
+            };
+        }
+        
+        function validateForm(data) {
+            const requiredFields = [
+                'supply_type', 'document_type', 'transport_mode',
+                'from_place', 'from_state', 'from_pincode',
+                'to_place', 'to_state', 'to_pincode'
+            ];
+            
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    showError(`Please fill in the required field: ${field.replace('_', ' ')}`);
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function showError(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="error">❌ ${message}</div>`;
+            messageArea.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showSuccess(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="success">✅ ${message}</div>`;
+            messageArea.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN').format(num);
+        }
+        
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-IN');
+        }
+    </script>
+</body>
+</html>

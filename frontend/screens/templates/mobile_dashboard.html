@@ -1194,8 +1194,8 @@
             <!-- Credential Login Form -->
             <form onsubmit="handleLogin(event)" id="credentialLoginForm">
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail" value="bizpulse.erp@gmail.com" required>
+                    <label>Email or Username</label>
+                    <input type="text" id="loginEmail" placeholder="Enter email or username" required>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
@@ -1525,7 +1525,7 @@
                     <span style="font-weight: 600;">₹<span id="billSubtotal">0</span></span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>GST (18%):</span>
+                    <span>GST (10%):</span>
                     <span style="font-weight: 600;">₹<span id="billGST">0</span></span>
                 </div>
                 <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 20px; font-weight: 700;">
@@ -4408,8 +4408,8 @@
         // Calculate bill total
         function calculateBillTotal() {
             const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
-            const gst = subtotal * 0.18; // 18% GST
-            const total = subtotal + gst;
+            const gst = subtotal * 0.10; // 10% GST on subtotal
+            const total = subtotal + gst; // Total = Subtotal + GST
             
             document.getElementById('billSubtotal').textContent = subtotal.toFixed(2);
             document.getElementById('billGST').textContent = gst.toFixed(2);
@@ -4439,8 +4439,8 @@
             
             const paymentMethod = document.getElementById('billPaymentMethod').value;
             const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
-            const gst = subtotal * 0.18;
-            const total = subtotal + gst;
+            const gst = subtotal * 0.10; // 10% GST on subtotal
+            const total = subtotal + gst; // Total = Subtotal + GST
             
             const billData = {
                 business_type: 'retail',
@@ -4471,6 +4471,7 @@
                 const result = await response.json();
                 
                 if (response.ok) {
+                    // Show the actual total (which is now equal to subtotal, no GST)
                     alert(`✅ Bill Generated Successfully!\n\nBill Number: ${result.bill_number}\nTotal: ₹${total.toFixed(2)}`);
                     
                     // Clear bill
@@ -5712,7 +5713,7 @@
                         <span id="mobileSubtotal">₹0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 16px;">
-                        <span>Tax (18%):</span>
+                        <span>Tax (10%):</span>
                         <span id="mobileTaxAmount">₹0.00</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0 8px 0; font-size: 20px; font-weight: bold; color: #732C3F; border-top: 2px solid #E8D5DA; margin-top: 10px;">
@@ -5942,8 +5943,8 @@
         // Update Mobile Bill Summary
         function updateMobileBillSummary() {
             const subtotal = mobileBillItems.reduce((sum, item) => sum + item.total, 0);
-            const taxAmount = subtotal * 0.18;
-            const total = subtotal + taxAmount;
+            const taxAmount = subtotal * 0.10; // 10% GST on subtotal
+            const total = subtotal + taxAmount; // Total = Subtotal + GST
             
             document.getElementById('mobileSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
             document.getElementById('mobileTaxAmount').textContent = `₹${taxAmount.toFixed(2)}`;
@@ -5986,8 +5987,8 @@
             
             try {
                 const subtotal = mobileBillItems.reduce((sum, item) => sum + item.total, 0);
-                const taxAmount = subtotal * 0.18;
-                const total = subtotal + taxAmount;
+                const taxAmount = subtotal * 0.10; // 10% GST on subtotal
+                const total = subtotal + taxAmount; // Total = Subtotal + GST
                 
                 const billData = {
                     customer_id: selectedMobileCustomer,

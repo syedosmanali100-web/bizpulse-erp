@@ -399,12 +399,12 @@ class RetailService:
             'top_products': [dict(row) for row in top_products]
         }
     
-    def get_recent_activity(self):
-        """Get recent activity for dashboard - FORMATTED FOR FRONTEND"""
+    def get_recent_activity(self, user_id=None):
+        """Get recent activity for dashboard - FORMATTED FOR FRONTEND - Filtered by user"""
         try:
             # Use the dashboard service to get properly formatted activities
             from modules.dashboard.service import DashboardService
-            activities = DashboardService.get_recent_activities_only(limit=10)
+            activities = DashboardService.get_recent_activities_only(limit=10, user_id=user_id)
             
             return {
                 'success': True,
@@ -414,17 +414,17 @@ class RetailService:
         except Exception as e:
             print(f"Error in get_recent_activity: {e}")
             # Fallback to manual formatting if dashboard service fails
-            return self._get_recent_activity_fallback()
+            return self._get_recent_activity_fallback(user_id)
     
-    def _get_recent_activity_fallback(self):
-        """Fallback method to format activities manually"""
+    def _get_recent_activity_fallback(self, user_id=None):
+        """Fallback method to format activities manually - Filtered by user"""
         conn = get_db_connection()
         cursor = conn.cursor()
         
         activities = []
         
-        # Get recent bills and format as activities
-        recent_bills = cursor.execute('''
+        # Build query with user filtering
+        query = '''
             SELECT 
                 b.id,
                 b.bill_number,
@@ -435,9 +435,17 @@ class RetailService:
             FROM bills b
             LEFT JOIN customers c ON b.customer_id = c.id
             WHERE b.status = 'completed'
-            ORDER BY b.created_at DESC
-            LIMIT 8
-        ''').fetchall()
+        '''
+        
+        params = []
+        if user_id:
+            query += ' AND (b.business_owner_id = ? OR b.business_owner_id IS NULL)'
+            params.append(user_id)
+        
+        query += ' ORDER BY b.created_at DESC LIMIT 8'
+        
+        # Get recent bills and format as activities
+        recent_bills = cursor.execute(query, params).fetchall()
         
         for bill in recent_bills:
             amount = float(bill['total_amount']) if bill['total_amount'] else 0

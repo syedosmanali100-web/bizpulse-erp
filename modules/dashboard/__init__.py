@@ -1,0 +1,1 @@
+# Dashboard module for BizPulse ERP

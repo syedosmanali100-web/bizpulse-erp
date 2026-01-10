@@ -3,17 +3,28 @@ Invoice routes - Handle all invoice API endpoints
 Invoices are the source of truth for all transactions
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from .service import InvoiceService
 from datetime import datetime
 
 invoices_bp = Blueprint('invoices', __name__)
 invoice_service = InvoiceService()
 
+def get_user_id_from_session():
+    """Get user_id from session for filtering data"""
+    user_type = session.get('user_type')
+    if user_type == 'employee':
+        return session.get('client_id')
+    else:
+        return session.get('user_id')
+
 @invoices_bp.route('/api/invoices', methods=['GET'])
 def get_invoices():
-    """Get all invoices with comprehensive filtering and pagination"""
+    """Get all invoices with comprehensive filtering and pagination - Filtered by user"""
     try:
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        
         filters = {}
         
         # Status filter (payment status)
@@ -48,7 +59,7 @@ def get_invoices():
             except ValueError:
                 filters['limit'] = 50
         
-        result = invoice_service.get_invoices(filters)
+        result = invoice_service.get_invoices(filters, user_id)
         return jsonify(result)
         
     except Exception as e:
@@ -59,8 +70,11 @@ def get_invoices():
 
 @invoices_bp.route('/api/invoices/all', methods=['GET'])
 def get_all_invoices():
-    """Get all invoices - for frontend compatibility"""
+    """Get all invoices - for frontend compatibility - Filtered by user"""
     try:
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        
         from_date = request.args.get('from')
         to_date = request.args.get('to')
         limit = request.args.get('limit', 100, type=int)
@@ -71,7 +85,7 @@ def get_all_invoices():
         if to_date:
             filters['date_to'] = to_date
         
-        result = invoice_service.get_invoices(filters)
+        result = invoice_service.get_invoices(filters, user_id)
         return jsonify(result)
         
     except Exception as e:
@@ -83,9 +97,12 @@ def get_all_invoices():
 
 @invoices_bp.route('/api/invoices/<invoice_id>', methods=['GET'])
 def get_invoice_by_id(invoice_id):
-    """Get invoice details by ID"""
+    """Get invoice details by ID - Filtered by user"""
     try:
-        result = invoice_service.get_invoice_by_id(invoice_id)
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        
+        result = invoice_service.get_invoice_by_id(invoice_id, user_id)
         
         if result.get('success'):
             return jsonify(result)

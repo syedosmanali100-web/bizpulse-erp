@@ -1,15 +1,19 @@
 """
 BizPulse ERP - Modular Monolith Entry Point
 REFACTORED FROM SINGLE FILE TO MODULAR ARCHITECTURE
+WITH REAL-TIME SYNC SUPPORT
 """
 
 from flask import Flask, request, g, make_response
 from flask_cors import CORS
+# from flask_socketio import SocketIO  # Temporarily commented for testing
 from werkzeug.utils import secure_filename
 import os
 import json
 from datetime import timedelta
 import logging
+import threading
+import time
 
 # Import shared utilities
 from modules.shared.database import init_db
@@ -24,6 +28,18 @@ from modules.hotel.routes import hotel_bp
 from modules.billing.routes import billing_bp
 from modules.sales.routes import sales_bp
 from modules.invoices.routes import invoices_bp
+from modules.dashboard.routes import dashboard_bp
+from modules.customers.routes import customers_bp
+from modules.credit.routes import credit_bp
+from modules.settings.routes import settings_bp
+from modules.reports.routes import reports_bp
+from modules.earnings.routes import earnings_bp
+# from modules.rbac.routes import rbac_bp  # RBAC System - temporarily disabled
+
+# Import sync module (temporarily disabled)
+# from modules.sync.routes import init_socketio_events
+from modules.sync.service import sync_service
+from modules.sync.api_routes import sync_api_bp
 
 # Create Flask app
 app = Flask(__name__, template_folder='frontend/screens/templates', static_folder='frontend/assets/static')
@@ -33,9 +49,17 @@ logger = logging.getLogger(__name__)
 CORS(app, origins="*", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], 
      allow_headers=["Content-Type", "Authorization", "X-Requested-With"])
 
+# Initialize SocketIO for real-time sync (temporarily disabled)
+# socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
 # App configuration
 app.config['SECRET_KEY'] = 'cms-secret-key-change-in-production-2024'  # Change this in production
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Session expires after 24 hours
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # Session expires after 30 days
+app.config['SESSION_PERMANENT'] = True  # Make sessions permanent
+app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem for session storage
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Auto-reload templates for development
 
 # File Upload Configuration
@@ -81,6 +105,10 @@ def inject_translator():
 
 @app.before_request
 def detect_language():
+    # Refresh session on every request to keep it alive
+    if 'user_id' in session:
+        session.modified = True
+    
     # language preference comes from cookie `app_lang` (set by frontend)
     lang = request.cookies.get('app_lang')
     if not lang:
@@ -100,12 +128,137 @@ app.register_blueprint(hotel_bp)
 app.register_blueprint(billing_bp)
 app.register_blueprint(sales_bp)
 app.register_blueprint(invoices_bp)
+app.register_blueprint(dashboard_bp)
+app.register_blueprint(customers_bp)
+app.register_blueprint(credit_bp)
+app.register_blueprint(settings_bp)
+app.register_blueprint(reports_bp)
+app.register_blueprint(earnings_bp)
+app.register_blueprint(sync_api_bp)
+# app.register_blueprint(rbac_bp)  # RBAC System - temporarily disabled
+
+# Initialize WebSocket events for real-time sync (temporarily disabled)
+# init_socketio_events(socketio)
+
+# Background task for cleanup
+def cleanup_task():
+    """Background task to cleanup inactive sessions"""
+    while True:
+        try:
+            sync_service.cleanup_inactive_sessions()
+            time.sleep(60)  # Run every minute
+        except Exception as e:
+            logger.error(f"❌ Cleanup task error: {e}")
+            time.sleep(60)
+
+# Start cleanup task in background
+cleanup_thread = threading.Thread(target=cleanup_task, daemon=True)
+cleanup_thread.start()
+
+# Make socketio available globally for broadcasting (temporarily disabled)
+# app.socketio = socketio
 
 # Initialize database
 def initialize_database():
     """Initialize database on startup"""
     init_db()
     print("✅ Database initialized successfully")
+
+# Import auth decorators for CMS
+from modules.shared.auth_decorators import require_cms_auth
+from flask import render_template, redirect, url_for, session, flash
+
+# CMS Routes
+@app.route('/cms-access')
+def cms_access_page():
+    """CMS Access Information Page - Redirects to login"""
+    return render_template('cms_access.html')
+
+@app.route('/cms/login', methods=['GET', 'POST'])
+def cms_login():
+    """CMS Login Page"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        # Simple authentication (in production, use proper password hashing)
+        if username == 'admin' and password == 'admin123':
+            session['cms_admin_id'] = 'admin'  # Fixed: use cms_admin_id instead of cms_authenticated
+            session['cms_user'] = username
+            flash('Login successful!', 'success')
+            return redirect(url_for('cms_dashboard'))
+        else:
+            flash('Invalid credentials!', 'error')
+    
+    return render_template('cms_login.html')
+
+@app.route('/cms/logout')
+def cms_logout():
+    """CMS Logout"""
+    session.pop('cms_admin_id', None)  # Fixed: use cms_admin_id
+    session.pop('cms_user', None)
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('cms_login'))
+
+@app.route('/cms')
+@require_cms_auth
+def cms_dashboard():
+    """CMS Dashboard - Overview of all content"""
+    return render_template('cms_dashboard.html')
+
+@app.route('/cms/brand-logo')
+@require_cms_auth
+def cms_brand_logo():
+    """Brand Logo Management Page"""
+    return render_template('cms_brand_logo.html')
+
+@app.route('/cms/settings')
+@require_cms_auth
+def cms_settings():
+    """CMS Settings Page"""
+    return render_template('cms_settings.html')
+
+@app.route('/cms/hero')
+@require_cms_auth
+def cms_hero():
+    """CMS Hero Section Management"""
+    return render_template('cms_hero.html')
+
+@app.route('/cms/features')
+@require_cms_auth
+def cms_features():
+    """CMS Features Management"""
+    return render_template('cms_features.html')
+
+@app.route('/cms/pricing')
+@require_cms_auth
+def cms_pricing():
+    """CMS Pricing Management"""
+    return render_template('cms_pricing.html')
+
+@app.route('/cms/testimonials')
+@require_cms_auth
+def cms_testimonials():
+    """CMS Testimonials Management"""
+    return render_template('cms_testimonials.html')
+
+@app.route('/cms/faqs')
+@require_cms_auth
+def cms_faqs():
+    """CMS FAQs Management"""
+    return render_template('cms_faqs.html')
+
+@app.route('/cms/gallery')
+@require_cms_auth
+def cms_gallery():
+    """CMS Gallery Management"""
+    return render_template('cms_gallery.html')
+
+@app.route('/cms/profile')
+@require_cms_auth
+def cms_profile():
+    """CMS Profile & Password Management"""
+    return render_template('cms_profile.html')
 
 def print_startup_info():
     """Print startup information"""
@@ -130,4 +283,5 @@ def print_startup_info():
 if __name__ == '__main__':
     initialize_database()
     print_startup_info()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Run with SocketIO support for real-time sync (temporarily using regular Flask)
+    app.run(debug=True, host='0.0.0.0', port=5000) 

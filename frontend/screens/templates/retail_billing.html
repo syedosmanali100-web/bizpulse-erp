@@ -288,12 +288,12 @@
         .cart-item-name {
             font-weight: 600;
             color: #333;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .cart-item-price {
             color: #666;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .cart-item-qty {
@@ -350,15 +350,15 @@
         .total-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            font-size: 14px;
+            padding: 6px 0;
+            font-size: 13px;
         }
 
         .total-row.grand-total {
             border-top: 2px solid #732C3F;
             margin-top: 10px;
             padding-top: 10px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #732C3F;
         }
@@ -502,25 +502,33 @@
             <div class="cart-section">
                 <h2>🛍️ {{ t('bill') }}</h2>
                 
-                <!-- Customer Details (Optional) -->
-                <div class="customer-details">
-                    <h3>👤 {{ t('customer_details') }} ({{ t('optional') }})</h3>
-                    <div class="input-group">
-                        <label for="customerName">{{ t('customer_name') }}</label>
-                        <div class="customer-input-container">
-                            <input type="text" id="customerName" placeholder="{{ t('enter_customer_name') }}" 
-                                   list="customerList" autocomplete="off" onchange="selectCustomer()">
+                <!-- Customer Details Toggle Button -->
+                <button onclick="toggleCustomerDetails()" id="customerToggleBtn" style="width: 100%; padding: 10px; background: white; border: 1px solid #732C3F; color: #732C3F; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s;">
+                    <span>👤 Add Customer Details</span>
+                    <span id="customerToggleIcon">▼</span>
+                </button>
+                
+                <!-- Customer Details Form (Hidden by default) -->
+                <div id="customerDetailsForm" style="display: none; margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px;">Customer Name</label>
+                        <div style="position: relative;">
+                            <input type="text" id="customerName" placeholder="Enter customer name" 
+                                   list="customerList" autocomplete="off" onchange="selectCustomer()"
+                                   style="width: 100%; padding: 8px; padding-right: 35px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                             <datalist id="customerList">
                                 <!-- Customers will be loaded here -->
                             </datalist>
-                            <button type="button" class="refresh-customers-btn" onclick="loadCustomers()" title="Refresh customers">
+                            <button type="button" onclick="loadCustomers()" title="Refresh customers"
+                                    style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px;">
                                 🔄
                             </button>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label for="customerPhone">{{ t('customer_phone') }}</label>
-                        <input type="tel" id="customerPhone" placeholder="{{ t('enter_customer_phone') }}">
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px;">Phone Number</label>
+                        <input type="tel" id="customerPhone" placeholder="Enter phone number"
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                     </div>
                 </div>
 
@@ -534,40 +542,82 @@
 
                 <div class="cart-totals" id="cartTotals" style="display: none;">
                     <div class="total-row">
-                        <span data-i18n="subtotal">{{ t('subtotal') }}:</span>
+                        <span data-i18n="subtotal">Subtotal:</span>
                         <span id="subtotal">₹0.00</span>
                     </div>
+                    
+                    <!-- Discount Section -->
+                    <div class="total-row" style="border-top: 1px dashed #ddd; padding-top: 8px; margin-top: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span>Discount:</span>
+                            <select id="discountType" style="padding: 4px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" oninput="renderCart()">
+                                <option value="amount">₹</option>
+                                <option value="percentage">%</option>
+                            </select>
+                        </div>
+                        <input type="number" id="discountValue" placeholder="0" min="0" step="0.01" 
+                               style="width: 70px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; text-align: right; font-size: 13px;"
+                               oninput="renderCart()">
+                    </div>
+                    <div class="total-row" id="discountAmountRow" style="display: none; color: #dc3545; font-size: 12px;">
+                        <span>Discount Applied:</span>
+                        <span id="discountAmountDisplay">-₹0.00</span>
+                    </div>
+                    <div class="total-row" id="afterDiscountRow" style="display: none; font-weight: 600; color: #10b981; background: #f0fdf4; padding: 6px 8px; margin: 4px -8px; border-radius: 4px;">
+                        <span>After Discount:</span>
+                        <span id="afterDiscountAmount">₹0.00</span>
+                    </div>
+                    
                     <div class="total-row">
-                        <span data-i18n="cgst">{{ t('cgst') }}:</span>
+                        <span data-i18n="cgst">CGST (9%):</span>
                         <span id="cgst">₹0.00</span>
                     </div>
                     <div class="total-row">
-                        <span data-i18n="sgst">{{ t('sgst') }}:</span>
+                        <span data-i18n="sgst">SGST (9%):</span>
                         <span id="sgst">₹0.00</span>
                     </div>
+                    
                     <div class="total-row grand-total">
-                        <span data-i18n="grand_total">{{ t('grand_total') }}:</span>
+                        <span data-i18n="grand_total">Grand Total:</span>
                         <span id="grandTotal">₹0.00</span>
                     </div>
-                </div>
-
-                <div class="payment-section" id="paymentSection" style="display: none;">
-                    <label class="payment-label" data-i18n="payment_mode">{{ t('payment_mode') }}:</label>
-                    <select class="payment-select" id="paymentMode" onchange="handlePaymentModeChange()">
-                        <option value="" data-i18n="select_payment">{{ t('select_payment') }}</option>
-                        <option value="cash" data-i18n="cash">{{ t('cash') }}</option>
-                        <option value="upi" data-i18n="upi">{{ t('upi') }}</option>
-                        <option value="card" data-i18n="card">{{ t('card') }}</option>
-                        <option value="credit" data-i18n="credit">{{ t('credit') }}</option>
-                        <option value="partial" data-i18n="partial">Partial Payment</option>
-                    </select>
-                </div>
-
-                <!-- Partial Payment Input (Hidden by default) -->
-                <div class="input-group" id="partialPaymentGroup" style="display: none;">
-                    <label for="partialAmount">Amount Paying Now:</label>
-                    <input type="number" id="partialAmount" placeholder="Enter amount paying now" step="0.01" min="0">
-                    <small style="color: #666; font-size: 11px;">Remaining amount will be marked as due</small>
+                    
+                    <!-- Payment Mode Section -->
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #732C3F;">
+                        <label style="display: block; font-weight: 600; color: #732C3F; font-size: 13px; margin-bottom: 8px;">Payment Mode:</label>
+                        <select id="paymentMode" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" onchange="handlePaymentModeChange()">
+                            <option value="">Select Payment Mode</option>
+                            <option value="cash">💵 Cash</option>
+                            <option value="upi">📱 UPI</option>
+                            <option value="card">💳 Card</option>
+                            <option value="credit">🕐 Credit (Full)</option>
+                            <option value="partial">⚡ Partial Payment</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Partial Payment Details -->
+                    <div id="partialPaymentGroup" style="display: none; margin-top: 12px; padding: 12px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e5e7eb;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">Amount Paying Now:</label>
+                        <input type="number" id="partialAmount" placeholder="Enter amount" step="0.01" min="0" 
+                               style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; margin-bottom: 8px;"
+                               oninput="calculateRemainingDue()">
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                            <span>Paying Now:</span>
+                            <span id="payingNowDisplay" style="color: #10b981; font-weight: 600;">₹0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6b7280;">
+                            <span>Remaining Due:</span>
+                            <span id="remainingDueAmount" style="color: #dc3545; font-weight: 600;">₹0.00</span>
+                        </div>
+                        
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-top: 10px; margin-bottom: 6px;">Payment Method:</label>
+                        <select id="partialPaymentMethod" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                            <option value="cash">💵 Cash</option>
+                            <option value="upi">📱 UPI</option>
+                            <option value="card">💳 Card</option>
+                        </select>
+                    </div>
                 </div>
 
                 <button class="checkout-btn" id="checkoutBtn" disabled data-i18n-btn="create_bill">
@@ -758,20 +808,71 @@
                 </div>
             `).join('');
 
-            // Calculate totals
+            // Calculate totals with discount
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const cgst = subtotal * 0.09;
-            const sgst = subtotal * 0.09;
-            const grandTotal = subtotal + cgst + sgst;
+            
+            // Calculate discount
+            const discountType = document.getElementById('discountType')?.value || 'amount';
+            const discountValue = parseFloat(document.getElementById('discountValue')?.value || 0);
+            let discountAmount = 0;
+            
+            if (discountValue > 0) {
+                if (discountType === 'percentage') {
+                    discountAmount = (subtotal * discountValue) / 100;
+                } else {
+                    discountAmount = discountValue;
+                }
+            }
+            
+            const subtotalAfterDiscount = subtotal - discountAmount;
+            const cgst = subtotalAfterDiscount * 0.09;
+            const sgst = subtotalAfterDiscount * 0.09;
+            const grandTotal = subtotalAfterDiscount + cgst + sgst;
 
             document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            
+            // Show/hide discount amount display
+            if (discountAmount > 0) {
+                document.getElementById('discountAmountRow').style.display = 'flex';
+                document.getElementById('discountAmountDisplay').textContent = `-₹${discountAmount.toFixed(2)}`;
+                
+                // Show "After Discount" amount
+                document.getElementById('afterDiscountRow').style.display = 'flex';
+                document.getElementById('afterDiscountAmount').textContent = `₹${subtotalAfterDiscount.toFixed(2)}`;
+            } else {
+                document.getElementById('discountAmountRow').style.display = 'none';
+                document.getElementById('afterDiscountRow').style.display = 'none';
+            }
+            
             document.getElementById('cgst').textContent = `₹${cgst.toFixed(2)}`;
             document.getElementById('sgst').textContent = `₹${sgst.toFixed(2)}`;
             document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
-
+            
+            // Update remaining due if partial payment is selected
+            if (document.getElementById('paymentMode').value === 'partial') {
+                calculateRemainingDue();
+            }
             cartTotalsDiv.style.display = 'block';
-            paymentSection.style.display = 'block';
             checkoutBtn.disabled = false;
+        }
+
+        // Toggle customer details form
+        function toggleCustomerDetails() {
+            const form = document.getElementById('customerDetailsForm');
+            const icon = document.getElementById('customerToggleIcon');
+            const btn = document.getElementById('customerToggleBtn');
+            
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                icon.textContent = '▲';
+                btn.style.background = '#732C3F';
+                btn.style.color = 'white';
+            } else {
+                form.style.display = 'none';
+                icon.textContent = '▼';
+                btn.style.background = 'white';
+                btn.style.color = '#732C3F';
+            }
         }
 
         // Load customers for dropdown
@@ -822,12 +923,27 @@
             
             if (paymentMode === 'partial') {
                 partialPaymentGroup.style.display = 'block';
+                const grandTotalText = document.getElementById('grandTotal').textContent;
+                const grandTotal = parseFloat(grandTotalText.replace('₹', ''));
                 const partialAmount = document.getElementById('partialAmount');
                 partialAmount.max = grandTotal;
-                partialAmount.placeholder = `Enter amount (Max: ₹${grandTotal})`;
+                partialAmount.placeholder = `Enter amount (Max: ₹${grandTotal.toFixed(2)})`;
+                calculateRemainingDue();
             } else {
                 partialPaymentGroup.style.display = 'none';
+                document.getElementById('remainingDueDisplay').style.display = 'none';
             }
+        }
+        
+        // Calculate remaining due for partial payment
+        function calculateRemainingDue() {
+            const grandTotalText = document.getElementById('grandTotal').textContent;
+            const grandTotal = parseFloat(grandTotalText.replace('₹', ''));
+            const partialAmount = parseFloat(document.getElementById('partialAmount').value || 0);
+            const remainingDue = grandTotal - partialAmount;
+            
+            document.getElementById('payingNowDisplay').textContent = `₹${partialAmount.toFixed(2)}`;
+            document.getElementById('remainingDueAmount').textContent = `₹${Math.max(0, remainingDue).toFixed(2)}`;
         }
 
         // Checkout
@@ -861,9 +977,24 @@
 
             try {
                 const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const cgst = subtotal * 0.09;
-                const sgst = subtotal * 0.09;
-                const grandTotal = subtotal + cgst + sgst;
+                
+                // Calculate discount
+                const discountType = document.getElementById('discountType')?.value || 'amount';
+                const discountValue = parseFloat(document.getElementById('discountValue')?.value || 0);
+                let discountAmount = 0;
+                
+                if (discountValue > 0) {
+                    if (discountType === 'percentage') {
+                        discountAmount = (subtotal * discountValue) / 100;
+                    } else {
+                        discountAmount = discountValue;
+                    }
+                }
+                
+                const subtotalAfterDiscount = subtotal - discountAmount;
+                const cgst = subtotalAfterDiscount * 0.09;
+                const sgst = subtotalAfterDiscount * 0.09;
+                const grandTotal = subtotalAfterDiscount + cgst + sgst;
 
                 // Get customer details (optional)
                 const customerName = document.getElementById('customerName').value.trim();
@@ -897,14 +1028,15 @@
 
                 const billData = {
                     customer_id: customerId,
-                    customer_name: customerName || 'Walk-in Customer',  // Add customer_name
-                    customer_phone: customerPhone || null,              // Add customer_phone
+                    customer_name: customerName || 'Walk-in Customer',
+                    customer_phone: customerPhone || null,
                     business_type: 'retail',
                     subtotal: subtotal,
                     tax_amount: cgst + sgst,
                     total_amount: grandTotal,
-                    payment_method: paymentMode,
-                    partial_amount: paymentMode === 'partial' ? partialAmount : null,  // Add partial amount
+                    payment_method: paymentMode,  // Send 'partial' as payment_method
+                    partial_payment_method: paymentMode === 'partial' ? document.getElementById('partialPaymentMethod').value : null,  // Actual payment method for partial
+                    partial_amount: paymentMode === 'partial' ? partialAmount : null,
                     items: cart.map(item => ({
                         product_id: item.id,
                         product_name: item.name,
@@ -913,6 +1045,19 @@
                         total_price: item.price * item.quantity
                     }))
                 };
+                
+                console.log('🔍 [FRONTEND] Sending bill data:', billData);
+                console.log('🔍 [FRONTEND] Payment Mode:', paymentMode);
+                console.log('🔍 [FRONTEND] Partial Amount:', partialAmount);
+                
+                // Add discount info if discount was applied (for future use)
+                if (discountAmount > 0) {
+                    billData.discount_info = {
+                        type: discountType,
+                        value: discountValue,
+                        amount: discountAmount
+                    };
+                }
 
                 const response = await fetch('/api/bills', {
                     method: 'POST',
@@ -924,34 +1069,73 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    const paymentText = paymentMode === 'cash' ? t('cash') : 
-                                       paymentMode === 'upi' ? t('upi') : 
-                                       paymentMode === 'card' ? t('card') : t('credit');
+                    console.log('✅ Bill creation response:', result);
                     
-                    alert(`✅ ${t('bill_created')}\n\n${t('bill_number')}: ${result.bill_number || 'N/A'}\n${t('total_amount')}: ₹${grandTotal.toFixed(2)}\n${t('payment_mode')}: ${paymentText}`);
-                    
-                    // Clear cart, customer details, and reset payment mode
-                    cart = [];
-                    document.getElementById('paymentMode').value = '';
-                    document.getElementById('customerName').value = '';
-                    document.getElementById('customerPhone').value = '';
-                    renderCart();
-                    
-                    // Reload products to update stock
-                    loadProducts();
+                    if (result.success) {
+                        const paymentText = paymentMode === 'cash' ? 'Cash' : 
+                                           paymentMode === 'upi' ? 'UPI' : 
+                                           paymentMode === 'card' ? 'Card' : 
+                                           paymentMode === 'credit' ? 'Credit (Full)' :
+                                           paymentMode === 'partial' ? 'Partial Payment' : paymentMode;
+                        
+                        let message = `✅ Bill Created Successfully!\n\n`;
+                        message += `Bill Number: ${result.bill_number || 'N/A'}\n`;
+                        message += `Total Amount: ₹${grandTotal.toFixed(2)}\n`;
+                        message += `Payment Mode: ${paymentText}\n`;
+                        
+                        if (paymentMode === 'partial') {
+                            message += `Paid Now: ₹${partialAmount.toFixed(2)}\n`;
+                            message += `Remaining Due: ₹${(grandTotal - partialAmount).toFixed(2)}\n`;
+                        }
+                        
+                        if (paymentMode === 'credit' || paymentMode === 'partial') {
+                            message += `\n💡 Bill added to Credit Management`;
+                        }
+                        
+                        alert(message);
+                        
+                        // Clear cart, customer details, and reset payment mode
+                        try {
+                            cart = [];
+                            document.getElementById('paymentMode').value = '';
+                            document.getElementById('customerName').value = '';
+                            document.getElementById('customerPhone').value = '';
+                            document.getElementById('discountValue').value = '';
+                            
+                            // Hide customer form if open
+                            const customerForm = document.getElementById('customerDetailsForm');
+                            if (customerForm && customerForm.style.display !== 'none') {
+                                toggleCustomerDetails();
+                            }
+                            
+                            renderCart();
+                            
+                            // Reload products to update stock
+                            loadProducts();
+                        } catch (cleanupError) {
+                            console.error('Cleanup error (non-critical):', cleanupError);
+                            // Don't show error to user as bill was created successfully
+                        }
+                    } else {
+                        alert(`❌ ${result.error || 'Error creating bill'}`);
+                    }
                 } else {
                     // Handle error response
+                    console.error('❌ Bill creation failed - Response not OK:', response.status);
                     const errorData = await response.json();
+                    console.error('Error data:', errorData);
                     if (errorData.out_of_stock_items) {
                         alert(`❌ ${t('insufficient_stock')}\n\n${errorData.out_of_stock_items.join('\n')}`);
                     } else {
                         alert(`❌ ${errorData.error || t('error_creating_bill')}`);
                     }
-                    return;
                 }
             } catch (error) {
                 console.error('Checkout error:', error);
-                alert(`❌ ${t('error_creating_bill')}`);
+                // Only show error if it's a network/API error, not cleanup error
+                if (error.message && !error.message.includes('cleanup')) {
+                    alert(`❌ ${t('error_creating_bill')}`);
+                }
             } finally {
                 checkoutBtn.disabled = false;
                 checkoutBtn.textContent = `💳 ${t('create_bill')}`;

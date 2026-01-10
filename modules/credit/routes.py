@@ -341,6 +341,57 @@ def get_customer_credit_transactions(customer_id):
         }), 500
 
 
+@credit_bp.route('/api/credit/today-summary', methods=['GET'])
+def get_today_summary():
+    """Get today's payment summary"""
+    try:
+        conn = get_db_connection()
+        user_id = get_user_id_from_session()
+        
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Get today's payments from credit_transactions
+        query = """
+            SELECT 
+                COUNT(*) as payment_count,
+                SUM(amount) as total_amount
+            FROM credit_transactions
+            WHERE DATE(created_at) = ?
+            AND transaction_type = 'payment'
+        """
+        
+        params = [today]
+        
+        # Add user filter if needed
+        if user_id:
+            query += " AND (bill_id IN (SELECT id FROM bills WHERE business_owner_id = ? OR business_owner_id IS NULL))"
+            params.append(user_id)
+        
+        cursor = conn.execute(query, params)
+        row = cursor.fetchone()
+        
+        payment_count = row['payment_count'] if row else 0
+        total_amount = row['total_amount'] if row and row['total_amount'] else 0
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'payment_count': payment_count,
+            'total_amount': float(total_amount)
+        })
+        
+    except Exception as e:
+        print(f"❌ [TODAY SUMMARY] Error: {str(e)}")
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'payment_count': 0,
+            'total_amount': 0
+        }), 500
+
+
 @credit_bp.route('/api/credit/export', methods=['GET'])
 def export_credit_bills():
     """Export credit bills data"""

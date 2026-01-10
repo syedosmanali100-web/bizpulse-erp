@@ -166,6 +166,8 @@
             border-radius: 12px;
             margin-bottom: 1.5rem;
             display: none;
+            align-items: center;
+            gap: 8px;
             font-size: 0.9rem;
         }
 
@@ -245,12 +247,12 @@
                 <i class="fas fa-check-circle"></i> <span id="successMessage"></span>
             </div>
 
-            <form id="loginForm">
+            <form id="loginForm" method="POST" action="/cms/login">
                 <div class="form-group">
                     <label>Username</label>
                     <div class="input-wrapper">
                         <i class="fas fa-user input-icon"></i>
-                        <input type="text" id="username" placeholder="Enter username" required autofocus>
+                        <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
                     </div>
                 </div>
 
@@ -258,7 +260,7 @@
                     <label>Password</label>
                     <div class="input-wrapper">
                         <i class="fas fa-key input-icon"></i>
-                        <input type="password" id="password" placeholder="Enter password" required>
+                        <input type="password" id="password" name="password" placeholder="Enter password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword()">
                             <i class="fas fa-eye" id="toggleIcon"></i>
                         </button>
@@ -297,60 +299,37 @@
             } else {
                 passwordInput.type = 'password';
                 toggleIcon.classList.remove('fa-eye-slash');
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
                 toggleIcon.classList.add('fa-eye');
             }
         }
 
-        function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorAlert').style.display = 'block';
-            document.getElementById('successAlert').style.display = 'none';
-        }
-
-        function showSuccess(message) {
-            document.getElementById('successMessage').textContent = message;
-            document.getElementById('successAlert').style.display = 'block';
-            document.getElementById('errorAlert').style.display = 'none';
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
-
-            // Disable button
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Logging in...</span>';
-
-            try {
-                const response = await fetch('/cms/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password })
+        // Show flash messages if they exist
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            document.getElementById('errorMessage').textContent = '{{ message }}';
+                            document.getElementById('errorAlert').style.display = 'flex';
+                        {% elif category == 'success' %}
+                            document.getElementById('successMessage').textContent = '{{ message }}';
+                            document.getElementById('successAlert').style.display = 'flex';
+                        {% endif %}
+                    {% endfor %}
                 });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showSuccess('Login successful! Redirecting...');
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 1000);
-                } else {
-                    showError(data.message);
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login to CMS</span>';
-                }
-            } catch (error) {
-                showError('Login failed. Please try again.');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Login to CMS</span>';
-            }
-        });
+            {% endif %}
+        {% endwith %}
     </script>
 </body>
 </html>

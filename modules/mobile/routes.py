@@ -93,9 +93,75 @@ def offline():
 </body>
 </html>'''
 
+@mobile_bp.route('/mobile-debug-template')
+def mobile_debug_template():
+    """Debug endpoint to verify template serving"""
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Mobile Debug - Template Test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="font-family: Arial; padding: 20px; background: #f0f0f0;">
+        <h1>🔍 Mobile Template Debug</h1>
+        <p><strong>Template:</strong> mobile_simple_working.html</p>
+        <p><strong>Version:</strong> 2.0.2 - NO EMAIL VALIDATION</p>
+        <p><strong>Date:</strong> 2026-01-09</p>
+        
+        <h2>Login Form Test:</h2>
+        <form>
+            <div style="margin: 10px 0;">
+                <label>Email or Username:</label><br>
+                <input type="text" id="testLogin" placeholder="abc_electronic" style="padding: 10px; width: 200px;">
+                <span id="inputType" style="color: green; font-weight: bold;"></span>
+            </div>
+            <div style="margin: 10px 0;">
+                <label>Password:</label><br>
+                <input type="password" placeholder="admin123" style="padding: 10px; width: 200px;">
+            </div>
+            <button type="button" onclick="testInput()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px;">Test Input</button>
+        </form>
+        
+        <div id="result" style="margin-top: 20px; padding: 10px; background: white; border-radius: 5px;"></div>
+        
+        <script>
+            function testInput() {
+                const input = document.getElementById('testLogin');
+                const result = document.getElementById('result');
+                
+                result.innerHTML = `
+                    <h3>✅ Input Test Results:</h3>
+                    <p><strong>Input Type:</strong> ${input.type}</p>
+                    <p><strong>Value:</strong> "${input.value}"</p>
+                    <p><strong>Required @ symbol:</strong> ${input.type === 'email' ? 'YES ❌' : 'NO ✅'}</p>
+                    <p><strong>Browser validation:</strong> ${input.checkValidity() ? 'PASSED ✅' : 'FAILED ❌'}</p>
+                `;
+                
+                document.getElementById('inputType').textContent = `(Type: ${input.type})`;
+            }
+            
+            // Auto-test on load
+            setTimeout(() => {
+                document.getElementById('testLogin').value = 'abc_electronic';
+                testInput();
+            }, 500);
+        </script>
+        
+        <hr style="margin: 30px 0;">
+        <p><a href="/mobile" style="color: #007bff;">← Back to Mobile App</a></p>
+    </body>
+    </html>
+    '''
+
 @mobile_bp.route('/mobile')
 def mobile_app():
-    return render_template('mobile_simple_working.html')
+    response = make_response(render_template('mobile_simple_working.html'))
+    # Add cache-busting headers to ensure fresh template
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @mobile_bp.route('/mobile-dashboard')
 def mobile_dashboard():
@@ -139,4 +205,24 @@ def api_version():
         "version": "1.0.0",
         "last_updated": datetime.now().isoformat(),
         "features": ["products", "customers", "reports"]
+    })
+
+@mobile_bp.route('/api/modules')
+def get_erp_modules():
+    """Get all available ERP modules for the mobile menu"""
+    return jsonify({
+        "success": True,
+        "core_modules": [
+            {"name": "Dashboard", "route": "dashboard", "icon": "📊"},
+            {"name": "Billing", "route": "billing", "icon": "🧾"},
+            {"name": "Sales", "route": "sales", "icon": "💰"}
+        ],
+        "inventory_modules": [
+            {"name": "Products", "route": "products", "icon": "📦"},
+            {"name": "Inventory", "route": "inventory", "icon": "📋"}
+        ],
+        "customer_modules": [
+            {"name": "Customers", "route": "customers", "icon": "👥"},
+            {"name": "Credit", "route": "credit", "icon": "💳"}
+        ]
     })

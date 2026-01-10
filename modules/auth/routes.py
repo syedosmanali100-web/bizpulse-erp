@@ -111,3 +111,290 @@ def forgot_password():
             return jsonify({'message': result['message']}), 404
     except Exception as e:
         return jsonify({'message': 'Password reset error', 'error': str(e)}), 500
+
+@auth_bp.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    """Logout user and clear session"""
+    try:
+        # Clear all session data
+        session.clear()
+        
+        logger.info('✅ User logged out successfully')
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        })
+    except Exception as e:
+        logger.error(f"Logout error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Logout error',
+            'error': str(e)
+        }), 500
+
+@auth_bp.route('/api/auth/client-login', methods=['POST'])
+def client_login():
+    """Client login with username/password for mobile app"""
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({
+                'success': False,
+                'message': 'Username and password are required'
+            }), 400
+        
+        from modules.shared.database import get_db_connection
+        import hashlib
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Try to find client by username or email
+        cursor.execute('''
+            SELECT id, company_name, username, contact_email, password_hash, is_active
+            FROM clients
+            WHERE username = ? OR contact_email = ?
+        ''', (username, username))
+        
+        client = cursor.fetchone()
+        conn.close()
+        
+        if not client:
+            logger.warning(f"❌ Client not found: {username}")
+            return jsonify({
+                'success': False,
+                'message': 'Invalid username or password'
+            }), 401
+        
+        client_id, company_name, client_username, email, password_hash, is_active = client
+        
+        # Check if client is active
+        if not is_active:
+            logger.warning(f"❌ Client account inactive: {username}")
+            return jsonify({
+                'success': False,
+                'message': 'Account is inactive. Please contact support.'
+            }), 401
+        
+        # Verify password
+        input_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        if input_hash != password_hash:
+            logger.warning(f"❌ Invalid password for client: {username}")
+            return jsonify({
+                'success': False,
+                'message': 'Invalid username or password'
+            }), 401
+        
+        # Update last login
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE clients 
+            SET last_login = CURRENT_TIMESTAMP,
+                login_count = login_count + 1
+            WHERE id = ?
+        ''', (client_id,))
+        conn.commit()
+        conn.close()
+        
+        # Set session
+        session['user_id'] = client_id
+        session['user_type'] = 'client'
+        session['user_name'] = company_name
+        session['email'] = email
+        session['username'] = client_username
+        session.permanent = True
+        
+        logger.info(f"✅ Client login successful: {username} ({company_name})")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Login successful',
+            'user_type': 'client',
+            'client_id': client_id,
+            'company_name': company_name,
+            'username': client_username,
+            'email': email
+        })
+        
+    except Exception as e:
+        logger.error(f"Client login error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': 'Login error',
+            'error': str(e)
+        }), 500
+
+
+# ============================================================================
+# CLIENT MANAGEMENT APIs
+# ============================================================================
+
+@auth_bp.route('/api/admin/clients', methods=['GET'])
+def get_all_clients():
+    """Get all clients for admin"""
+    try:
+        from modules.shared.database import get_db_connection
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, company_name, contact_email, contact_name, phone_number, 
+                   username, is_active, last_login, created_at, business_type,
+                   city, state, country
+            FROM clients
+            ORDER BY created_at DESC
+        ''')
+        
+        clients = []
+        for row in cursor.fetchall():
+            clients.append({
+                'id': row[0],
+                'company_name': row[1],
+                'contact_email': row[2],
+                'contact_name': row[3],
+                'phone_number': row[4],
+                'username': row[5],
+                'is_active': row[6],
+                'last_login': row[7],
+                'created_at': row[8],
+                'business_type': row[9],
+                'city': row[10],
+                'state': row[11],
+                'country': row[12]
+            })
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'clients': clients,
+            'total': len(clients)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error fetching clients: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth_bp.route('/api/admin/clients', methods=['POST'])
+def create_client():
+    """Create new client"""
+    try:
+        from modules.shared.database import get_db_connection, generate_id
+        import hashlib
+        
+        data = request.get_json()
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Generate client ID
+        client_id = generate_id()
+        
+        # Hash password
+        password = data.get('password', 'admin123')
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        cursor.execute('''
+            INSERT INTO clients (
+                id, company_name, contact_email, contact_name, phone_number,
+                username, password_hash, is_active, business_type, country
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            client_id,
+            data.get('company_name'),
+            data.get('contact_email'),
+            data.get('contact_name'),
+            data.get('phone_number'),
+            data.get('username'),
+            password_hash,
+            1,
+            data.get('business_type', 'retail'),
+            data.get('country', 'India')
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Client created successfully',
+            'client_id': client_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Error creating client: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth_bp.route('/api/admin/clients/<client_id>', methods=['DELETE'])
+def delete_client(client_id):
+    """Delete client"""
+    try:
+        from modules.shared.database import get_db_connection
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM clients WHERE id = ?', (client_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Client deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error deleting client: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth_bp.route('/api/admin/login-as-client', methods=['POST'])
+def login_as_client():
+    """Admin login as client"""
+    try:
+        data = request.get_json()
+        client_id = data.get('clientId')
+        
+        from modules.shared.database import get_db_connection
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT id, company_name, contact_email, username
+            FROM clients
+            WHERE id = ?
+        ''', (client_id,))
+        
+        client = cursor.fetchone()
+        conn.close()
+        
+        if client:
+            # Set session as this client
+            session['user_id'] = client[0]
+            session['user_type'] = 'client'
+            session['user_name'] = client[1]
+            session['email'] = client[2]
+            session['username'] = client[3]
+            session.permanent = True
+            
+            return jsonify({
+                'success': True,
+                'message': 'Logged in as client',
+                'redirect': '/retail/dashboard'
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Client not found'}), 404
+        
+    except Exception as e:
+        logger.error(f"Error logging in as client: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500

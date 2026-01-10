@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>BizPulse - Premium Business Dashboard</title>
+    
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Premium Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-220px);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            letter-spacing: -0.025em;
+        }
+        
+        .nav-menu {
+            padding: 1.5rem 0;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            margin: 0.125rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: var(--radius-md);
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--gray-800);
+            transform: translateX(4px);
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .nav-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+            margin-right: 0.75rem;
+        }
+        
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 280px;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 999;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .sidebar.collapsed ~ .top-header {
+            left: 60px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--gray-600);
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
+        }
+        
+        .menu-toggle:hover {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+        
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: var(--gray-800);
+            letter-spacing: -0.025em;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .profile-card:hover {
+            background: var(--gray-200);
+            transform: translateY(-1px);
+        }
+        
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--gray-800);
+        }
+        
+        .profile-role {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding-top: 80px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            background: var(--gray-50);
+        }
+        
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 60px;
+        }
+        
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
+        }
+        
+        /* Hero Section */
+        .dashboard-hero {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            font-weight: 400;
+        }
+        
+        /* Premium Sections Grid */
+        .sections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* Premium Section Cards */
+        .section-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+        
+        .section-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .section-icon.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        
+        .section-icon.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        .section-icon.info {
+            background: linear-gradient(135deg, var(--info), #2563eb);
+        }
+        
+        .section-icon.warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            letter-spacing: -0.025em;
+        }
+        
+        .section-count {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        /* Section Content */
+        .section-content {
+            min-height: 200px;
+        }
+        
+        .no-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--gray-500);
+            text-align: center;
+        }
+        
+        .no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .no-data-text {
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+        
+        /* Recent Sales Items */
+        .sales-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .sale-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .sale-item:hover {
+            background: var(--gray-100);
+            transform: translateX(4px);
+        }
+        
+        .sale-info {
+            flex: 1;
+        }
+        
+        .sale-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sale-bill {
+            font-weight: 600;
+            color: var(--gray-800);
+            font-size: 0.875rem;
+        }
+        
+        .sale-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .sale-type.enterprise {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        .sale-type.bulk {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .sale-type.credit {
+            background: var(--info-light);
+            color: var(--info);
+        }
+        
+        .sale-type.regular {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        
+        .sale-details {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sale-customer {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .sale-amount {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--success);
+        }
+        
+        .sale-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        
+        /* Product Card */
+        .product-card {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .product-image {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .product-details {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-category {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .product-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .product-stat {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-stat-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        
+        .product-stat-value {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--gray-800);
+        }
+        
+        .stock-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .stock-status.success {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        
+        .stock-status.warning {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .stock-status.danger {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        /* Customer Card */
+        .customer-card {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .customer-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--info), #2563eb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .customer-details {
+            flex: 1;
+        }
+        
+        .customer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .customer-name {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--gray-800);
+        }
+        
+        .customer-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .customer-type.vip {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        .customer-type.premium {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .customer-type.regular {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        
+        .customer-type.new {
+            background: var(--info-light);
+            color: var(--info);
+        }
+        
+        .customer-contact {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .customer-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        /* Bulk Order Card */
+        .order-card {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .order-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .order-details {
+            flex: 1;
+        }
+        
+        .order-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .order-bill {
+            font-weight: 700;
+            font-size: 1.125rem;
+            color: var(--gray-800);
+        }
+        
+        .order-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .order-type.enterprise {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        
+        .order-type.wholesale {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        
+        .order-type.bulk {
+            background: var(--info-light);
+            color: var(--info);
+        }
+        
+        .order-customer {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .order-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        /* Time Ago */
+        .time-ago {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        /* Mobile Responsive */
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 100%;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .top-header {
+                left: 0;
+                width: 100%;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .sections-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .section-card {
+                padding: 1.5rem;
+            }
+            
+            .product-card,
+            .customer-card,
+            .order-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .product-stats,
+            .customer-stats,
+            .order-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Fade In Animation */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="sidebar-title">BizPulse</div>
+        </div>
+        
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="showModule('dashboard')">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <span class="nav-text">Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="showModule('sales')">
+                <i class="nav-icon fas fa-chart-bar"></i>
+                <span class="nav-text">Sales</span>
+            </div>
+            <div class="nav-item" onclick="showModule('products')">
+                <i class="nav-icon fas fa-box"></i>
+                <span class="nav-text">Products</span>
+            </div>
+            <div class="nav-item" onclick="showModule('customers')">
+                <i class="nav-icon fas fa-users"></i>
+                <span class="nav-text">Customers</span>
+            </div>
+            <div class="nav-item" onclick="showModule('billing')">
+                <i class="nav-icon fas fa-receipt"></i>
+                <span class="nav-text">Billing</span>
+            </div>
+            <div class="nav-item" onclick="showModule('reports')">
+                <i class="nav-icon fas fa-chart-pie"></i>
+                <span class="nav-text">Reports</span>
+            </div>
+            <div class="nav-item" onclick="showModule('settings')">
+                <i class="nav-icon fas fa-cog"></i>
+                <span class="nav-text">Settings</span>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-left">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Premium Dashboard</h1>
+        </div>
+        
+        <div class="header-right">
+            <div class="profile-card" onclick="window.location.href='/retail/profile'">
+                <div class="profile-avatar" id="profileAvatar">S</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">Business Owner</div>
+                    <div class="profile-role">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="content-area">
+            <!-- Hero Section -->
+            <div class="dashboard-hero">
+                <h1 class="hero-title">Welcome to Your Business</h1>
+                <p class="hero-subtitle">Monitor your key business activities at a glance</p>
+            </div>
+
+            <!-- Premium Sections Grid -->
+            <div class="sections-grid" id="sectionsGrid">
+                <!-- Recent Sales Section -->
+                <div class="section-card fade-in">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon success">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div>
+                                <div class="section-title">Recent Sales</div>
+                            </div>
+                        </div>
+                        <div class="section-count" id="salesCount">0</div>
+                    </div>
+                    <div class="section-content" id="recentSalesContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Product Section -->
+                <div class="section-card fade-in">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon primary">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div>
+                                <div class="section-title">Last Product Added</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content" id="lastProductContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Customer Section -->
+                <div class="section-card fade-in">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon info">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div>
+                                <div class="section-title">Last Customer Added</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content" id="lastCustomerContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Bulk Order Section -->
+                <div class="section-card fade-in">
+                    <div class="section-header">
+                        <div class="section-title-group">
+                            <div class="section-icon warning">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div>
+                                <div class="section-title">Last Bulk Order</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content" id="lastBulkOrderContent">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPremiumDashboard();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadPremiumDashboard, 30000);
+        });
+        
+        // Load premium dashboard sections
+        async function loadPremiumDashboard() {
+            try {
+                const token = localStorage.getItem('authToken');
+                const response = await fetch('/api/dashboard/premium-sections', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updateDashboardSections(data.sections);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Update dashboard sections
+        function updateDashboardSections(sections) {
+            updateRecentSales(sections.recent_sales);
+            updateLastProduct(sections.last_product);
+            updateLastCustomer(sections.last_customer);
+            updateLastBulkOrder(sections.last_bulk_order);
+        }
+        
+        // Update Recent Sales section
+        function updateRecentSales(section) {
+            const content = document.getElementById('recentSalesContent');
+            const count = document.getElementById('salesCount');
+            
+            count.textContent = section.total_count;
+            
+            if (!section.data || section.data.length === 0) {
+                content.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">💰</div>
+                        <div class="no-data-text">No recent sales found</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const salesHtml = section.data.map(sale => `
+                <div class="sale-item">
+                    <div class="sale-info">
+                        <div class="sale-header">
+                            <div class="sale-bill">${sale.bill_number}</div>
+                            <div class="sale-type ${sale.type_class}">${sale.sale_type}</div>
+                        </div>
+                        <div class="sale-details">
+                            <div class="sale-customer">${sale.customer_name}</div>
+                            <div class="sale-amount">₹${sale.amount.toLocaleString()}</div>
+                        </div>
+                        <div class="sale-meta">
+                            <span><i class="fas fa-credit-card"></i> ${sale.payment_method.toUpperCase()}</span>
+                            <span><i class="fas fa-box"></i> ${sale.item_count} items</span>
+                            <span class="time-ago">${sale.time_ago}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            content.innerHTML = `<div class="sales-list">${salesHtml}</div>`;
+        }
+        
+        // Update Last Product section
+        function updateLastProduct(section) {
+            const content = document.getElementById('lastProductContent');
+            
+            if (!section.data) {
+                content.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">📦</div>
+                        <div class="no-data-text">${section.message || 'No products found'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const product = section.data;
+            content.innerHTML = `
+                <div class="product-card">
+                    <div class="product-image">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="product-details">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-category">${product.category}</div>
+                        <div class="product-stats">
+                            <div class="product-stat">
+                                <div class="product-stat-label">Price</div>
+                                <div class="product-stat-value">₹${product.price.toLocaleString()}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Stock</div>
+                                <div class="product-stat-value">
+                                    ${product.stock} 
+                                    <span class="stock-status ${product.stock_class}">${product.stock_status}</span>
+                                </div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Profit Margin</div>
+                                <div class="product-stat-value">${product.profit_margin}%</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Added</div>
+                                <div class="product-stat-value time-ago">${product.time_ago}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Update Last Customer section
+        function updateLastCustomer(section) {
+            const content = document.getElementById('lastCustomerContent');
+            
+            if (!section.data) {
+                content.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">👤</div>
+                        <div class="no-data-text">${section.message || 'No customers found'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const customer = section.data;
+            const initials = customer.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            content.innerHTML = `
+                <div class="customer-card">
+                    <div class="customer-avatar">${initials}</div>
+                    <div class="customer-details">
+                        <div class="customer-header">
+                            <div class="customer-name">${customer.name}</div>
+                            <div class="customer-type ${customer.type_class}">${customer.customer_type}</div>
+                        </div>
+                        <div class="customer-contact">
+                            <i class="fas fa-phone"></i> ${customer.phone || 'No phone'}
+                            ${customer.address ? `<br><i class="fas fa-map-marker-alt"></i> ${customer.address}` : ''}
+                        </div>
+                        <div class="customer-stats">
+                            <div class="product-stat">
+                                <div class="product-stat-label">Total Orders</div>
+                                <div class="product-stat-value">${customer.total_orders}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Total Spent</div>
+                                <div class="product-stat-value">₹${customer.total_spent.toLocaleString()}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Joined</div>
+                                <div class="product-stat-value time-ago">${customer.time_ago}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Update Last Bulk Order section
+        function updateLastBulkOrder(section) {
+            const content = document.getElementById('lastBulkOrderContent');
+            
+            if (!section.data) {
+                content.innerHTML = `
+                    <div class="no-data">
+                        <div class="no-data-icon">🛒</div>
+                        <div class="no-data-text">${section.message || 'No bulk orders found'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const order = section.data;
+            content.innerHTML = `
+                <div class="order-card">
+                    <div class="order-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="order-details">
+                        <div class="order-header">
+                            <div class="order-bill">${order.bill_number}</div>
+                            <div class="order-type ${order.type_class}">${order.order_type}</div>
+                        </div>
+                        <div class="order-customer">
+                            <i class="fas fa-user"></i> ${order.customer_name}
+                        </div>
+                        <div class="order-stats">
+                            <div class="product-stat">
+                                <div class="product-stat-label">Amount</div>
+                                <div class="product-stat-value">₹${order.amount.toLocaleString()}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Items</div>
+                                <div class="product-stat-value">${order.item_count}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Quantity</div>
+                                <div class="product-stat-value">${order.total_quantity}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Payment</div>
+                                <div class="product-stat-value">${order.payment_method.toUpperCase()}</div>
+                            </div>
+                            <div class="product-stat">
+                                <div class="product-stat-label">Processed</div>
+                                <div class="product-stat-value time-ago">${order.time_ago}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+        
+        // Navigation
+        function showModule(module) {
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Route to appropriate pages
+            const routes = {
+                'sales': '/sales-management',
+                'products': '/retail/products',
+                'customers': '/retail/customers',
+                'billing': '/retail/billing',
+                'reports': '/retail/reports',
+                'settings': '/retail/settings'
+            };
+            
+            if (routes[module]) {
+                window.location.href = routes[module];
+            }
+        }
+        
+        // Initialize user info
+        try {
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            if (userInfo.name) {
+                document.getElementById('profileName').textContent = userInfo.name;
+                const initials = userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                document.getElementById('profileAvatar').textContent = initials;
+            }
+        } catch (e) {
+            console.warn('Failed to load user info');
+        }
+        
+        // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

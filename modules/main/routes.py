@@ -3,13 +3,54 @@ Main website routes
 COPIED AS-IS from app.py
 """
 
-from flask import Blueprint, render_template, send_file, jsonify
+from flask import Blueprint, render_template, send_from_directory, send_file, jsonify, request
 from modules.shared.auth_decorators import require_auth, require_cms_auth
 import os
+import base64
+from werkzeug.utils import secure_filename
 
 main_bp = Blueprint('main', __name__)
 
 # Routes
+@main_bp.route('/test-mobile-access')
+def test_mobile_access():
+    """Test mobile access"""
+    return send_from_directory('.', 'test_mobile_access.html')
+
+@main_bp.route('/test-activity')
+def test_activity():
+    """Test activity frontend"""
+    return send_from_directory('.', 'test_frontend_activity.html')
+
+@main_bp.route('/test-buttons')
+def test_buttons():
+    """Test buttons fix"""
+    return send_from_directory('.', 'test_buttons_fix.html')
+
+@main_bp.route('/test-search')
+def test_search():
+    """Test universal search"""
+    return send_from_directory('.', 'test_search.html')
+
+@main_bp.route('/test-sales-pagination')
+def test_sales_pagination():
+    """Test sales pagination"""
+    return send_from_directory('.', 'test_sales_pagination.html')
+
+@main_bp.route('/test-logo')
+def test_logo():
+    """Test logo display"""
+    return send_from_directory('.', 'test_logo_display.html')
+
+@main_bp.route('/static/uploads/logos/<filename>')
+def serve_logo(filename):
+    """Serve logo files directly"""
+    try:
+        logo_dir = os.path.join('static', 'uploads', 'logos')
+        return send_from_directory(logo_dir, filename)
+    except Exception as e:
+        return f"Error serving logo: {str(e)}", 404
+
 @main_bp.route('/')
 def index():
     """Main website - loads saved content if available, or returns default template"""
@@ -31,6 +72,99 @@ def contact():
 def gallery_page():
     """Public Gallery Page"""
     return render_template('gallery.html')
+
+@main_bp.route('/api/upload-company-logo', methods=['POST'])
+def upload_company_logo():
+    """Upload company logo"""
+    try:
+        if 'logo' not in request.files:
+            return jsonify({'error': 'No logo file provided'}), 400
+        
+        file = request.files['logo']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Validate file type
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
+        if not ('.' in file.filename and 
+                file.filename.rsplit('.', 1)[1].lower() in allowed_extensions):
+            return jsonify({'error': 'Invalid file type. Please upload an image file.'}), 400
+        
+        # Validate file size (max 5MB)
+        file.seek(0, 2)  # Seek to end
+        file_size = file.tell()
+        file.seek(0)  # Reset to beginning
+        
+        if file_size > 5 * 1024 * 1024:  # 5MB
+            return jsonify({'error': 'File size must be less than 5MB'}), 400
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join('static', 'uploads', 'logos')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Secure filename and save
+        filename = secure_filename(file.filename)
+        # Add timestamp to avoid conflicts
+        import time
+        timestamp = str(int(time.time()))
+        name, ext = os.path.splitext(filename)
+        filename = f"company_logo_{timestamp}{ext}"
+        
+        file_path = os.path.join(upload_dir, filename)
+        file.save(file_path)
+        
+        # Return success with file URL
+        logo_url = f"/static/uploads/logos/{filename}"
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logo uploaded successfully',
+            'logo_url': logo_url,
+            'filename': filename
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
+
+@main_bp.route('/api/get-company-logo')
+def get_company_logo():
+    """Get current company logo"""
+    try:
+        # In a real application, you would get this from database
+        # For now, return the most recent logo from uploads directory
+        upload_dir = os.path.join('static', 'uploads', 'logos')
+        
+        print(f"🔍 [LOGO API] Checking directory: {upload_dir}")
+        
+        if not os.path.exists(upload_dir):
+            print(f"❌ [LOGO API] Directory does not exist: {upload_dir}")
+            return jsonify({'logo_url': None})
+        
+        # Get the most recent logo file
+        logo_files = [f for f in os.listdir(upload_dir) if f.startswith('company_logo_')]
+        print(f"📁 [LOGO API] Found {len(logo_files)} logo files: {logo_files}")
+        
+        if not logo_files:
+            print("❌ [LOGO API] No logo files found")
+            return jsonify({'logo_url': None})
+        
+        # Sort by timestamp (newest first)
+        logo_files.sort(reverse=True)
+        latest_logo = logo_files[0]
+        
+        logo_url = f"/static/uploads/logos/{latest_logo}"
+        print(f"✅ [LOGO API] Returning logo URL: {logo_url}")
+        return jsonify({'logo_url': logo_url})
+        
+    except Exception as e:
+        print(f"❌ [LOGO API] Error: {str(e)}")
+        return jsonify({'error': f'Failed to get logo: {str(e)}'}), 500
+
+@main_bp.route('/cms/brand-logo')
+@require_cms_auth
+def cms_brand_logo():
+    """Brand Logo Management Page"""
+    return render_template('cms_brand_logo.html')
 
 @main_bp.route('/website-builder')
 @require_cms_auth
@@ -185,3 +319,23 @@ def sales_management_old():
 @main_bp.route('/inventory/low-stock')
 def low_stock_management():
     return render_template('low_stock_management.html')
+
+@main_bp.route('/premium-dashboard')
+def premium_dashboard():
+    """Premium Dashboard with 4 sections: Recent Sales, Last Product, Last Customer, Last Bulk Order"""
+    return render_template('premium_dashboard.html')
+
+@main_bp.route('/dashboard')
+def dashboard_main():
+    """Main Dashboard Page"""
+    return render_template('dashboard_main.html')
+
+@main_bp.route('/dashboard/demo')
+def dashboard_demo():
+    """Dashboard API Demo Page"""
+    return render_template('dashboard_demo.html')
+
+@main_bp.route('/client-management')
+def client_management():
+    """Client Management Page"""
+    return render_template('client_management_clean.html')

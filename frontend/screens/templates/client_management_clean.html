@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Management - BizPulse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .clients-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clients-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .clients-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #138496;
+        }
+
+        .btn-login {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-login:hover {
+            background: #218838;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f5;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #adb5bd;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #495057;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .credentials-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .credentials-box h3 {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .credential-item:last-child {
+            border-bottom: none;
+        }
+
+        .credential-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Client Management</h1>
+            <a href="/retail/dashboard" class="back-btn">Back to Dashboard</a>
+        </div>
+
+        <div class="content">
+            <div class="actions">
+                <button class="btn btn-primary" onclick="showAddClientModal()">Add New Client</button>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search clients by name, email, or username..." onkeyup="filterClients()">
+                </div>
+            </div>
+
+            <div id="clientsContainer">
+                <div class="loading">Loading clients...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Client Modal -->
+    <div id="addClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Client</h2>
+                <button class="close-btn" onclick="closeAddClientModal()">&times;</button>
+            </div>
+            <form onsubmit="addClient(event)">
+                <div class="form-group">
+                    <label>Company Name *</label>
+                    <input type="text" id="companyName" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Name *</label>
+                    <input type="text" id="contactName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="contactEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="phoneNumber" required>
+                </div>
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Business Type</label>
+                    <input type="text" id="businessType" value="retail">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Client</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Credentials Modal -->
+    <div id="viewCredentialsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Client Credentials</h2>
+                <button class="close-btn" onclick="closeViewCredentialsModal()">&times;</button>
+            </div>
+            <div class="credentials-box">
+                <h3>Login Information</h3>
+                <div class="credential-item">
+                    <span class="credential-label">Company Name:</span>
+                    <span class="credential-value" id="viewCompanyName">-</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Username:</span>
+                    <span class="credential-value" id="viewUsername">-</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Email:</span>
+                    <span class="credential-value" id="viewEmail">-</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Phone:</span>
+                    <span class="credential-value" id="viewPhone">-</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Status:</span>
+                    <span class="credential-value" id="viewStatus">-</span>
+                </div>
+            </div>
+            <p style="color: #6c757d; font-size: 13px; margin-top: 15px;">
+                Note: Password is encrypted and cannot be displayed. Use "Login as Client" to access their account.
+            </p>
+            <button class="btn btn-login" style="width: 100%; margin-top: 20px;" onclick="loginAsClientFromView()">
+                Login as This Client
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let allClients = [];
+        let currentViewClientId = null;
+
+        // Load clients on page load
+        window.addEventListener('DOMContentLoaded', loadClients);
+
+        async function loadClients() {
+            try {
+                const response = await fetch('/api/admin/clients');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allClients = data.clients;
+                    displayClients(allClients);
+                } else {
+                    showError('Failed to load clients');
+                }
+            } catch (error) {
+                console.error('Error loading clients:', error);
+                showError('Error loading clients');
+            }
+        }
+
+        function displayClients(clients) {
+            const container = document.getElementById('clientsContainer');
+            
+            if (clients.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No clients found</p>
+                        <button class="btn btn-primary" onclick="showAddClientModal()">Add Your First Client</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table class="clients-table">
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            clients.forEach(client => {
+                const statusClass = client.is_active ? 'status-active' : 'status-inactive';
+                const statusText = client.is_active ? 'Active' : 'Inactive';
+                
+                html += `
+                    <tr>
+                        <td><strong>${client.company_name || 'N/A'}</strong></td>
+                        <td>${client.contact_name || 'N/A'}</td>
+                        <td>${client.contact_email || 'N/A'}</td>
+                        <td>${client.phone_number || 'N/A'}</td>
+                        <td><code>${client.username || 'N/A'}</code></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-small btn-view" onclick="viewCredentials('${client.id}')">View</button>
+                                <button class="btn-small btn-login" onclick="loginAsClient('${client.id}')">Login</button>
+                                <button class="btn-small btn-delete" onclick="deleteClient('${client.id}', '${client.company_name}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function filterClients() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allClients.filter(client => {
+                return (
+                    (client.company_name || '').toLowerCase().includes(searchTerm) ||
+                    (client.contact_name || '').toLowerCase().includes(searchTerm) ||
+                    (client.contact_email || '').toLowerCase().includes(searchTerm) ||
+                    (client.username || '').toLowerCase().includes(searchTerm)
+                );
+            });
+            displayClients(filtered);
+        }
+
+        function showAddClientModal() {
+            document.getElementById('addClientModal').classList.add('show');
+        }
+
+        function closeAddClientModal() {
+            document.getElementById('addClientModal').classList.remove('show');
+        }
+
+        async function addClient(event) {
+            event.preventDefault();
+            
+            const clientData = {
+                company_name: document.getElementById('companyName').value,
+                contact_name: document.getElementById('contactName').value,
+                contact_email: document.getElementById('contactEmail').value,
+                phone_number: document.getElementById('phoneNumber').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                business_type: document.getElementById('businessType').value
+            };
+
+            try {
+                const response = await fetch('/api/admin/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clientData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Client created successfully!');
+                    closeAddClientModal();
+                    loadClients();
+                    event.target.reset();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error creating client:', error);
+                alert('Error creating client');
+            }
+        }
+
+        function viewCredentials(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            currentViewClientId = clientId;
+            
+            document.getElementById('viewCompanyName').textContent = client.company_name || 'N/A';
+            document.getElementById('viewUsername').textContent = client.username || 'N/A';
+            document.getElementById('viewEmail').textContent = client.contact_email || 'N/A';
+            document.getElementById('viewPhone').textContent = client.phone_number || 'N/A';
+            document.getElementById('viewStatus').textContent = client.is_active ? 'Active' : 'Inactive';
+            
+            document.getElementById('viewCredentialsModal').classList.add('show');
+        }
+
+        function closeViewCredentialsModal() {
+            document.getElementById('viewCredentialsModal').classList.remove('show');
+            currentViewClientId = null;
+        }
+
+        function loginAsClientFromView() {
+            if (currentViewClientId) {
+                loginAsClient(currentViewClientId);
+            }
+        }
+
+        async function loginAsClient(clientId) {
+            if (!confirm('Login as this client? You will be redirected to their dashboard.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/login-as-client', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientId: clientId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error logging in as client:', error);
+                alert('Error logging in as client');
+            }
+        }
+
+        async function deleteClient(clientId, companyName) {
+            if (!confirm(`Are you sure you want to delete "${companyName}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/clients/${clientId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Client deleted successfully');
+                    loadClients();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error deleting client:', error);
+                alert('Error deleting client');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('clientsContainer').innerHTML = `
+                <div class="empty-state">
+                    <p>${message}</p>
+                    <button class="btn btn-primary" onclick="loadClients()">Retry</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

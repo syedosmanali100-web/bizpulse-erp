@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Management - BizPulse</title>
+    <title>Sales Management - BizPulse (Updated v2.0)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -210,6 +210,90 @@
             border-bottom: 1px solid #e5e7eb;
         }
         
+        /* Dark Black Table Headers */
+        thead th {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f1f5f9 !important;
+            border-bottom: 2px solid #000000;
+        }
+        
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .pagination-info {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-numbers {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .pagination-number {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: 40px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .pagination-number:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .pagination-number.active {
+            background: #732C3F;
+            color: white;
+            border-color: #732C3F;
+        }
+        
         th {
             padding: 12px 16px;
             text-align: left;
@@ -378,6 +462,7 @@
         <!-- Header -->
         <div class="header">
             <h1 class="page-title">Sales Management</h1>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">✅ v2.0 - Updated with Pagination & Dark Headers</div>
             <div class="header-actions">
                 <button class="btn btn-secondary" onclick="exportSales()">
                     📥 Export CSV
@@ -502,7 +587,8 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Invoice #</th>
+                        <th>S.No</th>
+                        <th>Bill No</th>
                         <th>Date & Time</th>
                         <th>Customer</th>
                         <th>Items</th>
@@ -513,7 +599,7 @@
                 </thead>
                 <tbody id="salesTable">
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="empty-state">
                                 <div class="empty-state-icon">📊</div>
                                 <div class="empty-state-text">Loading sales data...</div>
@@ -522,6 +608,24 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+            <div class="pagination-info">
+                <span id="paginationInfo">Showing 1-10 of 0 transactions</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)" disabled>
+                    ← Previous
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <!-- Page numbers will be inserted here -->
+                </div>
+                <button class="pagination-btn" id="nextBtn" onclick="changePage(1)" disabled>
+                    Next →
+                </button>
+            </div>
         </div>
     </div>
     
@@ -607,7 +711,7 @@
         function showLoading() {
             document.getElementById('salesTable').innerHTML = `
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-state-icon">⏳</div>
                             <div class="empty-state-text">Loading sales data...</div>
@@ -615,12 +719,13 @@
                     </td>
                 </tr>
             `;
+            document.getElementById('paginationContainer').style.display = 'none';
         }
 
         function showEmptyState(message) {
             document.getElementById('salesTable').innerHTML = `
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="empty-state">
                             <div class="empty-state-icon">📊</div>
                             <div class="empty-state-text">${message}</div>
@@ -628,18 +733,27 @@
                     </td>
                 </tr>
             `;
+            document.getElementById('paginationContainer').style.display = 'none';
         }
         
+        // Pagination variables
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let totalItems = 0;
+        let allSales = [];
+        
         function renderSales(sales) {
-            const tbody = document.getElementById('salesTable');
+            allSales = sales || [];
+            totalItems = allSales.length;
             
-            if (!sales || sales.length === 0) {
+            if (!allSales || allSales.length === 0) {
                 showEmptyState('No sales found for the selected filters');
+                document.getElementById('paginationContainer').style.display = 'none';
                 return;
             }
             
             // Filter out sales with invalid values
-            const validSales = sales.filter(sale => 
+            const validSales = allSales.filter(sale => 
                 sale.total_amount !== null && 
                 sale.total_amount !== undefined && 
                 sale.total_amount !== 'None' &&
@@ -649,10 +763,24 @@
             
             if (validSales.length === 0) {
                 showEmptyState('No valid sales data found for the selected filters');
+                document.getElementById('paginationContainer').style.display = 'none';
                 return;
             }
             
-            tbody.innerHTML = validSales.map(sale => {
+            allSales = validSales;
+            totalItems = allSales.length;
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentPageSales = allSales.slice(startIndex, endIndex);
+            
+            // Render current page sales
+            const tbody = document.getElementById('salesTable');
+            tbody.innerHTML = currentPageSales.map((sale, index) => {
+                const serialNumber = startIndex + index + 1;
+                
                 // Determine status based on payment method
                 let statusClass = 'badge-success';
                 let statusText = 'COMPLETED';
@@ -690,6 +818,7 @@
                 
                 return `
                 <tr>
+                    <td><strong>${serialNumber}</strong></td>
                     <td><strong>#${sale.bill_number || sale.id || 'N/A'}</strong></td>
                     <td>
                         ${formatDate(sale.date || sale.created_at)}<br>
@@ -702,6 +831,91 @@
                     <td><span class="badge ${statusClass}">${statusText}</span></td>
                 </tr>
             `}).join('');
+            
+            // Update pagination
+            updatePagination();
+        }
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const startItem = (currentPage - 1) * itemsPerPage + 1;
+            const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+            
+            // Update pagination info
+            document.getElementById('paginationInfo').textContent = 
+                `Showing ${startItem}-${endItem} of ${totalItems} transactions`;
+            
+            // Update pagination controls
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+            
+            // Update page numbers
+            const paginationNumbers = document.getElementById('paginationNumbers');
+            paginationNumbers.innerHTML = '';
+            
+            // Show pagination only if there are multiple pages
+            if (totalPages > 1) {
+                document.getElementById('paginationContainer').style.display = 'flex';
+                
+                // Calculate which page numbers to show
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+                
+                // Adjust if we're near the beginning or end
+                if (currentPage <= 3) {
+                    endPage = Math.min(5, totalPages);
+                }
+                if (currentPage > totalPages - 3) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+                
+                // Add first page and ellipsis if needed
+                if (startPage > 1) {
+                    paginationNumbers.innerHTML += `<div class="pagination-number" onclick="goToPage(1)">1</div>`;
+                    if (startPage > 2) {
+                        paginationNumbers.innerHTML += `<div class="pagination-number">...</div>`;
+                    }
+                }
+                
+                // Add page numbers
+                for (let i = startPage; i <= endPage; i++) {
+                    const activeClass = i === currentPage ? 'active' : '';
+                    paginationNumbers.innerHTML += 
+                        `<div class="pagination-number ${activeClass}" onclick="goToPage(${i})">${i}</div>`;
+                }
+                
+                // Add last page and ellipsis if needed
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        paginationNumbers.innerHTML += `<div class="pagination-number">...</div>`;
+                    }
+                    paginationNumbers.innerHTML += `<div class="pagination-number" onclick="goToPage(${totalPages})">${totalPages}</div>`;
+                }
+            } else {
+                document.getElementById('paginationContainer').style.display = 'none';
+            }
+        }
+        
+        function changePage(direction) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const newPage = currentPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderSales(allSales);
+            }
+        }
+        
+        function goToPage(page) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderSales(allSales);
+            }
         }
 
         function updateStats(summary) {

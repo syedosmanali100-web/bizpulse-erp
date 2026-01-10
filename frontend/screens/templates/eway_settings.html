@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Way Bill Settings - BizPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #732C3F;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            color: #732C3F;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .btn {
+            background: #732C3F;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #8B4A5C;
+            transform: translateY(-2px);
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ E-Way Bill Settings</h1>
+            <p>Configure E-Way Bill generation settings for your business</p>
+        </div>
+        
+        <!-- Messages -->
+        <div id="messageArea"></div>
+        
+        <!-- Information -->
+        <div class="info-box">
+            <h3>📋 E-Way Bill Information</h3>
+            <ul>
+                <li>E-Way Bill is mandatory for goods transportation above ₹50,000</li>
+                <li>Required for both inter-state and intra-state movement (varies by state)</li>
+                <li>Valid for 72 hours for distances up to 1000 KM</li>
+                <li>Can be generated, updated, and cancelled through this system</li>
+                <li>Keep your GSTIN and business details updated for accurate generation</li>
+            </ul>
+        </div>
+        
+        <!-- Business Details -->
+        <div class="form-section">
+            <div class="section-title">🏢 Business Details</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="gstin">GSTIN</label>
+                    <input type="text" id="gstin" placeholder="Enter your GSTIN" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label for="businessName">Business Name</label>
+                    <input type="text" id="businessName" placeholder="Enter business name">
+                </div>
+                <div class="form-group">
+                    <label for="businessAddress">Business Address</label>
+                    <textarea id="businessAddress" placeholder="Enter complete business address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="stateCode">State Code</label>
+                    <select id="stateCode">
+                        <option value="">Select state...</option>
+                        <option value="01">Jammu and Kashmir</option>
+                        <option value="02">Himachal Pradesh</option>
+                        <option value="03">Punjab</option>
+                        <option value="04">Chandigarh</option>
+                        <option value="05">Uttarakhand</option>
+                        <option value="06">Haryana</option>
+                        <option value="07">Delhi</option>
+                        <option value="08">Rajasthan</option>
+                        <option value="09">Uttar Pradesh</option>
+                        <option value="10">Bihar</option>
+                        <option value="11">Sikkim</option>
+                        <option value="12">Arunachal Pradesh</option>
+                        <option value="13">Nagaland</option>
+                        <option value="14">Manipur</option>
+                        <option value="15">Mizoram</option>
+                        <option value="16">Tripura</option>
+                        <option value="17">Meghalaya</option>
+                        <option value="18">Assam</option>
+                        <option value="19">West Bengal</option>
+                        <option value="20">Jharkhand</option>
+                        <option value="21">Odisha</option>
+                        <option value="22">Chhattisgarh</option>
+                        <option value="23">Madhya Pradesh</option>
+                        <option value="24">Gujarat</option>
+                        <option value="25">Daman and Diu</option>
+                        <option value="26">Dadra and Nagar Haveli</option>
+                        <option value="27">Maharashtra</option>
+                        <option value="28">Andhra Pradesh</option>
+                        <option value="29">Karnataka</option>
+                        <option value="30">Goa</option>
+                        <option value="31">Lakshadweep</option>
+                        <option value="32">Kerala</option>
+                        <option value="33">Tamil Nadu</option>
+                        <option value="34">Puducherry</option>
+                        <option value="35">Andaman and Nicobar Islands</option>
+                        <option value="36">Telangana</option>
+                        <option value="37">Andhra Pradesh (New)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pincode">Pincode</label>
+                    <input type="text" id="pincode" placeholder="Enter pincode" maxlength="6">
+                </div>
+            </div>
+        </div>
+        
+        <!-- E-Way Bill Settings -->
+        <div class="form-section">
+            <div class="section-title">📋 E-Way Bill Settings</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="thresholdAmount">Threshold Amount (₹)</label>
+                    <input type="number" id="thresholdAmount" value="50000" min="0" placeholder="50000">
+                    <small>E-Way Bill required for invoices above this amount</small>
+                </div>
+                <div class="form-group">
+                    <label for="defaultTransportMode">Default Transport Mode</label>
+                    <select id="defaultTransportMode">
+                        <option value="Road">Road</option>
+                        <option value="Rail">Rail</option>
+                        <option value="Air">Air</option>
+                        <option value="Ship">Ship</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="autoGenerate">
+                        <label for="autoGenerate">Auto-generate E-Way Bill for eligible invoices</label>
+                    </div>
+                    <small>Automatically create E-Way Bills when invoice value exceeds threshold</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- API Settings (Optional) -->
+        <div class="form-section">
+            <div class="section-title">🔌 API Settings (Optional)</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="apiUsername">API Username</label>
+                    <input type="text" id="apiUsername" placeholder="Enter API username">
+                    <small>For integration with government E-Way Bill portal</small>
+                </div>
+                <div class="form-group">
+                    <label for="apiPassword">API Password</label>
+                    <input type="password" id="apiPassword" placeholder="Enter API password">
+                </div>
+                <div class="form-group">
+                    <label for="apiEndpoint">API Endpoint</label>
+                    <input type="url" id="apiEndpoint" placeholder="https://api.einvoice.gov.in">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isProduction">
+                        <label for="isProduction">Production Environment</label>
+                    </div>
+                    <small>Use production API endpoints (uncheck for testing)</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="/api/eway/manage" class="btn secondary">← Back to E-Way Bills</a>
+            <button type="button" class="btn" onclick="saveSettings()" id="saveBtn">
+                💾 Save Settings
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+        });
+        
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/eway/settings');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const settings = result.data;
+                    
+                    // Populate form fields
+                    document.getElementById('gstin').value = settings.gstin || '';
+                    document.getElementById('businessName').value = settings.business_name || '';
+                    document.getElementById('businessAddress').value = settings.business_address || '';
+                    document.getElementById('stateCode').value = settings.state_code || '';
+                    document.getElementById('pincode').value = settings.pincode || '';
+                    document.getElementById('thresholdAmount').value = settings.threshold_amount || 50000;
+                    document.getElementById('defaultTransportMode').value = settings.default_transport_mode || 'Road';
+                    document.getElementById('autoGenerate').checked = settings.auto_generate || false;
+                    document.getElementById('apiUsername').value = settings.api_username || '';
+                    document.getElementById('apiPassword').value = settings.api_password || '';
+                    document.getElementById('apiEndpoint').value = settings.api_endpoint || '';
+                    document.getElementById('isProduction').checked = settings.is_production || false;
+                }
+            } catch (error) {
+                console.error('❌ Failed to load settings:', error);
+                showError('Failed to load settings');
+            }
+        }
+        
+        async function saveSettings() {
+            try {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = '⏳ Saving...';
+                
+                const settings = {
+                    gstin: document.getElementById('gstin').value,
+                    business_name: document.getElementById('businessName').value,
+                    business_address: document.getElementById('businessAddress').value,
+                    state_code: document.getElementById('stateCode').value,
+                    pincode: document.getElementById('pincode').value,
+                    threshold_amount: parseFloat(document.getElementById('thresholdAmount').value) || 50000,
+                    default_transport_mode: document.getElementById('defaultTransportMode').value,
+                    auto_generate: document.getElementById('autoGenerate').checked,
+                    api_username: document.getElementById('apiUsername').value,
+                    api_password: document.getElementById('apiPassword').value,
+                    api_endpoint: document.getElementById('apiEndpoint').value,
+                    is_production: document.getElementById('isProduction').checked
+                };
+                
+                const response = await fetch('/api/eway/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('E-Way Bill settings saved successfully!');
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to save settings:', error);
+                showError('Failed to save settings: ' + error.message);
+            } finally {
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Settings';
+            }
+        }
+        
+        function showSuccess(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="success">✅ ${message}</div>`;
+            messageArea.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showError(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = `<div class="error">❌ ${message}</div>`;
+            messageArea.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

@@ -1573,7 +1573,7 @@
                                 <span id="subtotal">₹0.00</span>
                             </div>
                             <div class="summary-row">
-                                <span>Tax (18%):</span>
+                                <span>Tax (10%):</span>
                                 <span id="taxAmount">₹0.00</span>
                             </div>
                             <div class="summary-row total">
@@ -1802,8 +1802,8 @@
         // Update Bill Summary
         function updateBillSummary() {
             const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
-            const taxAmount = subtotal * 0.18;
-            const total = subtotal + taxAmount;
+            const taxAmount = subtotal * 0.10; // 10% GST on subtotal
+            const total = subtotal + taxAmount; // Total = Subtotal + GST
             
             document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
             document.getElementById('taxAmount').textContent = `₹${taxAmount.toFixed(2)}`;
@@ -1841,8 +1841,8 @@
             
             try {
                 const subtotal = billItems.reduce((sum, item) => sum + item.total, 0);
-                const taxAmount = subtotal * 0.18;
-                const total = subtotal + taxAmount;
+                const taxAmount = subtotal * 0.10; // 10% GST on subtotal
+                const total = subtotal + taxAmount; // Total = Subtotal + GST
                 
                 const billData = {
                     customer_id: selectedCustomer,

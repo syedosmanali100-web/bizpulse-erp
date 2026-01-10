@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Way Bill Management - BizPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F7E8EC 0%, #E8D5DA 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h1 {
+            color: #732C3F;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #732C3F;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #8B4A5C;
+            transform: translateY(-2px);
+        }
+        
+        .btn.secondary {
+            background: #6c757d;
+        }
+        
+        .btn.success {
+            background: #28a745;
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+        }
+        
+        .filters {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #732C3F;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .eway-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            background: #732C3F;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-content {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-generated {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-expired {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 E-Way Bill Management</h1>
+            <div>
+                <a href="/api/eway/generate-form" class="btn">
+                    ➕ Generate E-Way Bill
+                </a>
+                <a href="/api/eway/settings-page" class="btn secondary">
+                    ⚙️ Settings
+                </a>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEwayBills">0</div>
+                <div class="stat-label">Total E-Way Bills</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeEwayBills">0</div>
+                <div class="stat-label">Active Bills</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="cancelledEwayBills">0</div>
+                <div class="stat-label">Cancelled Bills</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalValue">₹0</div>
+                <div class="stat-label">Total Value</div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <div class="form-group">
+                <label>Status</label>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="generated">Generated</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>From Date</label>
+                <input type="date" id="fromDateFilter">
+            </div>
+            <div class="form-group">
+                <label>To Date</label>
+                <input type="date" id="toDateFilter">
+            </div>
+            <div class="form-group">
+                <button class="btn" onclick="applyFilters()">🔍 Filter</button>
+                <button class="btn secondary" onclick="clearFilters()">🗑️ Clear</button>
+            </div>
+        </div>
+        
+        <!-- E-Way Bills Table -->
+        <div class="eway-table">
+            <div class="table-header">
+                <h3>📋 E-Way Bills</h3>
+                <button class="btn" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+            <div class="table-content">
+                <div id="loadingState" class="loading">
+                    <div>🔄 Loading E-Way Bills...</div>
+                </div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <h3>📋 No E-Way Bills Found</h3>
+                    <p>Generate your first E-Way Bill to get started</p>
+                    <a href="/api/eway/generate-form" class="btn">➕ Generate E-Way Bill</a>
+                </div>
+                <table id="ewayTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>E-Way Bill No.</th>
+                            <th>Invoice No.</th>
+                            <th>Customer</th>
+                            <th>Value</th>
+                            <th>From → To</th>
+                            <th>Transport Mode</th>
+                            <th>Status</th>
+                            <th>Valid Until</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ewayTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cancel Modal -->
+    <div id="cancelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>❌ Cancel E-Way Bill</h3>
+                <button class="close-btn" onclick="closeCancelModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Cancellation Reason</label>
+                <select id="cancelReason">
+                    <option value="Duplicate">Duplicate</option>
+                    <option value="Data Entry Mistake">Data Entry Mistake</option>
+                    <option value="Order Cancelled">Order Cancelled</option>
+                    <option value="Others">Others</option>
+                </select>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn secondary" onclick="closeCancelModal()">Cancel</button>
+                <button class="btn danger" onclick="confirmCancel()">Confirm Cancellation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ewayBills = [];
+        let currentCancelId = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEwayBills();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Auto-apply filters on change
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('fromDateFilter').addEventListener('change', applyFilters);
+            document.getElementById('toDateFilter').addEventListener('change', applyFilters);
+        }
+        
+        async function loadEwayBills() {
+            try {
+                showLoading(true);
+                
+                const filters = getFilters();
+                const queryParams = new URLSearchParams(filters).toString();
+                const url = `/api/eway/list${queryParams ? '?' + queryParams : ''}`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success) {
+                    ewayBills = result.data;
+                    renderEwayBills();
+                    updateStatistics();
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load E-Way Bills:', error);
+                showError('Failed to load E-Way Bills: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function renderEwayBills() {
+            const tbody = document.getElementById('ewayTableBody');
+            const table = document.getElementById('ewayTable');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (ewayBills.length === 0) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = ewayBills.map(eway => `
+                <tr>
+                    <td><strong>${eway.eway_bill_number}</strong></td>
+                    <td>${eway.invoice_number || 'N/A'}</td>
+                    <td>${eway.customer_name || 'N/A'}</td>
+                    <td>₹${formatNumber(eway.invoice_value)}</td>
+                    <td>
+                        <div>${eway.from_place}, ${eway.from_state}</div>
+                        <div style="color: #666; font-size: 12px;">↓</div>
+                        <div>${eway.to_place}, ${eway.to_state}</div>
+                    </td>
+                    <td>${eway.transport_mode}</td>
+                    <td>
+                        <span class="status-badge status-${eway.status}">
+                            ${eway.status}
+                        </span>
+                    </td>
+                    <td>${formatDateTime(eway.valid_until)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm secondary" onclick="viewDetails('${eway.id}')">
+                                👁️ View
+                            </button>
+                            ${eway.status === 'generated' ? `
+                                <button class="btn btn-sm danger" onclick="cancelEwayBill('${eway.id}')">
+                                    ❌ Cancel
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateStatistics() {
+            const total = ewayBills.length;
+            const active = ewayBills.filter(e => e.status === 'generated').length;
+            const cancelled = ewayBills.filter(e => e.status === 'cancelled').length;
+            const totalValue = ewayBills.reduce((sum, e) => sum + (e.invoice_value || 0), 0);
+            
+            document.getElementById('totalEwayBills').textContent = total;
+            document.getElementById('activeEwayBills').textContent = active;
+            document.getElementById('cancelledEwayBills').textContent = cancelled;
+            document.getElementById('totalValue').textContent = '₹' + formatNumber(totalValue);
+        }
+        
+        function getFilters() {
+            const filters = {};
+            
+            const status = document.getElementById('statusFilter').value;
+            if (status) filters.status = status;
+            
+            const fromDate = document.getElementById('fromDateFilter').value;
+            if (fromDate) filters.from_date = fromDate;
+            
+            const toDate = document.getElementById('toDateFilter').value;
+            if (toDate) filters.to_date = toDate;
+            
+            return filters;
+        }
+        
+        function applyFilters() {
+            loadEwayBills();
+        }
+        
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('fromDateFilter').value = '';
+            document.getElementById('toDateFilter').value = '';
+            loadEwayBills();
+        }
+        
+        function refreshData() {
+            loadEwayBills();
+        }
+        
+        async function viewDetails(ewayId) {
+            try {
+                const response = await fetch(`/api/eway/${ewayId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Open details in new window or modal
+                    const details = result.data;
+                    alert(`E-Way Bill Details:\n\nNumber: ${details.eway_bill_number}\nValue: ₹${formatNumber(details.invoice_value)}\nFrom: ${details.from_place}, ${details.from_state}\nTo: ${details.to_place}, ${details.to_state}\nStatus: ${details.status}`);
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to load E-Way Bill details:', error);
+                showError('Failed to load details: ' + error.message);
+            }
+        }
+        
+        function cancelEwayBill(ewayId) {
+            currentCancelId = ewayId;
+            document.getElementById('cancelModal').classList.add('show');
+        }
+        
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.remove('show');
+            currentCancelId = null;
+        }
+        
+        async function confirmCancel() {
+            if (!currentCancelId) return;
+            
+            try {
+                const reason = document.getElementById('cancelReason').value;
+                
+                const response = await fetch(`/api/eway/${currentCancelId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('E-Way Bill cancelled successfully');
+                    closeCancelModal();
+                    loadEwayBills();
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to cancel E-Way Bill:', error);
+                showError('Failed to cancel: ' + error.message);
+            }
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loadingState').style.display = show ? 'block' : 'none';
+        }
+        
+        function showSuccess(message) {
+            // Simple alert for now - can be replaced with toast notification
+            alert('✅ ' + message);
+        }
+        
+        function showError(message) {
+            // Simple alert for now - can be replaced with toast notification
+            alert('❌ ' + message);
+        }
+        
+        function formatNumber(num) {
+            return new Intl.NumberFormat('en-IN').format(num);
+        }
+        
+        function formatDateTime(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN') + ' ' + date.toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+    </script>
+</body>
+</html>

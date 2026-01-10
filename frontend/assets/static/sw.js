@@ -146,12 +146,169 @@ self.addEventListener('notificationclick', (event) => {
 // Sync data function
 async function syncData() {
   try {
-    // Sync any pending data when back online
-    console.log('📡 Syncing data...');
-    // Add your data sync logic here
+    console.log('📡 Background syncing data...');
+    
+    // Get user info from IndexedDB or localStorage
+    const userInfo = await getUserInfo();
+    if (!userInfo || !userInfo.id) {
+      console.log('❌ No user info for background sync');
+      return Promise.resolve();
+    }
+    
+    // Sync latest data
+    const response = await fetch('/api/sync/latest-data', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        // Store synced data in IndexedDB for offline access
+        await storeOfflineData(result.data);
+        console.log('✅ Background sync completed');
+        
+        // Notify all clients about the sync
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'BACKGROUND_SYNC_COMPLETE',
+            data: result.data
+          });
+        });
+      }
+    }
+    
     return Promise.resolve();
   } catch (error) {
-    console.error('❌ Sync failed:', error);
+    console.error('❌ Background sync failed:', error);
     return Promise.reject(error);
+  }
+}
+
+// Helper function to get user info
+async function getUserInfo() {
+  try {
+    // Try to get from IndexedDB first, then localStorage
+    return new Promise((resolve) => {
+      const request = indexedDB.open('BizPulseDB', 1);
+      
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        if (db.objectStoreNames.contains('userInfo')) {
+          const transaction = db.transaction(['userInfo'], 'readonly');
+          const store = transaction.objectStore('userInfo');
+          const getRequest = store.get('current');
+          
+          getRequest.onsuccess = () => {
+            resolve(getRequest.result || null);
+          };
+          
+          getRequest.onerror = () => {
+            resolve(null);
+          };
+        } else {
+          resolve(null);
+        }
+      };
+      
+      request.onerror = () => {
+        resolve(null);
+      };
+    });
+  } catch (error) {
+    console.error('❌ Error getting user info:', error);
+    return null;
+  }
+}
+
+// Helper function to store offline data
+async function storeOfflineData(data) {
+  try {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('BizPulseDB', 1);
+      
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        
+        // Create object stores if they don't exist
+        if (!db.objectStoreNames.contains('products')) {
+          db.createObjectStore('products', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('sales')) {
+          db.createObjectStore('sales', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('customers')) {
+          db.createObjectStore('customers', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('invoices')) {
+          db.createObjectStore('invoices', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('syncMeta')) {
+          db.createObjectStore('syncMeta', { keyPath: 'key' });
+        }
+      };
+      
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['products', 'sales', 'customers', 'invoices', 'syncMeta'], 'readwrite');
+        
+        // Store each data type
+        if (data.products) {
+          const productsStore = transaction.objectStore('products');
+          data.products.forEach(product => {
+            productsStore.put(product);
+          });
+        }
+        
+        if (data.sales) {
+          const salesStore = transaction.objectStore('sales');
+          data.sales.forEach(sale => {
+            salesStore.put(sale);
+          });
+        }
+        
+        if (data.customers) {
+          const customersStore = transaction.objectStore('customers');
+          data.customers.forEach(customer => {
+            customersStore.put(customer);
+          });
+        }
+        
+        if (data.invoices) {
+          const invoicesStore = transaction.objectStore('invoices');
+          data.invoices.forEach(invoice => {
+            invoicesStore.put(invoice);
+          });
+        }
+        
+        // Store sync metadata
+        const metaStore = transaction.objectStore('syncMeta');
+        metaStore.put({
+          key: 'lastSync',
+          timestamp: data.sync_timestamp || new Date().toISOString()
+        });
+        
+        transaction.oncomplete = () => {
+          console.log('✅ Offline data stored successfully');
+          resolve();
+        };
+        
+        transaction.onerror = (error) => {
+          console.error('❌ Error storing offline data:', error);
+          reject(error);
+        };
+      };
+      
+      request.onerror = (error) => {
+        console.error('❌ Error opening IndexedDB:', error);
+        reject(error);
+      };
+    });
+  } catch (error) {
+    console.error('❌ Error in storeOfflineData:', error);
+    throw error;
   }
 }

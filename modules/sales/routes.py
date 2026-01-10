@@ -19,31 +19,24 @@ def get_user_id_from_session():
 
 @sales_bp.route('/api/sales', methods=['GET'])
 def get_sales():
-    """Get all sales with optional date filtering - Filtered by user"""
+    """Get all sales with optional date filtering - Filtered by user - Returns array for mobile"""
     try:
-        date_filter = request.args.get('date_filter')  # today, yesterday, week, month, or specific date
+        date_filter = request.args.get('date_filter', 'today')  # Default to today
         user_id = get_user_id_from_session()
         
         sales = sales_service.get_all_sales(date_filter, user_id)
         summary = sales_service.get_sales_summary(date_filter, user_id)
         
-        return jsonify({
-            "success": True,
-            "sales": sales,
-            "summary": summary,
-            "total_count": len(sales),
-            "total_records": len(sales),
-            "date_filter": date_filter
-        })
+        print(f"📊 [SALES API] Returning {len(sales)} sales for filter: {date_filter}")
+        
+        # Return sales array directly for mobile frontend compatibility
+        return jsonify(sales)
         
     except Exception as e:
         print(f"❌ [SALES API] Error: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Failed to get sales: {str(e)}",
-            "sales": [],
-            "summary": {}
-        }), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify([]), 500
 
 @sales_bp.route('/api/sales/all', methods=['GET'])
 def get_all_sales():
@@ -187,22 +180,44 @@ def export_sales():
 
 @sales_bp.route('/api/sales/summary', methods=['GET'])
 def get_sales_summary():
-    """Get sales summary with totals"""
+    """Get sales summary with totals - Mobile ERP format with today/yesterday breakdown"""
     try:
-        date_filter = request.args.get('date_filter')  # today, yesterday, week, month
+        # Get today's summary
+        today_summary = sales_service.get_sales_summary('today')
         
-        summary = sales_service.get_sales_summary(date_filter)
+        # Get yesterday's summary
+        yesterday_summary = sales_service.get_sales_summary('yesterday')
         
+        # Get top products for today
+        top_products = sales_service.get_top_products(5, 'today')
+        
+        # Format response for mobile frontend
         return jsonify({
             "success": True,
-            "summary": summary,
-            "date_filter": date_filter
+            "today": {
+                "total": today_summary.get('total_revenue', 0),
+                "count": today_summary.get('total_sales', 0),
+                "items": today_summary.get('total_items', 0)
+            },
+            "yesterday": {
+                "total": yesterday_summary.get('total_revenue', 0),
+                "count": yesterday_summary.get('total_sales', 0),
+                "items": yesterday_summary.get('total_items', 0)
+            },
+            "top_products": top_products,
+            "summary": today_summary  # Keep for backward compatibility
         })
         
     except Exception as e:
+        print(f"❌ [SALES SUMMARY] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "error": f"Failed to get sales summary: {str(e)}"
+            "error": f"Failed to get sales summary: {str(e)}",
+            "today": {"total": 0, "count": 0, "items": 0},
+            "yesterday": {"total": 0, "count": 0, "items": 0},
+            "top_products": []
         }), 500
 
 @sales_bp.route('/api/sales/top-products', methods=['GET'])

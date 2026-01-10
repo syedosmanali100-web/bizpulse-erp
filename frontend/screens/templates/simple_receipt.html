@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - BizPulse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .receipt-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px dashed #333;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .company-details {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .invoice-info {
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .invoice-info div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .customer-info {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .items-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #333;
+        }
+
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .item-name {
+            flex: 1;
+        }
+
+        .item-qty {
+            width: 60px;
+            text-align: center;
+        }
+
+        .item-amount {
+            width: 80px;
+            text-align: right;
+        }
+
+        .totals-section {
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+
+        .total-row.grand-total {
+            font-weight: bold;
+            font-size: 16px;
+            border-top: 2px solid #333;
+            border-bottom: 2px solid #333;
+            padding: 8px 0;
+            margin-top: 10px;
+        }
+
+        .payment-info {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ccc;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #333;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: #732C3F;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .back-button:hover {
+            background: #5a2329;
+        }
+
+        .print-button {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            font-family: Arial, sans-serif;
+            border: none;
+            cursor: pointer;
+        }
+
+        .print-button:hover {
+            background: #45a049;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                max-width: 100%;
+            }
+            .back-button, .print-button {
+                display: none;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="javascript:history.back()" class="back-button">← Back</a>
+        <button onclick="window.print()" class="print-button">🖨️ Print</button>
+    </div>
+
+    <div class="receipt-container" id="receiptContent">
+        <div class="loading">Loading receipt...</div>
+    </div>
+
+    <script>
+        const invoiceId = '{{ invoice_id }}';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReceipt();
+        });
+
+        async function loadReceipt() {
+            try {
+                // Fetch invoice data
+                const response = await fetch(`/api/invoices/${invoiceId}`);
+                const data = await response.json();
+
+                if (!data.success || !data.invoice) {
+                    alert('Receipt not found');
+                    window.history.back();
+                    return;
+                }
+
+                // Fetch business settings for shop details
+                let businessSettings = {};
+                try {
+                    const settingsResponse = await fetch('/api/settings/business');
+                    const settingsData = await settingsResponse.json();
+                    if (settingsData.success) {
+                        businessSettings = settingsData.settings || {};
+                    }
+                } catch (error) {
+                    console.log('Could not load business settings:', error);
+                }
+
+                displayReceipt(data, businessSettings);
+            } catch (error) {
+                console.error('Error loading receipt:', error);
+                alert('Error loading receipt');
+            }
+        }
+
+        function displayReceipt(data, businessSettings = {}) {
+            const invoice = data.invoice;
+            const items = data.items || [];
+
+            // Get business details
+            const businessName = businessSettings.business_name || 'BizPulse ERP';
+            const businessAddress = businessSettings.address || 'Your Business Address';
+            const businessPhone = businessSettings.phone || 'Your Phone Number';
+            const businessGSTIN = businessSettings.gstin || 'Your GSTIN';
+
+            const receiptDate = new Date(invoice.created_at);
+            const dateStr = receiptDate.toLocaleDateString('en-IN', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+            const timeStr = receiptDate.toLocaleTimeString('en-IN', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            });
+
+            let html = `
+                <div class="header">
+                    <div class="company-name">${businessName}</div>
+                    <div class="company-details">
+                        ${businessAddress}<br>
+                        Contact No: ${businessPhone}<br>
+                        ${businessGSTIN ? `GSTIN: ${businessGSTIN}<br>` : ''}
+                        Established: 1958
+                    </div>
+                </div>
+
+                <div class="invoice-info">
+                    <div><span>Invoice No:</span><span>${invoice.bill_number}</span></div>
+                    <div><span>Date:</span><span>${dateStr} ${timeStr}</span></div>
+                    <div><span>Staff:</span><span>COUNTER</span></div>
+                </div>
+
+                <div class="customer-info">
+                    <div><strong>Billed To:</strong></div>
+                    <div>Name: ${invoice.customer_name || 'Walk-in Customer'}</div>
+                    ${invoice.customer_phone ? `<div>Phone: ${invoice.customer_phone}</div>` : ''}
+                </div>
+
+                <div class="items-section">
+                    <div class="items-header">
+                        <div class="item-name">Description</div>
+                        <div class="item-qty">Qty</div>
+                        <div class="item-amount">Amt</div>
+                    </div>
+            `;
+
+            // Add items
+            items.forEach(item => {
+                html += `
+                    <div class="item-row">
+                        <div class="item-name">${item.product_name}</div>
+                        <div class="item-qty">${item.quantity}</div>
+                        <div class="item-amount">${item.total_price.toFixed(2)}</div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            // Totals section - CORRECT ORDER
+            const subtotal = invoice.subtotal || 0;
+            const gst = invoice.tax_amount || 0;
+            const discount = invoice.discount_amount || 0;
+            const total = invoice.total_amount || 0;
+
+            html += `
+                <div class="totals-section">
+            `;
+
+            // Show GST first (if present)
+            if (gst > 0) {
+                html += `
+                    <div class="total-row">
+                        <span>GST (10%)</span>
+                        <span>${gst.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+
+            // Then Subtotal
+            html += `
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span>${(subtotal + gst).toFixed(2)}</span>
+                </div>
+            `;
+
+            // Then Discount (if present) - RIGHT AFTER SUBTOTAL
+            if (discount > 0) {
+                html += `
+                    <div class="total-row">
+                        <span>Discount</span>
+                        <span>-${discount.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+
+            // Grand Total
+            html += `
+                    <div class="total-row grand-total">
+                        <span>Grand Total</span>
+                        <span>${total.toFixed(2)}</span>
+                    </div>
+            `;
+
+            // Payment Details
+            const paymentMethod = invoice.payment_method || 'cash';
+            const isCredit = invoice.is_credit === 1 || paymentMethod === 'credit';
+            const isPartial = paymentMethod === 'partial';
+            const paidAmount = invoice.credit_paid_amount || 0;
+            const dueAmount = invoice.credit_balance || 0;
+
+            // Show payment breakdown
+            if (isPartial) {
+                html += `
+                    <div class="total-row" style="border-top: 1px dashed #ccc; margin-top: 8px; padding-top: 8px;">
+                        <span>Paid Now</span>
+                        <span>${paidAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="total-row" style="color: #ef4444; font-weight: 600;">
+                        <span>Balance Due</span>
+                        <span>${dueAmount.toFixed(2)}</span>
+                    </div>
+                `;
+            } else if (isCredit) {
+                html += `
+                    <div class="total-row" style="border-top: 1px dashed #ccc; margin-top: 8px; padding-top: 8px;">
+                        <span>Paid Now</span>
+                        <span>0.00</span>
+                    </div>
+                    <div class="total-row" style="color: #ef4444; font-weight: 600;">
+                        <span>Balance Due</span>
+                        <span>${total.toFixed(2)}</span>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="total-row">
+                        <span>Paid</span>
+                        <span>${total.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            // Payment method only
+            const actualPaymentMethod = isPartial ? (invoice.partial_payment_method || 'CASH') : paymentMethod;
+            html += `
+                <div class="payment-info">
+                    <div>Payment Method: ${actualPaymentMethod.toUpperCase()}</div>
+                </div>
+            `;
+
+            html += `
+                    <div><strong>Thank you, Visit again</strong></div>
+                    <div>Customer Care: ${businessPhone}</div>
+                    <div>Powered by BizPulse ERP</div>
+                </div>
+            `;
+
+            document.getElementById('receiptContent').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

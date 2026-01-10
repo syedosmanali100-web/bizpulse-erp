@@ -560,7 +560,7 @@
                     <label class="filter-label">Date Filter</label>
                     <select class="filter-input" id="dateRange" onchange="filterInvoices()">
                         <option value="all">All Time</option>
-                        <option value="today">Today</option>
+                        <option value="today" selected>Today</option>
                         <option value="yesterday">Yesterday</option>
                         <option value="week">This Week</option>
                         <option value="month">This Month</option>
@@ -650,7 +650,7 @@
         let currentPage = 1;
         let currentFilters = {
             status: 'all',
-            date_filter: 'all',
+            date_filter: 'today',  // 🔥 Default to 'today'
             limit: 20
         };
 
@@ -868,11 +868,17 @@
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             const date = new Date(dateStr);
-            return date.toLocaleDateString('en-IN', { 
+            const dateFormatted = date.toLocaleDateString('en-IN', { 
                 day: '2-digit', 
                 month: 'short',
                 year: 'numeric'
             });
+            const timeFormatted = date.toLocaleTimeString('en-IN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            return `${dateFormatted}<br><small style="color: #6b7280; font-size: 0.75rem;">${timeFormatted}</small>`;
         }
 
         function formatNumber(num) {
@@ -910,12 +916,12 @@
 
         function resetFilters() {
             document.getElementById('statusFilter').value = 'all';
-            document.getElementById('dateRange').value = 'all';
+            document.getElementById('dateRange').value = 'today';  // 🔥 Reset to 'today'
             document.getElementById('limitFilter').value = '20';
             
             currentFilters = {
                 status: 'all',
-                date_filter: 'all',
+                date_filter: 'today',  // 🔥 Reset to 'today'
                 limit: 20
             };
             
@@ -996,6 +1002,13 @@
         // Load on page load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Invoice page loaded - NEW VERSION with Pagination & Filters');
+            
+            // 🔥 Set dropdown values to match currentFilters
+            document.getElementById('statusFilter').value = currentFilters.status;
+            document.getElementById('dateRange').value = currentFilters.date_filter;
+            document.getElementById('limitFilter').value = currentFilters.limit;
+            
+            // Load invoices with default filters
             loadInvoices(1);
         });
     </script>

@@ -599,9 +599,12 @@
 
         <!-- Table -->
         <div class="table-section">
-            <div class="table-header">
-                <h2 class="table-title">Credit Bills</h2>
-                <div class="export-buttons">
+            <!-- Action Bar above table -->
+            <div style="padding: 15px 20px; border-bottom: 1px solid var(--border); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <button onclick="toggleView()" id="toggleViewBtn" style="background: linear-gradient(135deg, var(--wine) 0%, var(--wine-light) 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(114, 47, 55, 0.3);">
+                    <span id="toggleText">Credit History</span>
+                </button>
+                <div class="export-buttons" style="display: flex; gap: 8px;">
                     <button class="export-btn pdf-btn" onclick="exportToPDF()" title="Export to PDF">
                         <svg width="20" height="20" viewBox="0 0 240 234" fill="white">
                             <path d="M42.5 0h155C221 0 240 19 240 42.5v149c0 23.5-19 42.5-42.5 42.5h-155C19 234 0 215 0 191.5v-149C0 19 19 0 42.5 0z"/>
@@ -630,16 +633,16 @@
                     </button>
                 </div>
             </div>
+            
             <table>
                 <thead>
                     <tr>
-                        <th>Bill #</th>
-                        <th>Date</th>
+                        <th>Bill # / Date</th>
                         <th>Customer</th>
-                        <th>Total Amount</th>
-                        <th>Paid Amount</th>
-                        <th>Balance Due</th>
-                        <th>Due Date</th>
+                        <th style="text-align: right;">Total Amount</th>
+                        <th style="text-align: right;">Paid Amount</th>
+                        <th style="text-align: right;">Balance Due</th>
+                        <th>Payment Method</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -654,9 +657,11 @@
     <script>
         let currentFilters = {
             status: 'all',
-            date_range: 'today',
+            date_range: 'today',  // 🔥 Default to 'today' to show today's credit bills
             customer: 'all'
         };
+        
+        let currentView = 'active'; // 'active' or 'history'
 
         // Load credit bills - FAST VERSION
         async function loadCreditBills() {
@@ -669,30 +674,46 @@
                     customer: currentFilters.customer
                 });
                 
+                const url = `/api/credit/bills/debug?${params.toString()}`;
+                console.log('📡 Fetching from:', url);
+                
                 // Use debug endpoint directly - optimized for speed
-                const response = await fetch(`/api/credit/bills/debug?${params.toString()}`);
+                const response = await fetch(url);
+                
+                console.log('📥 Response status:', response.status);
+                console.log('📥 Response ok:', response.ok);
                 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Response error:', errorText);
                     throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
                 
                 const data = await response.json();
                 console.log('✅ Credit bills data loaded:', data);
+                console.log('📊 Bills count:', data.bills ? data.bills.length : 0);
+                console.log('📊 Stats:', data.stats);
                 
                 // Handle the response immediately
                 if (data.success) {
                     const bills = data.bills || [];
                     
+                    console.log('Processing', bills.length, 'bills');
+                    
                     if (bills.length > 0) {
+                        console.log('Calling renderCreditBills with', bills.length, 'bills');
                         renderCreditBills(bills);
                     } else {
+                        console.log('No bills, showing empty state');
                         showEmptyState();
                     }
                     
                     // Update stats from the data
                     if (data.stats) {
+                        console.log('Updating stats:', data.stats);
                         updateStats(data.stats);
                     } else {
+                        console.log('No stats, using defaults');
                         // Set default stats when no data
                         updateStats({
                             total_bills: 0,
@@ -706,12 +727,12 @@
                     loadCustomers(data.customers || []);
                     
                 } else {
-                    console.error('API error:', data.error || 'Unknown error');
+                    console.error('❌ API returned success=false:', data.error || 'Unknown error');
                     showError();
                 }
                 
             } catch (error) {
-                console.error('Error loading credit bills:', error);
+                console.error('❌ Error loading credit bills:', error);
                 showError();
             }
         }
@@ -728,44 +749,68 @@
                 const dueDate = bill.due_date ? new Date(bill.due_date).toLocaleDateString('en-IN') : 'Not set';
                 const isOverdue = bill.due_date && new Date(bill.due_date) < new Date() && bill.balance_due > 0;
                 
+                // Escape strings for onclick
+                const customerNameEscaped = (bill.customer_name || 'Walk-in Customer').replace(/'/g, "\\'");
+                const billNumberEscaped = (bill.bill_number || bill.id).replace(/'/g, "\\'");
+                
                 return `
-                <tr onclick="viewBill('${bill.id}')">
-                    <td><strong>${bill.bill_number || bill.id}</strong></td>
+                <tr>
                     <td>
-                        ${formatDate(bill.created_at)}<br>
-                        <small style="color: #6b7280; font-size: 0.75em;">${formatTime(bill.created_at)}</small>
+                        <div style="font-weight: 600; color: var(--wine);">${bill.bill_number || bill.id}</div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">${formatDate(bill.created_at)}</div>
                     </td>
-                    <td>${bill.customer_name || 'Walk-in Customer'}</td>
-                    <td><strong>₹${formatNumber(bill.total_amount)}</strong></td>
-                    <td>₹${formatNumber(bill.paid_amount || 0)}</td>
-                    <td><strong style="color: ${bill.balance_due > 0 ? '#ef4444' : '#10b981'}">₹${formatNumber(bill.balance_due || 0)}</strong></td>
-                    <td>${dueDate}</td>
                     <td>
-                        <span class="badge badge-${getStatusClass(bill, isOverdue)}">
-                            ${getStatusText(bill, isOverdue)}
+                        <div style="font-weight: 500;">${bill.customer_name || 'Walk-in Customer'}</div>
+                    </td>
+                    <td style="text-align: right; font-weight: 600;">₹${formatNumber(bill.total_amount)}</td>
+                    <td style="text-align: right; font-weight: 600; color: var(--success);">₹${formatNumber(bill.paid_amount || 0)}</td>
+                    <td style="text-align: right; font-weight: 600; color: ${bill.balance_due > 0 ? 'var(--danger)' : 'var(--success)'};">
+                        ₹${formatNumber(bill.balance_due || 0)}
+                    </td>
+                    <td>
+                        <span class="payment-method">${bill.payment_method || 'CASH'}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(bill, isOverdue)}">
+                            ${getStatusIcon(bill, isOverdue)} ${getStatusText(bill, isOverdue)}
                         </span>
                     </td>
                     <td>
-                        <button class="action-btn" onclick="event.stopPropagation(); viewBill('${bill.id}')">View</button>
-                        <button class="action-btn" onclick="event.stopPropagation(); receivePayment('${bill.id}', '${bill.customer_name}', ${bill.balance_due})">Receive</button>
-                        <button class="action-btn" onclick="event.stopPropagation(); sendReminder('${bill.id}')">Remind</button>
+                        <div class="action-buttons" style="display: flex; gap: 5px;">
+                            <button onclick="receivePayment('${bill.id}', '${customerNameEscaped}', ${bill.balance_due}, '${billNumberEscaped}')" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Receive Payment">
+                                Receive
+                            </button>
+                            <button onclick="printBill('${bill.id}')" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Print Bill">
+                                Print
+                            </button>
+                            <button onclick="sendReminder('${bill.id}', '${customerNameEscaped}')" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Send Reminder">
+                                Remind
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `}).join('');
+        }
+
+        function getStatusIcon(bill, isOverdue) {
+            if (isOverdue) return '⚠️';
+            if (bill.balance_due <= 0) return '✅';
+            if (bill.paid_amount > 0) return '⏳';
+            return '⏰';
         }
 
         function getStatusClass(bill, isOverdue) {
             if (isOverdue) return 'overdue';
             if (bill.balance_due <= 0) return 'paid';
             if (bill.paid_amount > 0) return 'partial';
-            return 'overdue';  // Credit bills should show as overdue/due (red)
+            return 'unpaid';
         }
 
         function getStatusText(bill, isOverdue) {
-            if (isOverdue) return 'OVERDUE';
-            if (bill.balance_due <= 0) return 'PAID';
-            if (bill.paid_amount > 0) return 'PARTIAL';
-            return 'DUE';  // Credit bills should show as DUE
+            if (isOverdue) return 'Overdue';
+            if (bill.balance_due <= 0) return 'Fully Paid';
+            if (bill.paid_amount > 0) return 'Partially Paid';
+            return 'Unpaid';
         }
 
         function updateStats(stats) {
@@ -817,7 +862,7 @@
             }
             
             tbody.innerHTML = `
-                <tr><td colspan="9">
+                <tr><td colspan="8">
                     <div class="empty-state">
                         <div class="empty-icon">${icon}</div>
                         <div class="empty-text">${message}</div>
@@ -831,7 +876,7 @@
 
         function showError() {
             document.getElementById('creditTable').innerHTML = `
-                <tr><td colspan="9">
+                <tr><td colspan="8">
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
                         <div class="empty-text">Failed to load credit bills</div>
@@ -876,7 +921,11 @@
             currentFilters.date_range = document.getElementById('dateRange').value;
             currentFilters.customer = document.getElementById('customerFilter').value;
             
-            loadCreditBills();
+            if (currentView === 'active') {
+                loadCreditBills();
+            } else {
+                loadPaymentHistory();
+            }
         }
 
         function resetFilters() {
@@ -886,27 +935,279 @@
             
             currentFilters = {
                 status: 'all',
-                date_range: 'today',
+                date_range: 'today',  // 🔥 Reset to 'today' as default
                 customer: 'all'
             };
             
-            loadCreditBills();
+            if (currentView === 'active') {
+                loadCreditBills();
+            } else {
+                loadPaymentHistory();
+            }
         }
 
         function refreshData() {
-            loadCreditBills();
+            if (currentView === 'active') {
+                loadCreditBills();
+            } else {
+                loadPaymentHistory();
+            }
+        }
+
+        // Toggle between active credits and payment history
+        function toggleView() {
+            if (currentView === 'active') {
+                currentView = 'history';
+                loadPaymentHistory();
+                document.getElementById('toggleText').textContent = 'Credit Bills';
+            } else {
+                currentView = 'active';
+                loadCreditBills();
+                document.getElementById('toggleText').textContent = 'Credit History';
+            }
+        }
+
+        // Load payment history
+        async function loadPaymentHistory() {
+            try {
+                console.log('📜 Loading payment history with filters:', currentFilters);
+                
+                const params = new URLSearchParams({
+                    date_range: currentFilters.date_range,
+                    customer: currentFilters.customer
+                });
+                
+                const url = `/api/credit/history?${params.toString()}`;
+                console.log('📡 Fetching from:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Response error:', errorText);
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Payment history loaded:', data);
+                
+                if (data.success) {
+                    const bills = data.bills || [];
+                    
+                    if (bills.length > 0) {
+                        renderPaymentHistory(bills);
+                    } else {
+                        showEmptyHistoryState();
+                    }
+                    
+                    // Update stats
+                    if (data.stats) {
+                        updateStats(data.stats);
+                    }
+                    
+                    // Load customers
+                    loadCustomers(data.customers || []);
+                    
+                } else {
+                    console.error('❌ API returned success=false:', data.error || 'Unknown error');
+                    showError();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading payment history:', error);
+                showError();
+            }
+        }
+
+        // Render payment history table
+        function renderPaymentHistory(bills) {
+            const tbody = document.getElementById('creditTable');
+            
+            if (!bills || bills.length === 0) {
+                showEmptyHistoryState();
+                return;
+            }
+            
+            tbody.innerHTML = bills.map(bill => {
+                const statusClass = bill.payment_status === 'paid' ? 'paid' : 'partial';
+                const statusText = bill.payment_status === 'paid' ? 'Fully Paid' : 'Partially Paid';
+                const statusIcon = bill.payment_status === 'paid' ? '✅' : '⏳';
+                
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: var(--wine);">${bill.bill_number || bill.id}</div>
+                            <div style="font-size: 0.7rem; color: #6b7280; margin-top: 2px;">
+                                📅 Bill: ${formatDate(bill.created_at)}
+                            </div>
+                            ${bill.last_payment_date ? `
+                                <div style="font-size: 0.7rem; color: #10b981; margin-top: 2px;">
+                                    💰 Last Payment: ${formatDate(bill.last_payment_date)} ${formatTime(bill.last_payment_date)}
+                                </div>
+                            ` : ''}
+                            ${bill.paid_amount > 0 ? `
+                                <button onclick="showPaymentDetails('${bill.id}')" style="font-size: 0.65rem; color: var(--wine); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 2px 0; margin-top: 2px;">
+                                    View Payment Details →
+                                </button>
+                            ` : ''}
+                        </td>
+                        <td>
+                            <div style="font-weight: 500;">${bill.customer_name || 'Walk-in Customer'}</div>
+                        </td>
+                        <td style="text-align: right; font-weight: 600;">₹${formatNumber(bill.total_amount)}</td>
+                        <td style="text-align: right; font-weight: 600; color: var(--success);">₹${formatNumber(bill.paid_amount)}</td>
+                        <td style="text-align: right; font-weight: 600; color: ${bill.balance_due > 0 ? 'var(--danger)' : 'var(--success)'};">
+                            ₹${formatNumber(bill.balance_due)}
+                        </td>
+                        <td>
+                            <span class="payment-method">${bill.payment_method || 'CASH'}</span>
+                        </td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${statusIcon} ${statusText}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons" style="display: flex; gap: 5px;">
+                                ${bill.balance_due > 0 ? `
+                                    <button onclick="receivePayment('${bill.id}', '${(bill.customer_name || 'Walk-in Customer').replace(/'/g, "\\'")}', ${bill.balance_due}, '${(bill.bill_number || bill.id).replace(/'/g, "\\'")}');" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Receive Payment">
+                                        Receive
+                                    </button>
+                                ` : ''}
+                                <button onclick="printBill('${bill.id}')" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Print Bill">
+                                    Print
+                                </button>
+                                ${bill.balance_due > 0 ? `
+                                    <button onclick="sendReminder('${bill.id}', '${(bill.customer_name || 'Walk-in Customer').replace(/'/g, "\\'")}');" class="action-btn" style="background: white; color: var(--wine); border: 1px solid var(--wine); padding: 6px 12px; font-size: 0.75rem;" title="Send Reminder">
+                                        Remind
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function showEmptyHistoryState() {
+            const tbody = document.getElementById('creditTable');
+            const dateRange = currentFilters.date_range;
+            let message = 'No payment history found';
+            let icon = '📜';
+            
+            switch(dateRange) {
+                case 'today':
+                    message = 'No payments received today';
+                    icon = '📅';
+                    break;
+                case 'yesterday':
+                    message = 'No payments received yesterday';
+                    icon = '📅';
+                    break;
+                case 'week':
+                    message = 'No payments received this week';
+                    icon = '📅';
+                    break;
+                case 'month':
+                    message = 'No payments received this month';
+                    icon = '📅';
+                    break;
+                default:
+                    message = 'No payment history found';
+                    icon = '📜';
+            }
+            
+            tbody.innerHTML = `
+                <tr><td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-icon">${icon}</div>
+                        <div class="empty-text">${message}</div>
+                        <div style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">
+                            Payment history will appear here once customers make payments
+                        </div>
+                    </div>
+                </td></tr>
+            `;
         }
 
         function viewBill(billId) {
             window.location.href = `/retail/invoice/${billId}`;
         }
 
-        function receivePayment(billId, customerName = '', outstandingAmount = 0) {
-            alert(`Payment feature for bill ${billId} will be implemented`);
+        function printBill(billId) {
+            // Open bill in new window for printing
+            window.open(`/retail/invoice/${billId}`, '_blank');
         }
 
-        function sendReminder(billId) {
-            alert('Reminder feature will be implemented');
+        function sendReminder(billId, customerName) {
+            if (confirm(`Send payment reminder to ${customerName}?`)) {
+                // TODO: Implement WhatsApp/SMS reminder
+                alert('Reminder feature will be implemented soon!\n\nThis will send a WhatsApp/SMS reminder to the customer.');
+            }
+        }
+        
+        // Show payment details modal
+        async function showPaymentDetails(billId) {
+            try {
+                console.log('📜 Loading payment details for bill:', billId);
+                
+                const response = await fetch(`/api/credit/bill/${billId}/payments`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Populate bill info
+                    document.getElementById('detailsBillNumber').textContent = data.bill.bill_number;
+                    document.getElementById('detailsCustomerName').textContent = data.bill.customer_name;
+                    document.getElementById('detailsTotalAmount').textContent = '₹' + data.bill.total_amount.toFixed(2);
+                    document.getElementById('detailsPaidAmount').textContent = '₹' + data.bill.paid_amount.toFixed(2);
+                    document.getElementById('detailsBalance').textContent = '₹' + data.bill.balance.toFixed(2);
+                    
+                    // Populate payment transactions
+                    const transactionsList = document.getElementById('paymentTransactionsList');
+                    
+                    if (data.payments && data.payments.length > 0) {
+                        transactionsList.innerHTML = data.payments.map((payment, index) => `
+                            <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; background: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <div style="font-weight: 600; color: var(--wine);">Payment #${index + 1}</div>
+                                    <div style="font-weight: 700; font-size: 18px; color: var(--success);">₹${payment.amount.toFixed(2)}</div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: #6b7280; margin-bottom: 4px;">
+                                    <span>📅 Date:</span>
+                                    <span>${formatDate(payment.processed_at)} ${formatTime(payment.processed_at)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.875rem; color: #6b7280; margin-bottom: 4px;">
+                                    <span>💳 Method:</span>
+                                    <span>${payment.method}</span>
+                                </div>
+                                ${payment.reference ? `
+                                    <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 4px;">
+                                        ${payment.reference}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('');
+                    } else {
+                        transactionsList.innerHTML = `
+                            <div style="text-align: center; padding: 30px; color: #9ca3af;">
+                                No payment transactions found
+                            </div>
+                        `;
+                    }
+                    
+                    // Show modal
+                    document.getElementById('paymentDetailsModal').style.display = 'flex';
+                } else {
+                    alert('❌ Error loading payment details: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error loading payment details:', error);
+                alert('❌ Error loading payment details');
+            }
+        }
+        
+        function closePaymentDetailsModal() {
+            document.getElementById('paymentDetailsModal').style.display = 'none';
         }
 
         // Export functions
@@ -964,9 +1265,200 @@
             document.getElementById('statusFilter').value = currentFilters.status;
             document.getElementById('customerFilter').value = currentFilters.customer;
             
-            // Load credit bills with default filters IMMEDIATELY
-            loadCreditBills();
+            // 🔥 ENSURE FILTERS ARE APPLIED - Add small delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('📋 Applying filters:', currentFilters);
+                loadCreditBills();
+            }, 100);
         });
+    </script>
+    
+    <!-- Payment Modal -->
+    <div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin: 0 0 20px 0; color: var(--wine); font-size: 24px;">Receive Payment</h2>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Customer:</span>
+                    <strong id="paymentCustomerName"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Bill Number:</span>
+                    <strong id="paymentBillNumber"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #6b7280;">Outstanding Amount:</span>
+                    <strong id="paymentOutstanding" style="color: var(--danger); font-size: 20px;"></strong>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Payment Amount *</label>
+                <input type="number" id="paymentAmount" placeholder="Enter amount" step="0.01" min="0" 
+                       style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;"
+                       onkeyup="validatePaymentAmount()">
+                <small id="paymentError" style="color: var(--danger); display: none; margin-top: 5px;"></small>
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Payment Method</label>
+                <select id="paymentMethodSelect" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                    <option value="CASH">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CARD">Card</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="CHEQUE">Cheque</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closePaymentModal()" style="flex: 1; padding: 12px; background: #e5e7eb; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <button onclick="submitPayment()" id="submitPaymentBtn" style="flex: 1; padding: 12px; background: var(--wine); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Receive Payment
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Details Modal -->
+    <div id="paymentDetailsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: var(--wine); font-size: 24px;">Payment History</h2>
+                <button onclick="closePaymentDetailsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">×</button>
+            </div>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Bill Number:</span>
+                    <strong id="detailsBillNumber"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Customer:</span>
+                    <strong id="detailsCustomerName"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Total Amount:</span>
+                    <strong id="detailsTotalAmount"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: #6b7280;">Total Paid:</span>
+                    <strong id="detailsPaidAmount" style="color: var(--success);"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #6b7280;">Balance:</span>
+                    <strong id="detailsBalance" style="color: var(--danger);"></strong>
+                </div>
+            </div>
+            
+            <h3 style="margin: 20px 0 10px 0; color: var(--text); font-size: 18px;">Payment Transactions</h3>
+            <div id="paymentTransactionsList" style="max-height: 300px; overflow-y: auto;">
+                <!-- Payment transactions will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPaymentBillId = null;
+        let currentPaymentOutstanding = 0;
+        
+        function receivePayment(billId, customerName = '', outstandingAmount = 0, billNumber = '') {
+            console.log('🎯 receivePayment called:', { billId, customerName, outstandingAmount, billNumber });
+            
+            currentPaymentBillId = billId;
+            currentPaymentOutstanding = outstandingAmount;
+            
+            document.getElementById('paymentCustomerName').textContent = customerName || 'Walk-in Customer';
+            document.getElementById('paymentBillNumber').textContent = billNumber || billId;
+            document.getElementById('paymentOutstanding').textContent = '₹' + outstandingAmount.toFixed(2);
+            document.getElementById('paymentAmount').value = outstandingAmount.toFixed(2);
+            document.getElementById('paymentMethodSelect').value = 'CASH';
+            document.getElementById('paymentError').style.display = 'none';
+            
+            const modal = document.getElementById('paymentModal');
+            console.log('📦 Modal element:', modal);
+            modal.style.display = 'flex';
+            console.log('✅ Modal should be visible now');
+        }
+        
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            currentPaymentBillId = null;
+            currentPaymentOutstanding = 0;
+        }
+        
+        function validatePaymentAmount() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const errorEl = document.getElementById('paymentError');
+            
+            if (isNaN(amount) || amount <= 0) {
+                errorEl.textContent = 'Please enter a valid amount';
+                errorEl.style.display = 'block';
+                return false;
+            }
+            
+            // Use a small tolerance for floating point comparison
+            if (amount > currentPaymentOutstanding + 0.01) {
+                errorEl.textContent = `Amount cannot exceed outstanding balance of ₹${currentPaymentOutstanding.toFixed(2)}`;
+                errorEl.style.display = 'block';
+                return false;
+            }
+            
+            errorEl.style.display = 'none';
+            return true;
+        }
+        
+        async function submitPayment() {
+            if (!validatePaymentAmount()) {
+                return;
+            }
+            
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const method = document.getElementById('paymentMethodSelect').value;
+            const submitBtn = document.getElementById('submitPaymentBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('/api/credit/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bill_id: currentPaymentBillId,
+                        payment_amount: amount,
+                        payment_method: method
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ Payment Received!\n\nBill: ${data.bill_number}\nAmount: ₹${data.payment_amount}\nNew Balance: ₹${data.new_balance}\nStatus: ${data.new_status.toUpperCase()}`);
+                    closePaymentModal();
+                    
+                    // Refresh based on current view
+                    if (currentView === 'active') {
+                        loadCreditBills();
+                    } else {
+                        loadPaymentHistory();
+                    }
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to record payment'));
+                }
+            } catch (error) {
+                console.error('Error submitting payment:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Receive Payment';
+            }
+        }
     </script>
 </body>
 </html>

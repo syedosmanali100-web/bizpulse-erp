@@ -1,0 +1,332 @@
+<!-- Real-time Sync Integration -->
+<!-- Include this in your existing pages to enable real-time sync -->
+
+<!-- Load simple sync client (REST API based, no SocketIO) -->
+<script src="/static/js/sync-client-simple.js"></script>
+
+<script>
+// Initialize sync integration for existing pages
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initializing real-time sync integration...');
+    
+    // Setup sync callbacks for different data types
+    if (window.syncClient) {
+        
+        // Handle products sync
+        window.syncClient.on('products_synced', function(products) {
+            console.log('📦 Products synced:', products.length);
+            
+            // Refresh products table/list if it exists
+            if (typeof loadProducts === 'function') {
+                loadProducts();
+            } else if (typeof refreshProductsData === 'function') {
+                refreshProductsData();
+            }
+            
+            // Update product dropdowns
+            updateProductDropdowns(products);
+        });
+        
+        // Handle sales sync
+        window.syncClient.on('sales_synced', function(sales) {
+            console.log('💰 Sales synced:', sales.length);
+            
+            // Refresh sales data if function exists
+            if (typeof loadSales === 'function') {
+                loadSales();
+            } else if (typeof loadSalesData === 'function') {
+                loadSalesData();
+            }
+        });
+        
+        // Handle customers sync
+        window.syncClient.on('customers_synced', function(customers) {
+            console.log('👥 Customers synced:', customers.length);
+            
+            // Refresh customers data if function exists
+            if (typeof loadCustomers === 'function') {
+                loadCustomers();
+            } else if (typeof loadCustomersData === 'function') {
+                loadCustomersData();
+            }
+            
+            // Update customer dropdowns
+            updateCustomerDropdowns(customers);
+        });
+        
+        // Handle individual data changes from other devices
+        window.syncClient.on('data_changed', function(change) {
+            console.log('🔄 Data changed on another device:', change);
+            
+            const { event_type, table, record } = change;
+            
+            // 🔥 REMOVED: Sync notification popup
+            // showSyncNotification(`${table} ${event_type}d on another device`, 'info');
+            
+            // Refresh relevant data
+            switch (table) {
+                case 'products':
+                    if (typeof loadProducts === 'function') loadProducts();
+                    break;
+                case 'sales':
+                    if (typeof loadSales === 'function') loadSales();
+                    if (typeof loadDashboardData === 'function') loadDashboardData();
+                    break;
+                case 'customers':
+                    if (typeof loadCustomers === 'function') loadCustomers();
+                    break;
+                case 'invoices':
+                    if (typeof loadInvoices === 'function') loadInvoices();
+                    break;
+            }
+        });
+        
+        // Handle initial sync complete
+        window.syncClient.on('initial_sync_complete', function(data) {
+            console.log('✅ Initial sync completed');
+            // 🔥 REMOVED: Sync notification popup
+            // showSyncNotification('Data synced across devices', 'success');
+        });
+    }
+});
+
+// Helper functions
+function updateProductDropdowns(products) {
+    // Update all product dropdowns on the page
+    const productSelects = document.querySelectorAll('select[name*="product"], select[id*="product"]');
+    productSelects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select Product</option>';
+        
+        products.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = `${product.name} - ₹${product.price}`;
+            if (product.id === currentValue) option.selected = true;
+            select.appendChild(option);
+        });
+    });
+}
+
+function updateCustomerDropdowns(customers) {
+    // Update all customer dropdowns on the page
+    const customerSelects = document.querySelectorAll('select[name*="customer"], select[id*="customer"]');
+    customerSelects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select Customer</option>';
+        
+        customers.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer.id;
+            option.textContent = customer.name;
+            if (customer.id === currentValue) option.selected = true;
+            select.appendChild(option);
+        });
+    });
+}
+
+function showSyncNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'sync-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    notification.textContent = `🔄 ${message}`;
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Global functions for manual sync
+window.triggerManualSync = function() {
+    if (window.syncClient) {
+        window.syncClient.requestSync(true);
+        showSyncNotification('Manual sync requested', 'info');
+    }
+};
+
+window.notifyDataChange = function(eventType, tableName, recordData) {
+    if (window.syncClient) {
+        window.syncClient.onDataChange(eventType, recordData, tableName);
+    }
+};
+
+// Add sync status indicator to page
+function addSyncStatusIndicator() {
+    const indicator = document.createElement('div');
+    indicator.id = 'global-sync-indicator';
+    indicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 8px 12px;
+        background: #1F2937;
+        color: white;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        z-index: 9999;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+    `;
+    
+    indicator.innerHTML = '🔄 Sync: Connecting...';
+    indicator.onclick = window.triggerManualSync;
+    
+    document.body.appendChild(indicator);
+    
+    // Show indicator with animation
+    setTimeout(() => {
+        indicator.style.opacity = '0.8';
+        indicator.style.transform = 'translateY(0)';
+        indicator.style.pointerEvents = 'auto';
+    }, 1000);
+    
+    // Auto-hide after 3 seconds, then show on hover
+    setTimeout(() => {
+        indicator.style.opacity = '0.3';
+        
+        // Show on hover
+        indicator.addEventListener('mouseenter', () => {
+            indicator.style.opacity = '1';
+            indicator.style.transform = 'scale(1.05)';
+        });
+        
+        indicator.addEventListener('mouseleave', () => {
+            indicator.style.opacity = '0.3';
+            indicator.style.transform = 'scale(1)';
+        });
+    }, 4000);
+    
+    // Update indicator based on sync status
+    const updateIndicator = () => {
+        if (window.syncClient) {
+            const status = window.syncClient.getStatus();
+            if (status.connected) {
+                indicator.innerHTML = '✅ Sync: Connected';
+                indicator.style.background = '#10B981';
+            } else {
+                indicator.innerHTML = '❌ Sync: Disconnected';
+                indicator.style.background = '#EF4444';
+            }
+        }
+    };
+    
+    // Update every 2 seconds
+    setInterval(updateIndicator, 2000);
+    
+    // Hide and show on page refresh/visibility change
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            // Show briefly when page becomes visible
+            indicator.style.opacity = '0.8';
+            indicator.style.transform = 'translateY(0)';
+            
+            setTimeout(() => {
+                indicator.style.opacity = '0.3';
+            }, 3000);
+        }
+    });
+    
+    // Show briefly when sync events occur
+    if (window.syncClient) {
+        window.syncClient.on('data_changed', () => {
+            indicator.style.opacity = '1';
+            indicator.style.background = '#3B82F6';
+            indicator.innerHTML = '🔄 Syncing...';
+            
+            setTimeout(() => {
+                indicator.style.opacity = '0.3';
+                updateIndicator();
+            }, 2000);
+        });
+        
+        window.syncClient.on('initial_sync_complete', () => {
+            indicator.style.opacity = '1';
+            indicator.style.background = '#10B981';
+            indicator.innerHTML = '✅ Synced';
+            
+            setTimeout(() => {
+                indicator.style.opacity = '0.3';
+                updateIndicator();
+            }, 2000);
+        });
+    }
+}
+
+// Add sync status indicator when page loads
+document.addEventListener('DOMContentLoaded', addSyncStatusIndicator);
+</script>
+
+<style>
+/* Sync notification styles */
+.sync-notification {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Sync status indicator hover effect */
+#global-sync-indicator:hover {
+    opacity: 1 !important;
+    transform: scale(1.05);
+}
+
+/* Sync status in existing status bars */
+.sync-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.sync-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
+    animation: pulse 2s infinite;
+}
+
+.sync-status-dot.disconnected {
+    background: #EF4444;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+</style>

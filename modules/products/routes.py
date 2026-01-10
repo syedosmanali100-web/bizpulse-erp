@@ -3,17 +3,39 @@ Products routes
 COPIED AS-IS from app.py
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from .service import ProductsService
+from .variants_service import ProductVariantsService
 from modules.shared.auth_decorators import require_auth
+from modules.shared.database import get_current_client_id
 
 products_bp = Blueprint('products', __name__)
 products_service = ProductsService()
+variants_service = ProductVariantsService()
+
+def get_user_id_from_session():
+    """Get user_id from session for filtering data"""
+    user_type = session.get('user_type')
+    if user_type == 'employee':
+        return session.get('client_id')  # For employees, use client_id
+    else:
+        return session.get('user_id')    # For clients/users, use user_id
 
 @products_bp.route('/api/products', methods=['GET'])
 def get_products():
+    """Get products filtered by user_id for Desktop-Mobile sync"""
     conn = products_service.get_db_connection()
-    products = conn.execute('SELECT * FROM products WHERE is_active = 1').fetchall()
+    
+    # 🔥 Get user_id for filtering
+    user_id = get_user_id_from_session()
+    
+    if user_id:
+        # Filter by user_id for multi-tenant support
+        products = conn.execute('SELECT * FROM products WHERE is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchall()
+    else:
+        # Fallback: show all products if no user_id (backward compatibility)
+        products = conn.execute('SELECT * FROM products WHERE is_active = 1').fetchall()
+    
     conn.close()
     return jsonify([dict(row) for row in products])
 
@@ -115,7 +137,7 @@ def barcode_to_cart(barcode):
 
 @products_bp.route('/api/products', methods=['POST'])
 def add_product():
-    """Add new product - Mobile ERP compatible - NO AUTH REQUIRED"""
+    """Add new product - Mobile ERP compatible - With user_id for sync"""
     try:
         data = request.json
         print(f"[PRODUCT ADD API] Received data: {data}")
@@ -126,6 +148,12 @@ def add_product():
                 "success": False,
                 "error": "No data provided"
             }), 400
+        
+        # 🔥 Add user_id to data for multi-tenant support
+        user_id = get_user_id_from_session()
+        if user_id:
+            data['user_id'] = user_id
+            print(f"[PRODUCT ADD API] Adding product for user: {user_id}")
         
         result = products_service.add_product(data)
         
@@ -225,4 +253,211 @@ def recommend_product_images():
         return jsonify({
             'success': False,
             'error': 'Failed to fetch image recommendations. Please try again.'
+        }), 500
+
+        result = products_service.recommend_product_images(product_name, category)
+        
+        if result['success']:
+            return jsonify(result)
+        else:
+            return jsonify(result), 404
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@products_bp.route('/api/products/alerts', methods=['GET'])
+def get_product_alerts():
+    """
+    Get product alerts for:
+    - Low stock products
+    - Out of stock products
+    - Products expiring soon (within 7 days)
+    - Expired products
+    """
+    try:
+        from datetime import datetime, timedelta
+        
+        conn = products_service.get_db_connection()
+        user_id = get_user_id_from_session()
+        
+        # Get current date
+        today = datetime.now().date()
+        expiry_threshold = (today + timedelta(days=7)).isoformat()
+        
+        alerts = {
+            'low_stock': [],
+            'out_of_stock': [],
+            'expiring_soon': [],
+            'expired': []
+        }
+        
+        # Build query based on user_id
+        if user_id:
+            base_query = 'SELECT * FROM products WHERE is_active = 1 AND (user_id = ? OR user_id IS NULL)'
+            products = conn.execute(base_query, (user_id,)).fetchall()
+        else:
+            products = conn.execute('SELECT * FROM products WHERE is_active = 1').fetchall()
+        
+        for product in products:
+            product_dict = dict(product)
+            
+            # Check stock levels
+            if product_dict['stock'] == 0:
+                alerts['out_of_stock'].append({
+                    'id': product_dict['id'],
+                    'name': product_dict['name'],
+                    'category': product_dict['category'],
+                    'stock': product_dict['stock'],
+                    'message': f"{product_dict['name']} is out of stock"
+                })
+            elif product_dict['stock'] <= product_dict.get('min_stock', 0):
+                alerts['low_stock'].append({
+                    'id': product_dict['id'],
+                    'name': product_dict['name'],
+                    'category': product_dict['category'],
+                    'stock': product_dict['stock'],
+                    'min_stock': product_dict.get('min_stock', 0),
+                    'message': f"{product_dict['name']} is low on stock ({product_dict['stock']} remaining)"
+                })
+            
+            # Check expiry dates
+            if product_dict.get('expiry_date'):
+                try:
+                    expiry_date = datetime.fromisoformat(product_dict['expiry_date']).date()
+                    
+                    if expiry_date < today:
+                        alerts['expired'].append({
+                            'id': product_dict['id'],
+                            'name': product_dict['name'],
+                            'category': product_dict['category'],
+                            'expiry_date': product_dict['expiry_date'],
+                            'days_expired': (today - expiry_date).days,
+                            'message': f"{product_dict['name']} expired {(today - expiry_date).days} days ago"
+                        })
+                    elif expiry_date <= (today + timedelta(days=7)):
+                        days_until_expiry = (expiry_date - today).days
+                        alerts['expiring_soon'].append({
+                            'id': product_dict['id'],
+                            'name': product_dict['name'],
+                            'category': product_dict['category'],
+                            'expiry_date': product_dict['expiry_date'],
+                            'days_until_expiry': days_until_expiry,
+                            'message': f"{product_dict['name']} expires in {days_until_expiry} days",
+                            'priority': 'high' if days_until_expiry <= 3 else 'medium'
+                        })
+                except (ValueError, TypeError):
+                    pass  # Skip invalid dates
+        
+        # Sort expiring_soon by days_until_expiry (most urgent first)
+        alerts['expiring_soon'].sort(key=lambda x: x['days_until_expiry'])
+        
+        # Calculate totals
+        total_alerts = (
+            len(alerts['low_stock']) + 
+            len(alerts['out_of_stock']) + 
+            len(alerts['expiring_soon']) + 
+            len(alerts['expired'])
+        )
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'total_alerts': total_alerts,
+            'alerts': alerts,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"[ALERTS API] Exception: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+# ========== PRODUCT VARIANTS ROUTES ==========
+
+@products_bp.route('/api/products/<product_id>/variants', methods=['GET'])
+def get_product_variants(product_id):
+    """Get all variants for a product"""
+    try:
+        variants = variants_service.get_product_variants(product_id)
+        
+        return jsonify({
+            "success": True,
+            "variants": variants,
+            "total": len(variants)
+        })
+        
+    except Exception as e:
+        print(f"[VARIANTS GET] Exception: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@products_bp.route('/api/products/<product_id>/variants', methods=['POST'])
+def add_product_variant(product_id):
+    """Add a variant to a product"""
+    try:
+        data = request.json
+        print(f"[VARIANT ADD] Adding variant to product {product_id}: {data}")
+        
+        result = variants_service.add_variant(product_id, data)
+        
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+        
+    except Exception as e:
+        print(f"[VARIANT ADD] Exception: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@products_bp.route('/api/products/variants/<variant_id>', methods=['PUT'])
+def update_product_variant(variant_id):
+    """Update a variant"""
+    try:
+        data = request.json
+        print(f"[VARIANT UPDATE] Updating variant {variant_id}: {data}")
+        
+        result = variants_service.update_variant(variant_id, data)
+        
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+        
+    except Exception as e:
+        print(f"[VARIANT UPDATE] Exception: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@products_bp.route('/api/products/variants/<variant_id>', methods=['DELETE'])
+def delete_product_variant(variant_id):
+    """Delete a variant"""
+    try:
+        print(f"[VARIANT DELETE] Deleting variant {variant_id}")
+        
+        result = variants_service.delete_variant(variant_id)
+        
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 404
+        
+    except Exception as e:
+        print(f"[VARIANT DELETE] Exception: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
         }), 500

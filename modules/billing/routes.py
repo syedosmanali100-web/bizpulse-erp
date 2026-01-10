@@ -37,6 +37,40 @@ def get_bill_items(bill_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@billing_bp.route('/api/bills/<bill_id>', methods=['GET'])
+def get_bill_details(bill_id):
+    """Get bill details with items - Mobile ERP Style"""
+    try:
+        from modules.shared.database import get_db_connection
+        
+        conn = get_db_connection()
+        
+        # Get bill details
+        bill = conn.execute("""
+            SELECT b.*, c.name as customer_name 
+            FROM bills b 
+            LEFT JOIN customers c ON b.customer_id = c.id 
+            WHERE b.id = ?
+        """, (bill_id,)).fetchone()
+        
+        if not bill:
+            return jsonify({"error": "Bill not found"}), 404
+        
+        # Get bill items
+        items = conn.execute("""
+            SELECT * FROM bill_items WHERE bill_id = ?
+        """, (bill_id,)).fetchall()
+        
+        conn.close()
+        
+        return jsonify({
+            "bill": dict(bill),
+            "items": [dict(item) for item in items]
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @billing_bp.route('/api/bills', methods=['POST'])
 def create_bill():
     """Create bill - Mobile ERP Perfect Implementation - With user_id"""

@@ -8,11 +8,14 @@ from modules.shared.database import get_db_connection
 class ProductsModels:
     
     @staticmethod
-    def get_all_products():
-        """Get all active products"""
+    def get_all_products(user_id=None):
+        """Get all active products - filtered by user_id for data isolation"""
         conn = get_db_connection()
         try:
-            products = conn.execute('SELECT * FROM products WHERE is_active = 1').fetchall()
+            if user_id:
+                products = conn.execute('SELECT * FROM products WHERE is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchall()
+            else:
+                products = conn.execute('SELECT * FROM products WHERE is_active = 1').fetchall()
             return [dict(row) for row in products]
         finally:
             conn.close()
@@ -38,11 +41,14 @@ class ProductsModels:
             conn.close()
     
     @staticmethod
-    def get_products_with_barcodes():
-        """Get all products that have barcodes"""
+    def get_products_with_barcodes(user_id=None):
+        """Get all products that have barcodes - filtered by user_id for data isolation"""
         conn = get_db_connection()
         try:
-            products = conn.execute("SELECT id, name, barcode_data FROM products WHERE barcode_data IS NOT NULL AND barcode_data != '' AND is_active = 1").fetchall()
+            if user_id:
+                products = conn.execute("SELECT id, name, barcode_data FROM products WHERE barcode_data IS NOT NULL AND barcode_data != '' AND is_active = 1 AND (user_id = ? OR user_id IS NULL)", (user_id,)).fetchall()
+            else:
+                products = conn.execute("SELECT id, name, barcode_data FROM products WHERE barcode_data IS NOT NULL AND barcode_data != '' AND is_active = 1").fetchall()
             return [dict(row) for row in products]
         finally:
             conn.close()

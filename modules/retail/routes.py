@@ -54,9 +54,10 @@ def get_dashboard_stats():
 
 @retail_bp.route('/api/dashboard/activity', methods=['GET'])
 def get_dashboard_activity():
-    """Get recent activity for dashboard - NO AUTH for mobile"""
+    """Get recent activity for dashboard - Filtered by user"""
     try:
-        result = retail_service.get_recent_activity()
+        user_id = get_user_id_from_session()
+        result = retail_service.get_recent_activity(user_id)
         return jsonify(result)
         
     except Exception as e:
@@ -111,9 +112,9 @@ def retail_invoices_test():
 @retail_bp.route('/retail/invoice/<invoice_id>')
 def retail_invoice_detail(invoice_id):
     try:
-        return render_template('retail_invoice_detail.html', invoice_id=invoice_id)
+        return render_template('simple_receipt.html', invoice_id=invoice_id)
     except Exception as e:
-        return f"<h1>❌ Invoice Detail Template Error</h1><p>Error: {str(e)}</p><p>Template: retail_invoice_detail.html</p><p>Invoice ID: {invoice_id}</p><a href='/retail/invoices'>Back to Invoices</a>"
+        return f"<h1>❌ Invoice Detail Template Error</h1><p>Error: {str(e)}</p><p>Template: simple_receipt.html</p><p>Invoice ID: {invoice_id}</p><a href='/retail/invoices'>Back to Invoices</a>"
 
 @retail_bp.route('/invoice-demo')
 def invoice_demo():
@@ -140,7 +141,7 @@ def credit_test():
 
 @retail_bp.route('/api/credit/bills/debug', methods=['GET'])
 def get_credit_bills():
-    """Get all credit bills"""
+    """Get all credit bills - Filtered by user"""
     from flask import request
     from modules.shared.database import get_db_connection
     import traceback
@@ -150,6 +151,10 @@ def get_credit_bills():
     print("=" * 80)
     
     try:
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        print(f"🔍 [CREDIT] Filtering by user_id: {user_id}")
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -160,7 +165,7 @@ def get_credit_bills():
         
         print(f"📋 Filters: status={status}, customer={customer}, date_range={date_range}")
         
-        # Base query
+        # Base query with user filtering
         query = """
             SELECT 
                 b.id,
@@ -180,6 +185,11 @@ def get_credit_bills():
         """
         
         params = []
+        
+        # 🔥 Add user filtering
+        if user_id:
+            query += " AND (b.business_owner_id = ? OR b.business_owner_id IS NULL)"
+            params.append(user_id)
         
         # Add date filter
         if date_range != 'all':
@@ -280,13 +290,18 @@ def get_credit_bills():
 
 @retail_bp.route('/api/credit/export', methods=['GET'])
 def export_credit():
-    """Export credit bills"""
+    """Export credit bills - Filtered by user"""
     from modules.shared.database import get_db_connection
     
     try:
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        print(f"🔍 [CREDIT EXPORT] Filtering by user_id: {user_id}")
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Query with user filtering
         query = """
             SELECT 
                 b.bill_number,
@@ -298,10 +313,18 @@ def export_credit():
                 b.created_at
             FROM bills b
             WHERE b.is_credit = 1 AND b.credit_balance > 0
-            ORDER BY b.created_at DESC
         """
         
-        cursor.execute(query)
+        params = []
+        
+        # 🔥 Add user filtering
+        if user_id:
+            query += " AND (b.business_owner_id = ? OR b.business_owner_id IS NULL)"
+            params.append(user_id)
+        
+        query += " ORDER BY b.created_at DESC"
+        
+        cursor.execute(query, params)
         rows = cursor.fetchall()
         
         bills = []
@@ -462,7 +485,7 @@ def record_credit_payment():
 
 @retail_bp.route('/api/credit/history', methods=['GET'])
 def get_credit_history():
-    """Get credit payment history - paid and partially paid bills"""
+    """Get credit payment history - paid and partially paid bills - Filtered by user"""
     from flask import request
     from modules.shared.database import get_db_connection
     import traceback
@@ -472,6 +495,10 @@ def get_credit_history():
     print("=" * 80)
     
     try:
+        # 🔥 Get user_id for filtering
+        user_id = get_user_id_from_session()
+        print(f"🔍 [CREDIT HISTORY] Filtering by user_id: {user_id}")
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -500,6 +527,11 @@ def get_credit_history():
         """
         
         params = []
+        
+        # 🔥 Add user filtering
+        if user_id:
+            query += " AND (b.business_owner_id = ? OR b.business_owner_id IS NULL)"
+            params.append(user_id)
         
         # Add date filter
         if date_range != 'all':

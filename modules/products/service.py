@@ -146,8 +146,8 @@ class ProductsService:
         try:
             conn.execute("""INSERT INTO products (
                     id, code, name, category, price, cost, stock, min_stock, 
-                    unit, business_type, barcode_data, barcode_image, image_url, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                    unit, business_type, barcode_data, barcode_image, image_url, expiry_date, is_active, user_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                 product_id, 
                 product_code, 
                 data['name'].strip(), 
@@ -161,7 +161,9 @@ class ProductsService:
                 barcode_data,  # Store scanned barcode value (unique)
                 barcode_image,  # Store barcode image
                 data.get('image_url'),  # Store product image URL
-                1  # is_active
+                data.get('expiry_date'),  # Store expiry date
+                1,  # is_active
+                data.get('user_id')  # 🔥 Store user_id for multi-tenant support
             ))
             
             conn.commit()
@@ -182,6 +184,38 @@ class ProductsService:
                 }
         
         conn.close()
+        
+        # 🔥 LOG REAL-TIME ACTIVITY - New product added
+        try:
+            from modules.dashboard.models import log_product_activity
+            log_product_activity(
+                product_id=product_id,
+                product_name=data['name'],
+                action='added',
+                category=data.get('category', 'General'),
+                price=float(data['price'])
+            )
+            print(f"✅ [DASHBOARD] Activity logged: Product added - {data['name']}")
+        except Exception as e:
+            print(f"⚠️ [DASHBOARD] Failed to log product activity: {e}")
+        
+        # 📡 BROADCAST PRODUCT CREATION - Real-time sync
+        try:
+            from modules.sync.utils import broadcast_data_change
+            product_data = {
+                'id': product_id,
+                'code': product_code,
+                'name': data['name'].strip(),
+                'category': data.get('category', 'General'),
+                'price': float(data['price']),
+                'stock': int(data.get('stock', 0)),
+                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            broadcast_data_change('create', 'products', product_data, data.get('business_owner_id'))
+            print(f"📡 [SYNC] Product creation broadcasted: {data['name']}")
+        except Exception as sync_error:
+            print(f"⚠️ [SYNC] Failed to broadcast product creation: {sync_error}")
+            # Don't fail the main operation if sync fails
         
         return {
             "success": True,
@@ -243,7 +277,7 @@ class ProductsService:
             conn.execute("""UPDATE products SET
                     code = ?, name = ?, category = ?, price = ?, cost = ?, 
                     stock = ?, min_stock = ?, unit = ?, business_type = ?,
-                    barcode_data = ?, barcode_image = ?, image_url = ?
+                    barcode_data = ?, barcode_image = ?, image_url = ?, expiry_date = ?
                 WHERE id = ?""", (
                 data.get('code', existing_product['code']),
                 data['name'].strip(), 
@@ -257,6 +291,7 @@ class ProductsService:
                 barcode_data,
                 barcode_image,
                 data.get('image_url', existing_product['image_url']),  # Handle image URL
+                data.get('expiry_date', existing_product.get('expiry_date')),  # Handle expiry date
                 product_id
             ))
             

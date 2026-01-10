@@ -95,8 +95,8 @@ class BillingService:
         try:
             # Create bill record with customer name and business_owner_id
             customer_name = data.get('customer_name', 'Walk-in Customer')
-            conn.execute("""INSERT INTO bills (id, bill_number, customer_id, customer_name, business_type, business_owner_id, subtotal, tax_amount, total_amount, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+            conn.execute("""INSERT INTO bills (id, bill_number, customer_id, customer_name, business_type, business_owner_id, subtotal, tax_amount, discount_amount, total_amount, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                 bill_id, 
                 bill_number, 
                 data.get('customer_id'),
@@ -105,6 +105,7 @@ class BillingService:
                 business_owner_id,  # 🔥 Store business_owner_id for multi-tenant support
                 data.get('subtotal', 0), 
                 data.get('tax_amount', 0), 
+                data.get('discount_amount', 0),  # 🔥 Save discount_amount to database
                 data.get('total_amount', 0),
                 'completed',
                 datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -270,10 +271,13 @@ class BillingService:
                         partial_amount = 0
                         balance_due = total_amount
                     
+                    # Get the actual payment method used for partial payment
+                    partial_payment_method = data.get('partial_payment_method', 'cash')
+                    
                     # Update bills table for partial payment tracking
                     conn.execute("""UPDATE bills SET is_credit = 1, payment_method = ?, payment_status = 'partial',
-                               credit_paid_amount = ?, credit_balance = ?
-                        WHERE id = ?""", (payment_method, partial_amount, balance_due, bill_id))
+                               credit_paid_amount = ?, credit_balance = ?, partial_payment_method = ?
+                        WHERE id = ?""", (payment_method, partial_amount, balance_due, partial_payment_method, bill_id))
                     
                     # Update sales records for partial payment tracking
                     conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 

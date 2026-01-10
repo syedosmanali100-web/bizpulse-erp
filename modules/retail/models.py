@@ -61,13 +61,18 @@ class RetailModels:
             conn.close()
     
     @staticmethod
-    def get_inventory_stats():
-        """Get inventory statistics"""
+    def get_inventory_stats(user_id=None):
+        """Get inventory statistics - filtered by user_id for data isolation"""
         conn = get_db_connection()
         try:
-            total_products = conn.execute('SELECT COUNT(*) as count FROM products WHERE is_active = 1').fetchone()['count']
-            low_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock > 0 AND stock <= min_stock AND is_active = 1').fetchone()['count']
-            out_of_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock = 0 AND is_active = 1').fetchone()['count']
+            if user_id:
+                total_products = conn.execute('SELECT COUNT(*) as count FROM products WHERE is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchone()['count']
+                low_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock > 0 AND stock <= min_stock AND is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchone()['count']
+                out_of_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock = 0 AND is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchone()['count']
+            else:
+                total_products = conn.execute('SELECT COUNT(*) as count FROM products WHERE is_active = 1').fetchone()['count']
+                low_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock > 0 AND stock <= min_stock AND is_active = 1').fetchone()['count']
+                out_of_stock = conn.execute('SELECT COUNT(*) as count FROM products WHERE stock = 0 AND is_active = 1').fetchone()['count']
             
             return {
                 'total_products': total_products,
@@ -78,11 +83,14 @@ class RetailModels:
             conn.close()
     
     @staticmethod
-    def get_customer_count():
-        """Get total customer count"""
+    def get_customer_count(user_id=None):
+        """Get total customer count - filtered by user_id for data isolation"""
         conn = get_db_connection()
         try:
-            count = conn.execute('SELECT COUNT(*) as count FROM customers WHERE is_active = 1').fetchone()['count']
+            if user_id:
+                count = conn.execute('SELECT COUNT(*) as count FROM customers WHERE is_active = 1 AND (user_id = ? OR user_id IS NULL)', (user_id,)).fetchone()['count']
+            else:
+                count = conn.execute('SELECT COUNT(*) as count FROM customers WHERE is_active = 1').fetchone()['count']
             return count
         finally:
             conn.close()
