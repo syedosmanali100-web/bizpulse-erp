@@ -292,9 +292,40 @@ def create_client():
         import hashlib
         
         data = request.get_json()
+        username = data.get('username', '').strip()
+        
+        if not username:
+            return jsonify({
+                'success': False,
+                'message': 'Username is required'
+            }), 400
         
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Check if username already exists
+        cursor.execute('SELECT id FROM clients WHERE username = ?', (username,))
+        existing_client = cursor.fetchone()
+        
+        if existing_client:
+            conn.close()
+            return jsonify({
+                'success': False,
+                'message': f'Username "{username}" already exists. Please choose a different username.'
+            }), 400
+        
+        # Check if email already exists
+        email = data.get('contact_email', '').strip()
+        if email:
+            cursor.execute('SELECT id FROM clients WHERE contact_email = ?', (email,))
+            existing_email = cursor.fetchone()
+            
+            if existing_email:
+                conn.close()
+                return jsonify({
+                    'success': False,
+                    'message': f'Email "{email}" already exists. Please use a different email.'
+                }), 400
         
         # Generate client ID
         client_id = generate_id()
@@ -314,7 +345,7 @@ def create_client():
             data.get('contact_email'),
             data.get('contact_name'),
             data.get('phone_number'),
-            data.get('username'),
+            username,
             password_hash,
             1,
             data.get('business_type', 'retail'),
