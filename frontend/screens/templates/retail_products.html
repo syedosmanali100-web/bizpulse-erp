@@ -807,22 +807,22 @@
         <div class="controls" style="margin-bottom: 15px;">
             <div class="controls-row">
                 <button class="add-btn" onclick="openBulkImportModal()">
-                    📊 Bulk Import
+                    Bulk Import
                 </button>
                 <button class="add-btn" onclick="exportProducts()">
-                    📤 Export CSV
+                    Export CSV
                 </button>
                 <button class="add-btn" onclick="openPriceUpdateModal()">
-                    💰 Bulk Price Update
+                    Bulk Price Update
                 </button>
                 <button class="add-btn" onclick="generateLowStockReport()">
-                    📋 Low Stock Report
+                    Low Stock Report
                 </button>
                 <button class="add-btn" onclick="generateBarcode()">
-                    🏷️ Generate Barcodes
+                    Generate Barcodes
                 </button>
                 <button class="add-btn" onclick="openAddModal()">
-                    ➕ Add Product
+                    Add Product
                 </button>
             </div>
         </div>
@@ -862,15 +862,34 @@
             <div class="table-header">
                 <h3 class="table-title">Products Inventory</h3>
                 <div class="table-actions">
-                    <button class="btn btn-view" onclick="toggleTableView()">
-                        📋 Toggle View
+                    <button class="btn btn-danger" onclick="toggleBulkDelete()" id="bulkDeleteToggle">
+                        Bulk Delete
                     </button>
+                    <button class="btn btn-view" onclick="toggleTableView()">
+                        Toggle View
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Bulk Delete Actions (Hidden by default) -->
+            <div id="bulkDeleteActions" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; color: #856404;">
+                        <span id="selectedCount">0</span> products selected
+                    </span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-danger" onclick="deleteSelectedProducts()">Delete Selected</button>
+                        <button class="btn btn-secondary" onclick="cancelBulkDelete()">Cancel</button>
+                    </div>
                 </div>
             </div>
             
             <table>
                 <thead>
                     <tr>
+                        <th id="selectAllHeader" style="display: none;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="cursor: pointer;">
+                        </th>
                         <th>Product</th>
                         <th>Category</th>
                         <th>Price</th>
@@ -1018,7 +1037,7 @@
                             <img id="previewImg" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #e0e0e0; display: block;">
                             <div style="margin-top: 10px;">
                                 <button type="button" onclick="removeImagePreview()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                                    🗑️ Remove Image
+                                    Remove Image
                                 </button>
                                 <button type="button" onclick="changeImage()" style="background: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
                                     🔄 Change Image
@@ -1274,6 +1293,7 @@
         let products = [];
         let editingProductId = null;
         let currentDetailProductId = null;
+        let bulkDeleteMode = false;
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1518,11 +1538,13 @@
         // Display products in table
         function displayProducts(productsToShow) {
             const tbody = document.getElementById('productsTableBody');
+            const isBulkMode = bulkDeleteMode;
             
             if (productsToShow.length === 0) {
+                const colspan = isBulkMode ? "10" : "9";
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+                        <td colspan="${colspan}" style="text-align: center; padding: 40px; color: #666;">
                             <div style="font-size: 3rem; margin-bottom: 10px;">📦</div>
                             <div>No products found</div>
                             <button class="btn-primary" onclick="openAddModal()" style="margin-top: 15px;">Add First Product</button>
@@ -1538,6 +1560,7 @@
                 const totalValue = (product.cost * product.stock).toFixed(2);
                 return `
                     <tr>
+                        ${isBulkMode ? `<td><input type="checkbox" class="product-checkbox" data-product-id="${product.id}" onchange="updateSelectedCount()" style="cursor: pointer;"></td>` : ''}
                         <td>
                             <div class="product-info">
                                 <div class="product-image">
@@ -1563,22 +1586,22 @@
                                 ${stockStatus.label}
                             </span>
                         </td>
-                        <td>
+                        ${!isBulkMode ? `<td>
                             <div class="action-buttons">
                                 <button class="btn btn-view" onclick="viewProductDetails('${product.id}')" title="View Details">
-                                    👁️
+                                    View
                                 </button>
                                 <button class="btn btn-stock" onclick="openStockModal('${product.id}', '${product.name}', ${product.stock})" title="Update Stock">
-                                    📊
+                                    Stock
                                 </button>
                                 <button class="btn btn-edit" onclick="editProduct('${product.id}')" title="Edit">
-                                    ✏️
+                                    Edit
                                 </button>
                                 <button class="btn btn-delete" onclick="deleteProduct('${product.id}')" title="Delete">
-                                    🗑️
+                                    Delete
                                 </button>
                             </div>
-                        </td>
+                        </td>` : '<td></td>'}
                     </tr>
                 `;
             }).join('');
@@ -2485,6 +2508,109 @@
                 showError('Error updating prices: ' + error.message);
             }
         }
+        
+        // ============================================================================
+        // BULK DELETE FUNCTIONS
+        // ============================================================================
+        
+        // Toggle bulk delete mode
+        function toggleBulkDelete() {
+            bulkDeleteMode = !bulkDeleteMode;
+            const toggleBtn = document.getElementById('bulkDeleteToggle');
+            const actionsDiv = document.getElementById('bulkDeleteActions');
+            const selectAllHeader = document.getElementById('selectAllHeader');
+            
+            if (bulkDeleteMode) {
+                toggleBtn.textContent = 'Cancel Bulk';
+                toggleBtn.style.background = '#dc3545';
+                actionsDiv.style.display = 'block';
+                selectAllHeader.style.display = 'table-cell';
+            } else {
+                toggleBtn.textContent = 'Bulk Delete';
+                toggleBtn.style.background = '#6c757d';
+                actionsDiv.style.display = 'none';
+                selectAllHeader.style.display = 'none';
+            }
+            
+            // Refresh product display
+            filterProducts();
+        }
+        
+        // Cancel bulk delete
+        function cancelBulkDelete() {
+            bulkDeleteMode = false;
+            document.getElementById('bulkDeleteToggle').textContent = 'Bulk Delete';
+            document.getElementById('bulkDeleteToggle').style.background = '#6c757d';
+            document.getElementById('bulkDeleteActions').style.display = 'none';
+            document.getElementById('selectAllHeader').style.display = 'none';
+            filterProducts();
+        }
+        
+        // Toggle select all
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateSelectedCount();
+        }
+        
+        // Update selected count
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+            document.getElementById('selectedCount').textContent = checkboxes.length;
+        }
+        
+        // Delete selected products
+        async function deleteSelectedProducts() {
+            const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.dataset.productId);
+            
+            if (selectedIds.length === 0) {
+                showError('Please select products to delete');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${selectedIds.length} product(s)?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            for (const productId of selectedIds) {
+                try {
+                    const token = localStorage.getItem('authToken');
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    failCount++;
+                }
+            }
+            
+            if (successCount > 0) {
+                showSuccess(`Deleted ${successCount} product(s) successfully!`);
+            }
+            if (failCount > 0) {
+                showError(`Failed to delete ${failCount} product(s)`);
+            }
+            
+            // Reload products and exit bulk mode
+            await loadProducts();
+            cancelBulkDelete();
+        }
+        
+        // ============================================================================
         
         // Image handling functions
         function previewProductImage() {

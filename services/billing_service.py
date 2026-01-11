@@ -177,8 +177,9 @@ class BillingService:
                 
                 # Create sales entry
                 sale_id = self._generate_id()
-                sale_date = datetime.now().strftime('%Y-%m-%d')
-                sale_time = datetime.now().strftime('%H:%M:%S')
+                # Use the bill's created_at timestamp for consistency
+                sale_date = current_time.split(' ')[0]  # Extract date part
+                sale_time = current_time.split(' ')[1]  # Extract time part
                 
                 # Calculate proportional tax and discount
                 subtotal = data.get('subtotal', data['total_amount'])

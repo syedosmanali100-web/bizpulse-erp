@@ -1398,6 +1398,15 @@
                     if (avatarEl) {
                         const initials = userInfo.name.split(' ').map(n => n[0]).join('').toUpperCase();
                         avatarEl.textContent = initials;
+                        
+                        // Load profile picture if available
+                        if (userInfo.profile_picture) {
+                            const avatarContainer = avatarEl.parentElement;
+                            avatarContainer.style.backgroundImage = `url('${userInfo.profile_picture}')`;
+                            avatarContainer.style.backgroundSize = 'cover';
+                            avatarContainer.style.backgroundPosition = 'center';
+                            avatarEl.textContent = ''; // Hide initials when picture is shown
+                        }
                     }
                     // Update welcome title with client's name
                     if (welcomeEl) {
@@ -1517,7 +1526,17 @@
                         // Update modal with user data
                         document.getElementById('modalProfileName').textContent = userInfo.user_name || 'User';
                         document.getElementById('modalProfileRole').textContent = userInfo.user_type === 'client' ? 'Business Owner' : 'User';
-                        document.getElementById('modalProfileAvatar').textContent = (userInfo.user_name || 'U').charAt(0).toUpperCase();
+                        const modalAvatarEl = document.getElementById('modalProfileAvatar');
+                        modalAvatarEl.textContent = (userInfo.user_name || 'U').charAt(0).toUpperCase();
+                        
+                        // Load profile picture if available
+                        if (userInfo.profile_picture) {
+                            const modalAvatarContainer = modalAvatarEl.parentElement;
+                            modalAvatarContainer.style.backgroundImage = `url('${userInfo.profile_picture}')`;
+                            modalAvatarContainer.style.backgroundSize = 'cover';
+                            modalAvatarContainer.style.backgroundPosition = 'center';
+                            modalAvatarEl.textContent = ''; // Hide initials when picture is shown
+                        }
                         
                         // Fill form fields
                         document.getElementById('fullNameInput').value = userInfo.user_name || '';
@@ -1618,7 +1637,13 @@
                                 }
                             });
                             
+                            // Update localStorage with new profile picture
+                            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+                            userInfo.profile_picture = result.profile_picture_url;
+                            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+                            
                             console.log('✅ Profile picture updated');
+                            alert('Profile picture updated successfully!');
                         } else {
                             alert('Failed to upload profile picture');
                         }
@@ -2358,7 +2383,8 @@
                             id: userInfo.user_id,
                             name: userInfo.user_name,
                             type: userInfo.user_type,
-                            is_super_admin: userInfo.is_super_admin
+                            is_super_admin: userInfo.is_super_admin,
+                            profile_picture: userInfo.profile_picture  // Include profile picture
                         }));
                         
                         // Set user type for profile component
@@ -2369,6 +2395,18 @@
                         const welcomeEl = document.getElementById('welcomeTitle');
                         if (welcomeEl && userInfo.user_name) {
                             welcomeEl.textContent = `Welcome back, ${userInfo.user_name}`;
+                        }
+                        
+                        // Update profile picture if available
+                        if (userInfo.profile_picture) {
+                            const avatarEl = document.getElementById('profileAvatar');
+                            if (avatarEl) {
+                                const avatarContainer = avatarEl.parentElement;
+                                avatarContainer.style.backgroundImage = `url('${userInfo.profile_picture}')`;
+                                avatarContainer.style.backgroundSize = 'cover';
+                                avatarContainer.style.backgroundPosition = 'center';
+                                avatarEl.textContent = ''; // Hide initials when picture is shown
+                            }
                         }
                     }
                     

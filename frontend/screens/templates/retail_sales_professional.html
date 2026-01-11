@@ -821,8 +821,8 @@
                     <td><strong>${serialNumber}</strong></td>
                     <td><strong>#${sale.bill_number || sale.id || 'N/A'}</strong></td>
                     <td>
-                        ${formatDate(sale.date || sale.created_at)}<br>
-                        <small style="color: #6b7280; font-size: 0.75em;">${formatTime(sale.time || sale.created_at)}</small>
+                        ${formatDate(sale.created_at)}<br>
+                        <small style="color: #6b7280; font-size: 0.75em;">${formatTime(sale.created_at)}</small>
                     </td>
                     <td>${sale.customer_name || 'Walk-in Customer'}</td>
                     <td>${sale.product_name || 'N/A'} (${sale.quantity || 1}x)</td>
