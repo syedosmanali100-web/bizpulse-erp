@@ -1026,7 +1026,14 @@
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             try {
-                const date = new Date(dateStr);
+                // Parse the date string as local time, not UTC
+                // Format: "2026-01-12 00:59:59" or "2026-01-12"
+                const parts = dateStr.split(' ')[0].split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+                const day = parseInt(parts[2]);
+                
+                const date = new Date(year, month, day);
                 return date.toLocaleDateString('en-IN', {
                     year: 'numeric',
                     month: 'short',
@@ -1040,7 +1047,22 @@
         function formatTime(timeStr) {
             if (!timeStr) return '';
             try {
-                const date = new Date(timeStr);
+                // Parse the timestamp as local time, not UTC
+                // Format: "2026-01-12 00:59:59"
+                const parts = timeStr.split(' ');
+                if (parts.length < 2) return timeStr;
+                
+                const dateParts = parts[0].split('-');
+                const timeParts = parts[1].split(':');
+                
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+                const day = parseInt(dateParts[2]);
+                const hour = parseInt(timeParts[0]);
+                const minute = parseInt(timeParts[1]);
+                const second = parseInt(timeParts[2] || 0);
+                
+                const date = new Date(year, month, day, hour, minute, second);
                 return date.toLocaleTimeString('en-IN', {
                     hour: '2-digit',
                     minute: '2-digit',

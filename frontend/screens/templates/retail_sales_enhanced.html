@@ -523,7 +523,13 @@
         }
         
         function formatDate(dateStr) {
-            const date = new Date(dateStr);
+            // Parse the date string as local time, not UTC
+            const parts = dateStr.split(' ')[0].split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const day = parseInt(parts[2]);
+            
+            const date = new Date(year, month, day);
             const now = new Date();
             const diff = Math.floor((now - date) / 1000);
             
