@@ -10,8 +10,13 @@ from datetime import datetime, timedelta
 import os
 import json
 
+# Get absolute path to database file
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DB_PATH = os.path.join(BASE_DIR, 'billing.db')
+
 def get_db_connection():
-    conn = sqlite3.connect('billing.db')
+    """Get database connection with absolute path to prevent file location issues"""
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -31,7 +36,9 @@ def get_current_client_id():
         return session.get('user_id')    # For clients, use user_id
 
 def init_db():
-    conn = sqlite3.connect('billing.db')
+    """Initialize database with absolute path"""
+    print(f"📁 Using database: {DB_PATH}")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     # Products table
