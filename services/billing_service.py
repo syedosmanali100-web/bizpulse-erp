@@ -112,6 +112,15 @@ class BillingService:
             bill_number = f"BILL-{datetime.now().strftime('%Y%m%d')}-{bill_id[:8]}"
             
             # Create bill record
+            # Determine bill status based on payment method
+            payment_method = data.get('payment_method', 'cash')
+            if payment_method == 'credit':
+                bill_status = 'credit'
+            elif payment_method == 'partial':
+                bill_status = 'partial'
+            else:
+                bill_status = 'completed'
+            
             conn.execute('''
                 INSERT INTO bills (
                     id, bill_number, customer_id, business_type, 
@@ -128,7 +137,7 @@ class BillingService:
                 data.get('tax_amount', 0),
                 data.get('discount_amount', 0),
                 data['total_amount'],
-                'completed',
+                bill_status,
                 current_time
             ))
             
