@@ -84,16 +84,25 @@ class SalesService:
                 LIMIT ?
             ''', params + [limit]).fetchall()
             
-            # Get summary statistics
+            # Get summary statistics - Use same logic as dashboard for consistency
             summary = conn.execute(f'''
                 SELECT 
-                    COUNT(DISTINCT s.bill_id) as total_bills,
-                    COUNT(*) as total_items,
-                    COALESCE(SUM(s.total_price), 0) as total_revenue,
+                    COUNT(DISTINCT b.id) as total_bills,
+                    COUNT(s.id) as total_items,
+                    COALESCE(SUM(CASE 
+                        WHEN b.is_credit = 0 OR b.payment_status = 'paid' THEN s.total_price
+                        WHEN b.is_credit = 1 AND b.payment_status != 'paid' THEN (s.total_price * COALESCE(b.credit_paid_amount, 0) / NULLIF(b.total_amount, 0))
+                        ELSE s.total_price
+                    END), 0) as total_sales,
                     COALESCE(SUM(s.quantity), 0) as total_quantity,
                     COALESCE(AVG(s.unit_price), 0) as avg_unit_price,
-                    COALESCE(SUM(s.total_price - (p.cost * s.quantity)), 0) as total_profit
+                    COALESCE(SUM(s.total_price - (p.cost * s.quantity)), 0) as net_profit,
+                    COALESCE(SUM(CASE 
+                        WHEN b.is_credit = 1 AND b.credit_balance > 0 THEN b.credit_balance
+                        ELSE 0
+                    END), 0) as receivable_profit
                 FROM sales s
+                LEFT JOIN bills b ON s.bill_id = b.id
                 LEFT JOIN products p ON s.product_id = p.id
                 WHERE {date_condition}
             ''', params).fetchone()

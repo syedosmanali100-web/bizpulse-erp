@@ -826,7 +826,7 @@
             document.getElementById('totalRevenue').textContent = '₹' + formatNumber(summary.total_sales || 0);
             document.getElementById('totalProfit').textContent = '₹' + formatNumber(summary.net_profit || 0);
             document.getElementById('receivableAmount').textContent = '₹' + formatNumber(summary.receivable_profit || 0);
-            document.getElementById('avgOrder').textContent = '₹' + formatNumber(summary.avg_sale_value || 0);
+            document.getElementById('avgOrder').textContent = '₹' + formatNumber((summary.total_sales || 0) / Math.max(summary.total_bills || 1, 1));
         }
         
         function updateFilterInfo(filters, pagination) {
