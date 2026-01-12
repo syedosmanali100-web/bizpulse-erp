@@ -790,7 +790,7 @@
                     <tr>
                         <td><strong>${bill.serial_no || bill.sno || 'N/A'}</strong></td>
                         <td><strong>#${bill.bill_number || bill.bill_id || 'N/A'}</strong></td>
-                        <td>${formatDate(bill.date || bill.created_at)}</td>
+                        <td>${formatDate(bill.created_at)}</td>
                         <td>${bill.customer_name || 'Walk-in Customer'}</td>
                         <td>
                             <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${bill.product_list || bill.products || 'N/A'}">
