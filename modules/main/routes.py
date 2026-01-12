@@ -306,7 +306,12 @@ def test_permissions():
 
 @main_bp.route('/sales-management')
 def sales_management():
-    return render_template('sales_management_wine.html')
+    from flask import make_response
+    response = make_response(render_template('sales_management_wine.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @main_bp.route('/debug-sales')
 def debug_sales():
