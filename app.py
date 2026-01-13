@@ -322,5 +322,7 @@ def print_startup_info():
 if __name__ == '__main__':
     initialize_database()
     print_startup_info()
-    # Run with SocketIO support for real-time sync (temporarily using regular Flask)
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    # Production configuration
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port) 
