@@ -1,0 +1,25 @@
+{
+  "appId": "com.bizpulse.retail",
+  "appName": "BizPulse ERP",
+  "webDir": "frontend/assets/static",
+  "server": {
+    "url": "https://bizpulse-erp.onrender.com",
+    "cleartext": true,
+    "androidScheme": "https",
+    "allowNavigation": [
+      "*"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#4F46E5",
+      "showSpinner": false
+    }
+  }
+}
