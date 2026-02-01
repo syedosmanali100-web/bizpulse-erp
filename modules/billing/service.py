@@ -58,7 +58,7 @@ class BillingService:
         return [dict(row) for row in items]
     
     def create_bill(self, data):
-        """Create bill - Mobile ERP Perfect Implementation - With business_owner_id"""
+        """Create bill - OPTIMIZED for instant creation"""
         print("📥 [BILLING SERVICE] Received bill data:", data)
         
         # Extract business_owner_id
@@ -69,33 +69,35 @@ class BillingService:
         if not data or not data.get('items') or len(data['items']) == 0:
             return {"error": "Items are required", "success": False}
         
+        # ============================================================================
+        # OPTIMIZED: Batch stock validation with single query
+        # ============================================================================
         conn = get_db_connection()
+        product_ids = [item['product_id'] for item in data['items']]
+        placeholders = ','.join('?' * len(product_ids))
         
-        # ============================================================================
-        # STOCK VALIDATION - Using new stock system
-        # ============================================================================
+        # Get all product details in one query
+        products_data = conn.execute(f"""
+            SELECT id, name, stock, category, min_stock 
+            FROM products 
+            WHERE id IN ({placeholders})
+        """, product_ids).fetchall()
+        
+        products_map = {p['id']: dict(p) for p in products_data}
+        
+        # Quick stock validation
         out_of_stock_items = []
         for item in data['items']:
-            # Get current stock using new system
-            current_stock = get_current_stock(item['product_id'], business_owner_id)
+            product = products_map.get(item['product_id'])
+            if not product:
+                continue
             
-            # Get product name for error messages
-            product = conn.execute("SELECT name FROM products WHERE id = ?", (item['product_id'],)).fetchone()
-            product_name = product[0] if product else item.get('product_name', 'Unknown Product')
-            
-            # Check if stock is sufficient
+            current_stock = product['stock']
             if current_stock < item['quantity']:
                 out_of_stock_items.append(
-                    f"❌ {product_name}: Requested {item['quantity']}, Available {current_stock}"
-                )
-            
-            # Check if stock would go negative
-            if current_stock - item['quantity'] < 0:
-                out_of_stock_items.append(
-                    f"❌ {product_name}: Cannot reduce stock below 0"
+                    f"❌ {product['name']}: Requested {item['quantity']}, Available {current_stock}"
                 )
         
-        # If any items are out of stock, return error
         if out_of_stock_items:
             conn.close()
             return {
@@ -105,7 +107,7 @@ class BillingService:
             }
         
         # ============================================================================
-        # Proceed with bill creation if all stock checks pass
+        # Proceed with bill creation
         # ============================================================================
         
         bill_id = generate_id()
@@ -116,339 +118,242 @@ class BillingService:
         conn.execute('BEGIN TRANSACTION')
         
         try:
-            # Create bill record with customer name, business_owner_id, and gst_rate
+            # Prepare data
             customer_name = data.get('customer_name', 'Walk-in Customer')
-            gst_rate = data.get('gst_rate', 18)  # Get GST rate from frontend
+            gst_rate = data.get('gst_rate', 18)
+            payment_method = data.get('payment_method', 'cash')
+            total_amount = data.get('total_amount', 0)
+            subtotal = data.get('subtotal', 0)
+            tax_amount = data.get('tax_amount', 0)
+            discount_amount = data.get('discount_amount', 0)
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            sale_date = datetime.now().strftime('%Y-%m-%d')
+            sale_time = datetime.now().strftime('%H:%M:%S')
+            
+            # Create bill record
             conn.execute("""INSERT INTO bills (id, bill_number, customer_id, customer_name, business_type, business_owner_id, subtotal, tax_amount, discount_amount, gst_rate, total_amount, status, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
-                bill_id, 
-                bill_number, 
-                data.get('customer_id'),
-                customer_name,
-                data.get('business_type', 'retail'),
-                business_owner_id,  # 🔥 Store business_owner_id for multi-tenant support
-                data.get('subtotal', 0), 
-                data.get('tax_amount', 0), 
-                data.get('discount_amount', 0),  # 🔥 Save discount_amount to database
-                gst_rate,  # 🔥 Save GST rate to database
-                data.get('total_amount', 0),
-                'completed',
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                bill_id, bill_number, data.get('customer_id'), customer_name,
+                data.get('business_type', 'retail'), business_owner_id,
+                subtotal, tax_amount, discount_amount, gst_rate, total_amount,
+                'completed', current_time
             ))
             
-            # Keep the customer_name from data, don't overwrite it
-            # If customer_id exists, we can get additional info but keep the name from form
-            if data.get('customer_id') and not customer_name:
-                customer = conn.execute("SELECT name FROM customers WHERE id = ?", (data.get('customer_id'),)).fetchone()
-                if customer:
-                    customer_name = customer['name']
+            # ============================================================================
+            # OPTIMIZED: Batch prepare all inserts
+            # ============================================================================
+            bill_items_data = []
+            sales_data = []
+            stock_updates = []
+            stock_transactions = []
+            low_stock_products = []
             
-            # Process each item
             for item in data['items']:
                 item_id = generate_id()
+                product = products_map.get(item['product_id'])
                 
-                # Insert bill item
-                conn.execute("""INSERT INTO bill_items (id, bill_id, product_id, product_name, quantity, unit_price, total_price)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)""", (
-                    item_id, 
-                    bill_id, 
-                    item['product_id'], 
-                    item['product_name'],
-                    item['quantity'], 
-                    item['unit_price'], 
-                    item['total_price']
+                # Prepare bill item
+                bill_items_data.append((
+                    item_id, bill_id, item['product_id'], item['product_name'],
+                    item['quantity'], item['unit_price'], item['total_price']
                 ))
                 
-                # 🔥 NEW: Create stock OUT transaction instead of direct stock update
+                # Prepare stock update
+                stock_updates.append((item['quantity'], item['product_id']))
+                
+                # Prepare stock transaction if service available
                 if stock_service:
-                    stock_result = stock_service.create_sale_transaction(
-                        product_id=item['product_id'],
-                        quantity=item['quantity'],
-                        bill_id=bill_id,
-                        bill_number=bill_number,
-                        created_by=business_owner_id,
-                        business_owner_id=business_owner_id
-                    )
-                    
-                    if not stock_result['success']:
-                        # This should not happen due to pre-validation, but just in case
-                        print(f"⚠️ [BILLING SERVICE] Stock transaction failed: {stock_result['error']}")
-                        # Continue with old method as fallback
-                        conn.execute("""UPDATE products SET stock = CASE 
-                                WHEN stock - ? >= 0 THEN stock - ?
-                                ELSE 0
-                            END 
-                            WHERE id = ?""", (item['quantity'], item['quantity'], item['product_id']))
-                    else:
-                        print(f"✅ [BILLING SERVICE] Stock transaction created: {stock_result['transaction_id']}")
-                else:
-                    # Fallback to old method if stock service not available
-                    conn.execute("""UPDATE products SET stock = CASE 
-                            WHEN stock - ? >= 0 THEN stock - ?
-                            ELSE 0
-                        END 
-                        WHERE id = ?""", (item['quantity'], item['quantity'], item['product_id']))
+                    stock_transactions.append({
+                        'product_id': item['product_id'],
+                        'quantity': item['quantity'],
+                        'bill_id': bill_id,
+                        'bill_number': bill_number
+                    })
                 
-                # 🔔 CHECK FOR LOW STOCK AND CREATE NOTIFICATION (Updated for new system)
-                try:
-                    # Get current stock using new system
-                    current_stock = get_current_stock(item['product_id'], business_owner_id)
-                    
-                    # Get product details including min_stock
-                    product_details = conn.execute("""
-                        SELECT name, min_stock 
-                        FROM products 
-                        WHERE id = ?
-                    """, (item['product_id'],)).fetchone()
-                    
-                    if product_details:
-                        min_stock = product_details['min_stock'] or 0
-                        product_name = product_details['name']
-                        
-                        # Create notification if stock is low or out
-                        if current_stock == 0:
-                            create_notification_for_user(
-                                user_id=business_owner_id,
-                                notification_type='alert',
-                                message=f"Out of stock: {product_name} (0 remaining)",
-                                action_url='/retail/products'
-                            )
-                            print(f"🔔 [NOTIFICATION] Out of stock alert created for {product_name}")
-                        elif current_stock <= min_stock and min_stock > 0:
-                            create_notification_for_user(
-                                user_id=business_owner_id,
-                                notification_type='alert',
-                                message=f"Low stock alert: {product_name} (Only {current_stock} left)",
-                                action_url='/retail/products'
-                            )
-                            print(f"🔔 [NOTIFICATION] Low stock alert created for {product_name}")
-                            
-                except Exception as stock_notification_error:
-                    print(f"⚠️ [NOTIFICATION] Failed to create stock notification: {stock_notification_error}")
+                # Check for low stock (for later notification)
+                if product:
+                    new_stock = product['stock'] - item['quantity']
+                    min_stock = product.get('min_stock', 0) or 0
+                    if new_stock <= min_stock and min_stock > 0:
+                        low_stock_products.append({
+                            'name': product['name'],
+                            'stock': new_stock,
+                            'min_stock': min_stock
+                        })
                 
-                # Get product details for sales entry
-                product = conn.execute("SELECT category FROM products WHERE id = ?", (item['product_id'],)).fetchone()
-                
-                # Create sales entry for each item (AUTOMATIC SALES ENTRY)
+                # Prepare sales entry
                 sale_id = generate_id()
-                sale_date = datetime.now().strftime('%Y-%m-%d')
-                sale_time = datetime.now().strftime('%H:%M:%S')
-                
-                # Calculate proportional tax and discount
-                subtotal = data.get('subtotal', 0)
-                tax_amount = data.get('tax_amount', 0)
-                discount_amount = data.get('discount_amount', 0)
-                
                 item_tax = (item['total_price'] / subtotal) * tax_amount if subtotal > 0 else 0
                 item_discount = (item['total_price'] / subtotal) * discount_amount if subtotal > 0 else 0
+                category = product['category'] if product else 'General'
                 
-                conn.execute("""INSERT INTO sales (
-                        id, bill_id, bill_number, customer_id, customer_name,
-                        product_id, product_name, category, quantity, unit_price,
-                        total_price, tax_amount, discount_amount, payment_method,
-                        business_owner_id, sale_date, sale_time, created_at
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                sales_data.append((
                     sale_id, bill_id, bill_number, data.get('customer_id'), customer_name,
-                    item['product_id'], item['product_name'], 
-                    product['category'] if product else 'General',
+                    item['product_id'], item['product_name'], category,
                     item['quantity'], item['unit_price'], item['total_price'],
-                    item_tax, item_discount, data.get('payment_method', 'cash'),
-                    business_owner_id,  # 🔥 Store business_owner_id for multi-tenant support
-                    sale_date, sale_time, datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    item_tax, item_discount, payment_method, business_owner_id,
+                    sale_date, sale_time, current_time
+                ))
+            
+            # ============================================================================
+            # OPTIMIZED: Execute all inserts in batch
+            # ============================================================================
+            
+            # Batch insert bill items
+            conn.executemany("""INSERT INTO bill_items (id, bill_id, product_id, product_name, quantity, unit_price, total_price)
+                VALUES (?, ?, ?, ?, ?, ?, ?)""", bill_items_data)
+            
+            # Batch update stock
+            conn.executemany("""UPDATE products SET stock = stock - ? WHERE id = ?""", stock_updates)
+            
+            # Batch insert sales entries
+            conn.executemany("""INSERT INTO sales (
+                    id, bill_id, bill_number, customer_id, customer_name,
+                    product_id, product_name, category, quantity, unit_price,
+                    total_price, tax_amount, discount_amount, payment_method,
+                    business_owner_id, sale_date, sale_time, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", sales_data)
+            
+            # ============================================================================
+            # Handle payment records
+            # ============================================================================
+            payment_id = generate_id()
+            
+            if payment_method == 'credit':
+                paid_amount = 0
+                balance_due = total_amount
+                
+                conn.execute("""UPDATE bills SET is_credit = 1, payment_method = ?, payment_status = 'unpaid',
+                           credit_paid_amount = ?, credit_balance = ?
+                    WHERE id = ?""", (payment_method, paid_amount, balance_due, bill_id))
+                
+                conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
+                    WHERE bill_id = ?""", (balance_due, paid_amount, bill_id))
+                
+                conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
+                    VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, paid_amount, current_time))
+                
+                # Credit transaction record
+                transaction_id = generate_id()
+                transaction_customer_id = data.get('customer_id') or 'walk-in-customer'
+                conn.execute("""INSERT INTO credit_transactions (
+                        id, bill_id, customer_id, transaction_type, amount, 
+                        payment_method, reference_number, notes, created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                    transaction_id, bill_id, transaction_customer_id, 'credit_issued',
+                    balance_due, payment_method, bill_number,
+                    f'Credit bill created for {customer_name}', current_time
                 ))
                 
-                # Broadcast sale creation to all connected devices
-                try:
-                    from modules.sync.utils import broadcast_data_change
-                    sale_data = {
-                        'id': sale_id,
-                        'bill_id': bill_id,
-                        'bill_number': bill_number,
-                        'customer_name': customer_name,
-                        'product_name': item['product_name'],
-                        'quantity': item['quantity'],
-                        'total_price': item['total_price'],
-                        'payment_method': data.get('payment_method', 'cash'),
-                        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    }
-                    broadcast_data_change('create', 'sales', sale_data, data.get('business_owner_id'))
-                except Exception as sync_error:
-                    print(f"⚠️ [SYNC] Failed to broadcast sale creation: {sync_error}")
-                    # Don't fail the main operation if sync fails
-            
-            # Add payment record and handle credit bills
-            payment_method = data.get('payment_method', 'cash')
-            if payment_method:
-                payment_id = generate_id()
+            elif payment_method == 'partial':
+                partial_amount = float(data.get('partial_amount', 0))
+                balance_due = total_amount - partial_amount
+                partial_payment_method = data.get('partial_payment_method', 'cash')
                 
-                if payment_method == 'credit':
-                    # For credit bills, set paid amount to 0 and create balance due
-                    paid_amount = 0
-                    balance_due = data.get('total_amount', 0)
-                    
-                    print(f"💳 [BILLING] Creating CREDIT bill:")
-                    print(f"   Bill ID: {bill_id}")
-                    print(f"   Bill Number: {bill_number}")
-                    print(f"   Total Amount: ₹{balance_due}")
-                    print(f"   Setting is_credit = 1")
-                    print(f"   Setting credit_balance = {balance_due}")
-                    
-                    # Update bills table for credit tracking
-                    conn.execute("""UPDATE bills SET is_credit = 1, payment_method = ?, payment_status = 'unpaid',
-                               credit_paid_amount = ?, credit_balance = ?
-                        WHERE id = ?""", (payment_method, paid_amount, balance_due, bill_id))
-                    
-                    # Update sales records for credit tracking
-                    conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
-                        WHERE bill_id = ?""", (balance_due, paid_amount, bill_id))
-                    
-                    # Create payment record with 0 amount for credit
-                    conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
-                        VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, paid_amount, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-                    
-                    # 🔥 NEW: Create initial credit transaction record
-                    transaction_id = generate_id()
-                    transaction_customer_id = data.get('customer_id') or 'walk-in-customer'
+                if partial_amount <= 0:
+                    partial_amount = 0
+                    balance_due = total_amount
+                
+                conn.execute("""UPDATE bills SET is_credit = 1, payment_method = ?, payment_status = 'partial',
+                           credit_paid_amount = ?, credit_balance = ?, partial_payment_method = ?
+                    WHERE id = ?""", (payment_method, partial_amount, balance_due, partial_payment_method, bill_id))
+                
+                conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
+                    WHERE bill_id = ?""", (balance_due, partial_amount, bill_id))
+                
+                conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
+                    VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, partial_amount, current_time))
+                
+                # Credit transaction records
+                transaction_customer_id = data.get('customer_id') or 'walk-in-customer'
+                
+                transaction_id_credit = generate_id()
+                conn.execute("""INSERT INTO credit_transactions (
+                        id, bill_id, customer_id, transaction_type, amount, 
+                        payment_method, reference_number, notes, created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                    transaction_id_credit, bill_id, transaction_customer_id, 'credit_issued',
+                    total_amount, payment_method, bill_number,
+                    f'Partial payment bill created for {customer_name}', current_time
+                ))
+                
+                if partial_amount > 0:
+                    transaction_id_payment = generate_id()
                     conn.execute("""INSERT INTO credit_transactions (
                             id, bill_id, customer_id, transaction_type, amount, 
                             payment_method, reference_number, notes, created_at
                         )
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
-                        transaction_id,
-                        bill_id,
-                        transaction_customer_id,
-                        'credit_issued',
-                        balance_due,
-                        payment_method,
-                        bill_number,
-                        f'Credit bill created for {customer_name}',
-                        datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        transaction_id_payment, bill_id, transaction_customer_id, 'payment',
+                        partial_amount, partial_payment_method, bill_number,
+                        f'Initial partial payment by {customer_name}', current_time
                     ))
-                    
-                    print(f"💳 [BILLING SERVICE] Credit bill created: {bill_number} - Amount: ₹{data.get('total_amount', 0)}")
-                    print(f"💳 [BILLING SERVICE] Credit transaction recorded: {transaction_id}")
-                    
-                elif payment_method == 'partial':
-                    # For partial payments, get the partial amount
-                    partial_amount = float(data.get('partial_amount', 0))
-                    total_amount = data.get('total_amount', 0)
-                    balance_due = total_amount - partial_amount
-                    
-                    print(f"🔍 [BILLING SERVICE] Partial payment debug:")
-                    print(f"   partial_amount from data: {data.get('partial_amount')}")
-                    print(f"   parsed partial_amount: {partial_amount}")
-                    print(f"   total_amount: {total_amount}")
-                    print(f"   calculated balance_due: {balance_due}")
-                    
-                    # Validate partial amount
-                    if partial_amount <= 0:
-                        print(f"❌ [BILLING SERVICE] Invalid partial amount: {partial_amount}")
-                        # Set to 0 for credit bill if no valid partial amount
-                        partial_amount = 0
-                        balance_due = total_amount
-                    
-                    # Get the actual payment method used for partial payment
-                    partial_payment_method = data.get('partial_payment_method', 'cash')
-                    
-                    # Update bills table for partial payment tracking
-                    conn.execute("""UPDATE bills SET is_credit = 1, payment_method = ?, payment_status = 'partial',
-                               credit_paid_amount = ?, credit_balance = ?, partial_payment_method = ?
-                        WHERE id = ?""", (payment_method, partial_amount, balance_due, partial_payment_method, bill_id))
-                    
-                    # Update sales records for partial payment tracking
-                    conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
-                        WHERE bill_id = ?""", (balance_due, partial_amount, bill_id))
-                    
-                    # Create payment record with partial amount
-                    conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
-                        VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, partial_amount, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-                    
-                    # 🔥 NEW: Create credit transaction records for partial payment
-                    transaction_customer_id = data.get('customer_id') or 'walk-in-customer'
-                    
-                    # 1. Record the credit issued (full amount)
-                    transaction_id_credit = generate_id()
-                    conn.execute("""INSERT INTO credit_transactions (
-                            id, bill_id, customer_id, transaction_type, amount, 
-                            payment_method, reference_number, notes, created_at
-                        )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
-                        transaction_id_credit,
-                        bill_id,
-                        transaction_customer_id,
-                        'credit_issued',
-                        total_amount,
-                        payment_method,
-                        bill_number,
-                        f'Partial payment bill created for {customer_name}',
-                        datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    ))
-                    
-                    # 2. Record the partial payment
-                    if partial_amount > 0:
-                        transaction_id_payment = generate_id()
-                        partial_payment_method = data.get('partial_payment_method', 'cash')
-                        conn.execute("""INSERT INTO credit_transactions (
-                                id, bill_id, customer_id, transaction_type, amount, 
-                                payment_method, reference_number, notes, created_at
-                            )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
-                            transaction_id_payment,
-                            bill_id,
-                            transaction_customer_id,
-                            'payment',
-                            partial_amount,
-                            partial_payment_method,
-                            bill_number,
-                            f'Initial partial payment by {customer_name}',
-                            datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                        ))
-                    
-                    print(f"💰 [BILLING SERVICE] Partial payment bill created: {bill_number} - Total: ₹{total_amount}, Paid: ₹{partial_amount}, Due: ₹{balance_due}")
-                    print(f"💰 [BILLING SERVICE] Credit transactions recorded")
-                    
-                else:
-                    # Regular payment - full amount paid
-                    paid_amount = data.get('total_amount', 0)
-                    balance_due = 0
-                    
-                    # Update bills table for regular payment
-                    conn.execute("""UPDATE bills SET payment_method = ?, payment_status = 'paid'
-                        WHERE id = ?""", (payment_method, bill_id))
-                    
-                    # Update sales records
-                    conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
-                        WHERE bill_id = ?""", (balance_due, paid_amount, bill_id))
-                    
-                    # Create payment record
-                    conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
-                        VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, paid_amount, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+                
+            else:
+                # Regular payment
+                paid_amount = total_amount
+                balance_due = 0
+                
+                conn.execute("""UPDATE bills SET payment_method = ?, payment_status = 'paid'
+                    WHERE id = ?""", (payment_method, bill_id))
+                
+                conn.execute("""UPDATE sales SET balance_due = ?, paid_amount = ? 
+                    WHERE bill_id = ?""", (balance_due, paid_amount, bill_id))
+                
+                conn.execute("""INSERT INTO payments (id, bill_id, method, amount, processed_at)
+                    VALUES (?, ?, ?, ?, ?)""", (payment_id, bill_id, payment_method, paid_amount, current_time))
             
-            # Commit transaction
+            # Commit transaction - CRITICAL: Do this BEFORE notifications/logging
             conn.commit()
             conn.close()
             
-            # Check if E-Way Bill is required for this invoice
-            try:
-                from modules.eway.service import eway_service
-                invoice_value = data.get('total_amount', 0)
-                
-                if eway_service.check_eway_requirement(invoice_value, 'Maharashtra', 'Maharashtra'):
-                    print(f"💡 [E-WAY BILL] Invoice {bill_number} (₹{invoice_value}) requires E-Way Bill generation")
-                    # Note: E-Way Bill can be generated from the invoice management page
-                    
-            except Exception as eway_error:
-                print(f"⚠️ [E-WAY BILL] Failed to check requirement: {eway_error}")
+            print(f"✅ [BILLING SERVICE] Bill created successfully: {bill_number}")
             
-            # 🔥 LOG REAL-TIME ACTIVITY - Diverse sale activities based on transaction details
+            # ============================================================================
+            # ASYNC OPERATIONS - After commit (non-blocking)
+            # ============================================================================
+            
+            # Stock transactions (if service available)
+            if stock_service and stock_transactions:
+                for st in stock_transactions:
+                    try:
+                        stock_service.create_sale_transaction(
+                            product_id=st['product_id'],
+                            quantity=st['quantity'],
+                            bill_id=st['bill_id'],
+                            bill_number=st['bill_number'],
+                            created_by=business_owner_id,
+                            business_owner_id=business_owner_id
+                        )
+                    except Exception as e:
+                        print(f"⚠️ [STOCK] Transaction failed: {e}")
+            
+            # Low stock notifications
+            for product in low_stock_products:
+                try:
+                    if product['stock'] == 0:
+                        create_notification_for_user(
+                            user_id=business_owner_id,
+                            notification_type='alert',
+                            message=f"Out of stock: {product['name']} (0 remaining)",
+                            action_url='/retail/products'
+                        )
+                    else:
+                        create_notification_for_user(
+                            user_id=business_owner_id,
+                            notification_type='alert',
+                            message=f"Low stock alert: {product['name']} (Only {product['stock']} left)",
+                            action_url='/retail/products'
+                        )
+                except Exception as e:
+                    print(f"⚠️ [NOTIFICATION] Low stock alert failed: {e}")
+            
+            # Activity logging
             try:
-                total_amount = data.get('total_amount', 0)
-                payment_method = data.get('payment_method', 'cash')
-                
-                # Determine activity type based on transaction characteristics
                 if total_amount > 15000:
-                    # Large transaction - log as bulk order
                     log_order_activity(
                         order_id=bill_id,
                         amount=total_amount,
@@ -456,10 +361,7 @@ class BillingService:
                         customer_name=customer_name,
                         item_count=len(data['items'])
                     )
-                    print(f"✅ [DASHBOARD] Bulk order activity logged: {customer_name} - ₹{total_amount}")
-                    
                 elif payment_method == 'credit':
-                    # Credit transaction - different activity title
                     ActivityTracker.log_activity(
                         activity_type='sale',
                         title='Credit sale processed',
@@ -476,13 +378,10 @@ class BillingService:
                             'dropdown_type': 'sales'
                         }
                     )
-                    print(f"✅ [DASHBOARD] Credit sale activity logged: {customer_name} - ₹{total_amount}")
-                    
-                elif payment_method == 'upi':
-                    # UPI transaction
+                elif payment_method in ['upi', 'card']:
                     ActivityTracker.log_activity(
                         activity_type='sale',
-                        title='UPI payment received',
+                        title=f'{payment_method.upper()} payment {"received" if payment_method == "upi" else "processed"}',
                         description=f'₹{total_amount:,.0f} - {customer_name}',
                         amount=total_amount,
                         reference_id=bill_id,
@@ -495,45 +394,17 @@ class BillingService:
                             'dropdown_type': 'sales'
                         }
                     )
-                    print(f"✅ [DASHBOARD] UPI payment activity logged: {customer_name} - ₹{total_amount}")
-                    
-                elif payment_method == 'card':
-                    # Card transaction
-                    ActivityTracker.log_activity(
-                        activity_type='sale',
-                        title='Card payment processed',
-                        description=f'₹{total_amount:,.0f} - {customer_name}',
-                        amount=total_amount,
-                        reference_id=bill_id,
-                        reference_type='bill',
-                        icon_type='success',
-                        metadata={
-                            'bill_number': bill_number,
-                            'payment_method': payment_method,
-                            'has_dropdown': True,
-                            'dropdown_type': 'sales'
-                        }
-                    )
-                    print(f"✅ [DASHBOARD] Card payment activity logged: {customer_name} - ₹{total_amount}")
-                    
                 else:
-                    # Regular cash sale
                     log_sale_activity(
                         bill_id=bill_id,
                         amount=total_amount,
                         customer_name=customer_name
                     )
-                    print(f"✅ [DASHBOARD] Cash sale activity logged: {customer_name} - ₹{total_amount}")
-                    
             except Exception as e:
-                print(f"⚠️ [DASHBOARD] Failed to log activity: {e}")
+                print(f"⚠️ [ACTIVITY] Logging failed: {e}")
             
-            # 🔔 CREATE NOTIFICATION FOR SUCCESSFUL SALE
+            # Sale notification
             try:
-                total_amount = data.get('total_amount', 0)
-                payment_method = data.get('payment_method', 'cash')
-                
-                # Create notification message based on payment method
                 if payment_method == 'credit':
                     notification_message = f"Credit sale completed: ₹{total_amount:,.0f} from {customer_name}"
                 elif payment_method == 'partial':
@@ -542,19 +413,40 @@ class BillingService:
                 else:
                     notification_message = f"Sale completed: ₹{total_amount:,.0f} from {customer_name}"
                 
-                # Create notification for the user who made the sale
                 create_notification_for_user(
                     user_id=business_owner_id,
                     notification_type='sale',
                     message=notification_message,
                     action_url='/retail/sales'
                 )
-                print(f"🔔 [NOTIFICATION] Sale notification created for user {business_owner_id}")
-                
-            except Exception as notification_error:
-                print(f"⚠️ [NOTIFICATION] Failed to create sale notification: {notification_error}")
+            except Exception as e:
+                print(f"⚠️ [NOTIFICATION] Sale notification failed: {e}")
             
-            print(f"✅ [BILLING SERVICE] Bill created successfully: {bill_number}")
+            # Sync broadcasting
+            try:
+                from modules.sync.utils import broadcast_data_change
+                for item in data['items']:
+                    sale_data = {
+                        'bill_id': bill_id,
+                        'bill_number': bill_number,
+                        'customer_name': customer_name,
+                        'product_name': item['product_name'],
+                        'quantity': item['quantity'],
+                        'total_price': item['total_price'],
+                        'payment_method': payment_method,
+                        'created_at': current_time
+                    }
+                    broadcast_data_change('create', 'sales', sale_data, business_owner_id)
+            except Exception as e:
+                print(f"⚠️ [SYNC] Broadcasting failed: {e}")
+            
+            # E-Way Bill check
+            try:
+                from modules.eway.service import eway_service
+                if eway_service.check_eway_requirement(total_amount, 'Maharashtra', 'Maharashtra'):
+                    print(f"💡 [E-WAY BILL] Invoice {bill_number} (₹{total_amount}) requires E-Way Bill generation")
+            except Exception as e:
+                print(f"⚠️ [E-WAY BILL] Check failed: {e}")
             print(f"✅ [BILLING SERVICE] Sales entries created: {len(data['items'])}")
             
             return {
