@@ -3,7 +3,7 @@
   "appName": "BizPulse ERP",
   "webDir": "frontend/assets/static",
   "server": {
-    "url": "https://bizpulse-erp.onrender.com",
+    "url": "https://bizpulse24.com",
     "cleartext": true,
     "androidScheme": "https",
     "allowNavigation": [
