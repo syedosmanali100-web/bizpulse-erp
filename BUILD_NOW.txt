@@ -1,0 +1,58 @@
+========================================
+  ANDROID STUDIO APK BUILD - DO THIS NOW
+========================================
+
+✅ Android Studio is OPENING...
+
+STEP 1: PAUSE ONEDRIVE (MUST DO!)
+----------------------------------
+1. Look at bottom-right corner of screen
+2. Find OneDrive cloud icon ☁️
+3. Right-click → "Pause syncing" → "2 hours"
+4. ✅ Done!
+
+
+STEP 2: WAIT FOR ANDROID STUDIO
+--------------------------------
+Wait until you see:
+- ✅ "Gradle sync finished" (bottom status bar)
+- Takes 3-5 minutes
+
+
+STEP 3: OPEN TERMINAL
+----------------------
+At bottom of Android Studio:
+- Click "Terminal" tab
+- Terminal opens
+
+
+STEP 4: RUN THIS COMMAND
+-------------------------
+Type in Terminal:
+
+    gradlew assembleDebug
+
+Press Enter
+Wait 5-10 minutes
+
+
+STEP 5: GET APK
+---------------
+APK Location:
+    app\build\outputs\apk\debug\app-debug.apk
+
+Or click: Build → Build Bundle(s) / APK(s) → Build APK(s)
+
+
+STEP 6: INSTALL ON PHONE
+-------------------------
+Copy APK to phone and install!
+
+
+========================================
+  THAT'S IT! 🎉
+========================================
+
+Backend already working on Render!
+App will connect automatically!
+No rebuild needed for backend changes!
