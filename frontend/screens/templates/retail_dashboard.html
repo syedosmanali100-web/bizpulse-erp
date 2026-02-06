@@ -1903,7 +1903,7 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo">🛒</div>
+            <div class="logo"><img src="/static/iconss/kirana trolly.png" style="width: 32px; height: 32px;"></div>
             <div class="sidebar-title">{{ t('retail_store') }}</div>
         </div>
         
@@ -2083,7 +2083,7 @@
                         <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #732C3F 0%, #8B4A5C 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 32px; margin: 0 auto 15px; border: 3px solid #f0f0f0; position: relative;">
                             <span id="modalProfileAvatar">U</span>
                             <!-- Upload button -->
-                            <button onclick="document.getElementById('profilePictureInput').click()" style="position: absolute; bottom: -5px; right: -5px; width: 30px; height: 30px; border-radius: 50%; background: #732C3F; color: white; border: 2px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;">📷</button>
+                            <button onclick="document.getElementById('profilePictureInput').click()" style="position: absolute; bottom: -5px; right: -5px; width: 30px; height: 30px; border-radius: 50%; background: #732C3F; color: white; border: 2px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;"><img src="/static/iconss/camera.png" style="width: 16px; height: 16px;"></button>
                             <input type="file" id="profilePictureInput" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
                         </div>
                         <h2 style="margin: 0; color: #333; font-size: 24px;" id="modalProfileName">syed</h2>
@@ -2134,7 +2134,7 @@
         </div>
         <div class="notification-list" id="notificationList">
             <div class="notification-empty">
-                <div class="notification-empty-icon">🔔</div>
+                <div class="notification-empty-icon"><img src="/static/iconss/notification.png" style="width: 48px; height: 48px;"></div>
                 <div>No notifications yet</div>
             </div>
         </div>
@@ -2232,7 +2232,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <h2 class="section-title" style="margin: 0;">Recent Activity</h2>
                         <button onclick="refreshActivityData(event)" style="background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;">
-                            🔄 Refresh
+                            <img src="/static/iconss/reset filters.png" style="width: 14px; height: 14px; vertical-align: middle;"> Refresh
                         </button>
                     </div>
                     
@@ -2791,7 +2791,7 @@
                         const order = sections.last_bulk_order.data;
                         activitiesHtml += `
                             <div class="activity-item">
-                                <div class="activity-icon order">🛒</div>
+                                <div class="activity-icon order"><img src="/static/iconss/total orders.png" style="width: 24px; height: 24px;"></div>
                                 <div class="activity-content">
                                     <div class="activity-title">${order.order_type} processed</div>
                                     <div class="activity-desc">₹${order.amount.toLocaleString()} - ${order.customer_name}</div>
@@ -2961,11 +2961,11 @@
                                 iconClass = 'activity-icon customer';
                                 break;
                             case 'order':
-                                icon = '🛒';
+                                icon = '<img src="/static/iconss/total orders.png" style="width: 24px; height: 24px;">';
                                 iconClass = 'activity-icon order';
                                 break;
                             case 'inventory':
-                                icon = '⚠️';
+                                icon = '<img src="/static/iconss/low stock.png" style="width: 24px; height: 24px;">';
                                 iconClass = 'activity-icon warning';
                                 break;
                             default:
@@ -3172,7 +3172,7 @@
                         
                     case 'orders':
                         if (data.orders && data.orders.length > 0) {
-                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #fd7e14;">🛒 Recent Bulk Orders</div>';
+                            html = '<div style="font-weight: bold; margin-bottom: 8px; color: #fd7e14;"><img src="/static/iconss/total orders.png" style="width: 16px; height: 16px; vertical-align: middle;"> Recent Bulk Orders</div>';
                             data.orders.forEach((order, index) => {
                                 html += `
                                     <div style="padding: 5px 0; border-bottom: 1px solid #eee; font-size: 0.9em;">
